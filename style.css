@@ -1,0 +1,246 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #315efb;
+    --dark: #101a2d;
+    --muted: #8792a5;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+.login-page {
+    min-height: 100vh;
+    background: #f5f7fb;
+}
+
+.login-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+}
+
+.login-brand {
+    background:
+        radial-gradient(circle at 10% 10%, #25447c, transparent 50%),
+        #101a2d;
+    color: white;
+    padding: 12%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.logo {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg,#5280ff,#244bda);
+    border-radius: 17px;
+    display: grid;
+    place-items: center;
+    font-size: 30px;
+    font-weight: 800;
+    color: white;
+    box-shadow: 0 10px 30px #315efb44;
+}
+
+.brand-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #8eacff;
+    font-weight: 800;
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+.login-brand h1 {
+    font-size: clamp(38px,5vw,65px);
+    line-height: 1.1;
+    letter-spacing: -2px;
+}
+
+.login-brand h1 span {
+    color: #82a4ff;
+}
+
+.brand-description {
+    color: #aebbd0;
+    font-size: 14px;
+    line-height: 1.9;
+    max-width: 400px;
+    margin-top: 24px;
+}
+
+.secure-label {
+    margin-top: 70px;
+    color: #aebbd0;
+    font-size: 12px;
+}
+
+.login-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 30px;
+}
+
+.login-card {
+    background: white;
+    width: 100%;
+    max-width: 440px;
+    padding: 42px;
+    border-radius: 20px;
+    border: 1px solid #e8ecf3;
+    box-shadow: 0 20px 60px #101a2d0a;
+}
+
+.mobile-logo {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 35px;
+}
+
+.mobile-logo .logo {
+    width: 42px;
+    height: 42px;
+    font-size: 21px;
+}
+
+.small-heading {
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin-bottom: 13px;
+}
+
+.login-card h2 {
+    font-size: 26px;
+    color: #172033;
+    margin-bottom: 10px;
+}
+
+.description {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+form {
+    margin-top: 30px;
+}
+
+label {
+    display: block;
+    color: #344056;
+    font-size: 13px;
+    font-weight: 700;
+    margin: 20px 0 9px;
+}
+
+input {
+    width: 100%;
+    height: 50px;
+    padding: 0 14px;
+    border: 1px solid #dce2ec;
+    border-radius: 10px;
+    outline: none;
+    font-size: 14px;
+    transition: .2s;
+}
+
+input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px #315efb19;
+}
+
+button {
+    width: 100%;
+    height: 51px;
+    margin-top: 25px;
+    border: none;
+    border-radius: 10px;
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 18px;
+}
+
+button:hover {
+    background: #244bd8;
+}
+
+button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+#errorMessage {
+    color: #d43d4c;
+    font-size: 12px;
+    min-height: 20px;
+    margin-top: 13px;
+    line-height: 1.5;
+}
+
+.login-footer {
+    border-top: 1px solid #edf0f5;
+    margin-top: 25px;
+    padding-top: 18px;
+    text-align: center;
+    font-size: 10px;
+    color: #8993a5;
+}
+
+.copyright {
+    font-size: 11px;
+    color: #9ba4b3;
+    margin-top: 25px;
+}
+
+@media(max-width:850px) {
+    .login-container {
+        grid-template-columns: 1fr;
+    }
+
+    .login-brand {
+        display: none;
+    }
+
+    .login-section {
+        min-height: 100vh;
+    }
+
+    .mobile-logo {
+        display: flex;
+    }
+}
+
+@media(max-width:480px) {
+    .login-section {
+        padding: 18px;
+    }
+
+    .login-card {
+        padding: 28px 22px;
+    }
+
+    .login-card h2 {
+        font-size: 23px;
+    }
+}

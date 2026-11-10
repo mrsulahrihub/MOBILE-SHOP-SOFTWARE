@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#080d1c">
+    <meta name="robots" content="noindex,nofollow">
+
+    <title>Sign In | Mobile Shop Management</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body>
+
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+<div class="ambient ambient-three"></div>
+
+<main class="app-shell">
+
+    <!-- LEFT BENTO SECTION -->
+
+    <section class="visual-panel">
+
+        <div class="brand-top">
+            <div class="brand-symbol">M</div>
+
+            <div>
+                <strong>Mobile Shop</strong>
+                <small>MANAGEMENT SYSTEM</small>
+            </div>
+
+            <div class="system-status">
+                <span class="status-dot"></span>
+                SYSTEM ONLINE
+            </div>
+        </div>
+
+        <div class="hero-content">
+
+            <div class="eyebrow">
+                <span class="sparkle">✦</span>
+                YOUR BUSINESS. YOUR CONTROL.
+            </div>
+
+            <h1>
+                Manage your<br>
+                business <span>smarter.</span>
+            </h1>
+
+            <p>
+                One intelligent workspace for your mobile shop.
+                Control inventory, sales, customers and business
+                performance from a single dashboard.
+            </p>
+
+        </div>
+
+        <!-- BENTO GRID -->
+
+        <div class="bento-grid">
+
+            <div class="bento-card inventory-card">
+                <div class="card-icon">▦</div>
+                <span>INVENTORY</span>
+                <h3>Smart Stock</h3>
+                <small>Track products and stock levels</small>
+                <div class="mini-bars">
+                    <i></i><i></i><i></i><i></i><i></i><i></i>
+                </div>
+            </div>
+
+            <div class="bento-card sales-card">
+                <div class="card-icon">↗</div>
+                <span>SALES MANAGEMENT</span>
+                <h3>Business Growth</h3>
+                <small>Monitor your sales performance</small>
+                <div class="growth-line">
+                    <svg viewBox="0 0 240 65" preserveAspectRatio="none">
+                        <path d="M0 52 C30 45 38 55 65 36 S100 48 125 24 S165 36 190 12 S220 17 240 3"
+                              fill="none" stroke="#77d9ff"
+                              stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="bento-card security-card">
+                <div class="security-icon">◈</div>
+                <div>
+                    <span>PROTECTED ACCESS</span>
+                    <h3>Secure Workspace</h3>
+                    <small>Authentication powered by Supabase</small>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="visual-footer">
+            <span>© 2026 MOBILE SHOP MANAGEMENT</span>
+            <span>BUILT FOR BETTER BUSINESS</span>
+        </div>
+
+    </section>
+
+
+    <!-- RIGHT LOGIN SECTION -->
+
+    <section class="login-panel">
+
+        <div class="login-card">
+
+            <div class="mobile-brand">
+                <div class="brand-symbol">M</div>
+                <strong>Mobile Shop</strong>
+            </div>
+
+            <div class="login-heading">
+
+                <div class="welcome-tag">
+                    <span></span>
+                    WELCOME BACK
+                </div>
+
+                <h2>Sign in to your<br>workspace.</h2>
+
+                <p>
+                    Enter your credentials to access your management dashboard.
+                </p>
+
+            </div>
+
+            <form id="loginForm" novalidate>
+
+                <div class="field-group">
+
+                    <label for="email">EMAIL ADDRESS</label>
+
+                    <div class="input-wrapper">
+                        <span class="input-icon">✉</span>
+
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="admin@example.com"
+                            autocomplete="username"
+                            maxlength="254"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+
+                <div class="field-group">
+
+                    <div class="label-row">
+                        <label for="password">PASSWORD</label>
+                        <span class="password-hint">SECURE ACCESS</span>
+                    </div>
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">⌑</span>
+
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            maxlength="128"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            id="togglePassword"
+                            aria-label="Show password"
+                            aria-pressed="false"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="1.7">
+                                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+
+                    </div>
+
+                    <div class="password-strength" id="strengthContainer">
+                        <div class="strength-track">
+                            <span id="strengthBar"></span>
+                        </div>
+                        <small id="strengthText">Password strength</small>
+                    </div>
+
+                    <small id="capsWarning" class="caps-warning">
+                        ⚠ Caps Lock is ON
+                    </small>
+
+                </div>
+
+
+                <div class="options-row">
+
+                    <label class="remember-option">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="custom-check"></span>
+                        Remember me
+                    </label>
+
+                    <span class="secure-note">
+                        <span>◈</span> Secure Login
+                    </span>
+
+                </div>
+
+
+                <div id="errorMessage"
+                     class="feedback-message"
+                     role="alert"
+                     aria-live="polite"></div>
+
+
+                <div id="successMessage"
+                     class="success-message"
+                     role="status"
+                     aria-live="polite"></div>
+
+
+                <button type="submit" id="loginBtn" class="login-button">
+
+                    <span id="loginBtnText">Sign In to Dashboard</span>
+
+                    <span class="button-arrow">↗</span>
+
+                    <span class="button-loader"></span>
+
+                </button>
+
+            </form>
+
+
+            <div class="login-divider">
+                <span></span>
+                <small>SECURE BUSINESS ACCESS</small>
+                <span></span>
+            </div>
+
+
+            <div class="security-info">
+                <span class="security-shield">♢</span>
+
+                <div>
+                    <strong>Your data stays protected</strong>
+                    <small>Authentication secured with Supabase.</small>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="login-bottom">
+            <span>© 2026 Mobile Shop</span>
+            <span>ALL RIGHTS RESERVED</span>
+        </div>
+
+    </section>
+
+</main>
+
+<script type="module" src="js/login.js"></script>
+
+</body>
+</html>
