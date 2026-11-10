@@ -1,15 +1,136 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex,nofollow">
-    <title>Mobile Shop Management</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mobile Shop — Premium Phones & Accessories</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
-    <script>
-        window.location.replace("./login.html");
-    </script>
+
+<!-- Liquid blobs -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+<div class="blob blob-4"></div>
+
+<!-- NAV -->
+<header class="nav glass">
+    <a href="#" class="brand">
+        <span class="brand-mark">M</span>
+        <span>MOBILE<b>SHOP</b></span>
+    </a>
+    <nav class="nav-links">
+        <a href="#phones">Phones</a>
+        <a href="#accessories">Accessories</a>
+        <a href="#about">About</a>
+    </nav>
+    <a href="login.html" class="btn-login">
+        <i class="fa-solid fa-right-to-bracket"></i> Login
+    </a>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-text">
+        <span class="chip glass"><i class="fa-solid fa-bolt"></i> New arrivals weekly</span>
+        <h1>The <span>finest</span> mobile<br>experience, curated.</h1>
+        <p>Discover the latest flagship phones, accessories, and unbeatable prices — all in one premium store.</p>
+        <div class="hero-actions">
+            <a href="#phones" class="btn-primary">Browse Phones <i class="fa-solid fa-arrow-right"></i></a>
+            <a href="login.html" class="btn-ghost glass"><i class="fa-solid fa-lock"></i> Admin Login</a>
+        </div>
+        <div class="stats glass">
+            <div><strong>120+</strong><small>Models</small></div>
+            <div><strong>15k+</strong><small>Happy buyers</small></div>
+            <div><strong>4.9★</strong><small>Rating</small></div>
+        </div>
+    </div>
+    <div class="hero-visual glass">
+        <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=700&q=80" alt="iPhone">
+        <div class="floating-card fc1 glass">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Genuine warranty</span>
+        </div>
+        <div class="floating-card fc2 glass">
+            <i class="fa-solid fa-truck-fast"></i>
+            <span>Fast delivery</span>
+        </div>
+    </div>
+</section>
+
+<!-- PHONES -->
+<section id="phones" class="section">
+    <div class="section-head">
+        <h2>All Mobile Phones</h2>
+        <p>Latest flagships & budget picks with verified specs.</p>
+    </div>
+    <div class="grid" id="phoneGrid"></div>
+</section>
+
+<!-- ACCESSORIES -->
+<section id="accessories" class="section">
+    <div class="section-head">
+        <h2>Accessories</h2>
+        <p>Cases, chargers, earbuds and more.</p>
+    </div>
+    <div class="grid accessories" id="accGrid"></div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="section about glass">
+    <h2>Why Mobile Shop?</h2>
+    <div class="about-grid">
+        <div><i class="fa-solid fa-certificate"></i><h3>100% Genuine</h3><p>Every device is verified and sealed.</p></div>
+        <div><i class="fa-solid fa-headset"></i><h3>24/7 Support</h3><p>Talk to real humans any time.</p></div>
+        <div><i class="fa-solid fa-rotate-left"></i><h3>Easy Returns</h3><p>7-day no-questions return policy.</p></div>
+        <div><i class="fa-solid fa-tags"></i><h3>Best Prices</h3><p>Price-matched with any local store.</p></div>
+    </div>
+</section>
+
+<footer class="footer">
+    <span>© 2024 Mobile Shop. All rights reserved.</span>
+    <a href="login.html"><i class="fa-solid fa-user-shield"></i> Staff Login</a>
+</footer>
+
+<script>
+/* ---------- Product data ---------- */
+const phones = [
+  { name:"iPhone 15 Pro Max", brand:"Apple", price:"PKR 549,999", img:"https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500&q=80", tag:"New" },
+  { name:"Samsung Galaxy S24 Ultra", brand:"Samsung", price:"PKR 429,999", img:"https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500&q=80", tag:"Hot" },
+  { name:"Google Pixel 8 Pro", brand:"Google", price:"PKR 329,999", img:"https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&q=80", tag:"" },
+  { name:"OnePlus 12", brand:"OnePlus", price:"PKR 249,999", img:"https://images.unsplash.com/photo-1567581935884-3349723552ca?w=500&q=80", tag:"" },
+  { name:"Xiaomi 14 Ultra", brand:"Xiaomi", price:"PKR 289,999", img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&q=80", tag:"Hot" },
+  { name:"Infinix Zero 30", brand:"Infinix", price:"PKR 89,999", img:"https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=500&q=80", tag:"Value" },
+  { name:"Realme GT 5 Pro", brand:"Realme", price:"PKR 179,999", img:"https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=500&q=80", tag:"" },
+  { name:"Oppo Find X7", brand:"Oppo", price:"PKR 219,999", img:"https://images.unsplash.com/photo-1580910051074-3eb694886505?w=500&q=80", tag:"" },
+];
+
+const accessories = [
+  { name:"AirPods Pro 2", price:"PKR 74,999", img:"https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=500&q=80" },
+  { name:"MagSafe Charger", price:"PKR 12,999", img:"https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=500&q=80" },
+  { name:"Galaxy Watch 6", price:"PKR 89,999", img:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80" },
+  { name:"Pro Phone Case", price:"PKR 4,999", img:"https://images.unsplash.com/photo-1541877944-ac82a091518a?w=500&q=80" },
+];
+
+/* ---------- Render ---------- */
+const card = (p) => `
+  <article class="product glass">
+    ${p.tag ? `<span class="tag">${p.tag}</span>` : ""}
+    <div class="product-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
+    <div class="product-info">
+      ${p.brand ? `<small>${p.brand}</small>` : ""}
+      <h3>${p.name}</h3>
+      <div class="price-row">
+        <strong>${p.price}</strong>
+        <button class="btn-cart" aria-label="Add to cart"><i class="fa-solid fa-cart-shopping"></i></button>
+      </div>
+    </div>
+  </article>`;
+
+document.getElementById('phoneGrid').innerHTML = phones.map(card).join('');
+document.getElementById('accGrid').innerHTML = accessories.map(card).join('');
+</script>
 </body>
 </html>
