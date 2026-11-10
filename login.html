@@ -1,281 +1,880 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#080d1c">
-    <meta name="robots" content="noindex,nofollow">
-
-    <title>Sign In | Mobile Shop Management</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="css/login.css">
-</head>
-
-<body>
-
-<div class="ambient ambient-one"></div>
-<div class="ambient ambient-two"></div>
-<div class="ambient ambient-three"></div>
-
-<main class="app-shell">
-
-    <!-- LEFT BENTO SECTION -->
-
-    <section class="visual-panel">
-
-        <div class="brand-top">
-            <div class="brand-symbol">M</div>
-
-            <div>
-                <strong>Mobile Shop</strong>
-                <small>MANAGEMENT SYSTEM</small>
-            </div>
-
-            <div class="system-status">
-                <span class="status-dot"></span>
-                SYSTEM ONLINE
-            </div>
-        </div>
-
-        <div class="hero-content">
-
-            <div class="eyebrow">
-                <span class="sparkle">✦</span>
-                YOUR BUSINESS. YOUR CONTROL.
-            </div>
-
-            <h1>
-                Manage your<br>
-                business <span>smarter.</span>
-            </h1>
-
-            <p>
-                One intelligent workspace for your mobile shop.
-                Control inventory, sales, customers and business
-                performance from a single dashboard.
-            </p>
-
-        </div>
-
-        <!-- BENTO GRID -->
-
-        <div class="bento-grid">
-
-            <div class="bento-card inventory-card">
-                <div class="card-icon">▦</div>
-                <span>INVENTORY</span>
-                <h3>Smart Stock</h3>
-                <small>Track products and stock levels</small>
-                <div class="mini-bars">
-                    <i></i><i></i><i></i><i></i><i></i><i></i>
-                </div>
-            </div>
-
-            <div class="bento-card sales-card">
-                <div class="card-icon">↗</div>
-                <span>SALES MANAGEMENT</span>
-                <h3>Business Growth</h3>
-                <small>Monitor your sales performance</small>
-                <div class="growth-line">
-                    <svg viewBox="0 0 240 65" preserveAspectRatio="none">
-                        <path d="M0 52 C30 45 38 55 65 36 S100 48 125 24 S165 36 190 12 S220 17 240 3"
-                              fill="none" stroke="#77d9ff"
-                              stroke-width="3" stroke-linecap="round"/>
-                    </svg>
-                </div>
-            </div>
-
-            <div class="bento-card security-card">
-                <div class="security-icon">◈</div>
-                <div>
-                    <span>PROTECTED ACCESS</span>
-                    <h3>Secure Workspace</h3>
-                    <small>Authentication powered by Supabase</small>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="visual-footer">
-            <span>© 2026 MOBILE SHOP MANAGEMENT</span>
-            <span>BUILT FOR BETTER BUSINESS</span>
-        </div>
-
-    </section>
-
-
-    <!-- RIGHT LOGIN SECTION -->
-
-    <section class="login-panel">
-
-        <div class="login-card">
-
-            <div class="mobile-brand">
-                <div class="brand-symbol">M</div>
-                <strong>Mobile Shop</strong>
-            </div>
-
-            <div class="login-heading">
-
-                <div class="welcome-tag">
-                    <span></span>
-                    WELCOME BACK
-                </div>
-
-                <h2>Sign in to your<br>workspace.</h2>
-
-                <p>
-                    Enter your credentials to access your management dashboard.
-                </p>
-
-            </div>
-
-            <form id="loginForm" novalidate>
-
-                <div class="field-group">
-
-                    <label for="email">EMAIL ADDRESS</label>
-
-                    <div class="input-wrapper">
-                        <span class="input-icon">✉</span>
-
-                        <input
-                            type="email"
-                            id="email"
-                            placeholder="admin@example.com"
-                            autocomplete="username"
-                            maxlength="254"
-                            required
-                        >
-                    </div>
-
-                </div>
-
-
-                <div class="field-group">
-
-                    <div class="label-row">
-                        <label for="password">PASSWORD</label>
-                        <span class="password-hint">SECURE ACCESS</span>
-                    </div>
-
-                    <div class="input-wrapper">
-
-                        <span class="input-icon">⌑</span>
-
-                        <input
-                            type="password"
-                            id="password"
-                            placeholder="Enter your password"
-                            autocomplete="current-password"
-                            maxlength="128"
-                            required
-                        >
-
-                        <button
-                            type="button"
-                            class="password-toggle"
-                            id="togglePassword"
-                            aria-label="Show password"
-                            aria-pressed="false"
-                        >
-                            <svg viewBox="0 0 24 24" fill="none"
-                                 stroke="currentColor" stroke-width="1.7">
-                                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                        </button>
-
-                    </div>
-
-                    <div class="password-strength" id="strengthContainer">
-                        <div class="strength-track">
-                            <span id="strengthBar"></span>
-                        </div>
-                        <small id="strengthText">Password strength</small>
-                    </div>
-
-                    <small id="capsWarning" class="caps-warning">
-                        ⚠ Caps Lock is ON
-                    </small>
-
-                </div>
-
-
-                <div class="options-row">
-
-                    <label class="remember-option">
-                        <input type="checkbox" id="rememberMe">
-                        <span class="custom-check"></span>
-                        Remember me
-                    </label>
-
-                    <span class="secure-note">
-                        <span>◈</span> Secure Login
-                    </span>
-
-                </div>
-
-
-                <div id="errorMessage"
-                     class="feedback-message"
-                     role="alert"
-                     aria-live="polite"></div>
-
-
-                <div id="successMessage"
-                     class="success-message"
-                     role="status"
-                     aria-live="polite"></div>
-
-
-                <button type="submit" id="loginBtn" class="login-button">
-
-                    <span id="loginBtnText">Sign In to Dashboard</span>
-
-                    <span class="button-arrow">↗</span>
-
-                    <span class="button-loader"></span>
-
-                </button>
-
-            </form>
-
-
-            <div class="login-divider">
-                <span></span>
-                <small>SECURE BUSINESS ACCESS</small>
-                <span></span>
-            </div>
-
-
-            <div class="security-info">
-                <span class="security-shield">♢</span>
-
-                <div>
-                    <strong>Your data stays protected</strong>
-                    <small>Authentication secured with Supabase.</small>
-                </div>
-            </div>
-
-        </div>
-
-
-        <div class="login-bottom">
-            <span>© 2026 Mobile Shop</span>
-            <span>ALL RIGHTS RESERVED</span>
-        </div>
-
-    </section>
-
-</main>
-
-<script type="module" src="js/login.js"></script>
-
-</body>
-</html>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --bg: #e9edf4;
+    --surface: #edf1f8;
+    --navy: #17243d;
+    --text: #25334c;
+    --muted: #8290a6;
+    --blue: #4169e1;
+    --blue-light: #6488ff;
+    --shadow-dark: #cbd2df;
+    --shadow-light: #ffffff;
+    --danger: #df5365;
+    --success: #249b73;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    display: grid;
+    place-items: center;
+    padding: 35px;
+    overflow-x: hidden;
+}
+
+.ambient {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(2px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.ambient-one {
+    width: 340px;
+    height: 340px;
+    background: #dce5fa;
+    top: -140px;
+    left: -100px;
+    opacity: .7;
+}
+
+.ambient-two {
+    width: 400px;
+    height: 400px;
+    background: #f8faff;
+    bottom: -180px;
+    right: -120px;
+}
+
+.ambient-three {
+    width: 180px;
+    height: 180px;
+    background: #d8e2f7;
+    top: 45%;
+    right: 42%;
+    opacity: .35;
+}
+
+.app-shell {
+    position: relative;
+    z-index: 1;
+    width: min(1180px, 100%);
+    min-height: 720px;
+    display: grid;
+    grid-template-columns: 1.08fr .92fr;
+    background: var(--surface);
+    border-radius: 34px;
+    overflow: hidden;
+    box-shadow:
+        24px 24px 55px var(--shadow-dark),
+        -24px -24px 55px var(--shadow-light);
+}
+
+/* LEFT PANEL */
+
+.visual-panel {
+    position: relative;
+    padding: 42px;
+    background: linear-gradient(145deg, #1b2a48, #101a30);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.visual-panel::before {
+    content: "";
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.07);
+    right: -180px;
+    top: 120px;
+    box-shadow:
+        0 0 0 35px rgba(255,255,255,.025),
+        0 0 0 75px rgba(255,255,255,.018);
+}
+
+.visual-panel::after {
+    content: "";
+    position: absolute;
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    background: #426be0;
+    filter: blur(120px);
+    bottom: -100px;
+    left: -70px;
+    opacity: .4;
+}
+
+.brand-top {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    position: relative;
+    z-index: 2;
+}
+
+.brand-symbol {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 25px;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(145deg, #557cff, #3153b6);
+    box-shadow:
+        5px 5px 12px rgba(0,0,0,.3),
+        -3px -3px 9px rgba(255,255,255,.08);
+}
+
+.brand-top strong,
+.mobile-brand strong {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 17px;
+}
+
+.brand-top small {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #9eacc7;
+    margin-top: 4px;
+}
+
+.system-status {
+    margin-left: auto;
+    font-size: 9px;
+    letter-spacing: 1.2px;
+    color: #b7c8df;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot,
+.welcome-tag span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #47d6a1;
+    box-shadow: 0 0 10px #47d6a1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    margin-top: 85px;
+}
+
+.eyebrow {
+    font-size: 10px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: #aabce5;
+    margin-bottom: 23px;
+}
+
+.sparkle {
+    color: #82a1ff;
+    margin-right: 8px;
+}
+
+.hero-content h1 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(40px, 4.3vw, 59px);
+    line-height: 1.08;
+    letter-spacing: -2px;
+    font-weight: 700;
+}
+
+.hero-content h1 span {
+    color: #80a2ff;
+}
+
+.hero-content p {
+    max-width: 420px;
+    color: #a8b5cc;
+    font-size: 13px;
+    line-height: 1.9;
+    margin-top: 22px;
+}
+
+.bento-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 55px;
+}
+
+.bento-card {
+    position: relative;
+    padding: 22px;
+    min-height: 170px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 19px;
+    background: linear-gradient(145deg, #223451, #182640);
+    box-shadow:
+        7px 7px 15px rgba(0,0,0,.2),
+        -4px -4px 12px rgba(255,255,255,.025);
+    transition: transform .3s ease, box-shadow .3s ease;
+    overflow: hidden;
+}
+
+.bento-card:hover {
+    transform: translateY(-5px);
+    box-shadow:
+        10px 12px 20px rgba(0,0,0,.24),
+        -4px -4px 12px rgba(255,255,255,.04);
+}
+
+.card-icon,
+.security-icon {
+    font-size: 24px;
+    color: #83a2ff;
+    margin-bottom: 16px;
+}
+
+.bento-card > span,
+.security-card span {
+    display: block;
+    color: #8ea2c3;
+    font-size: 9px;
+    letter-spacing: 1.4px;
+}
+
+.bento-card h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    margin: 8px 0 5px;
+}
+
+.bento-card small {
+    color: #9baac2;
+    font-size: 10px;
+}
+
+.sales-card {
+    background: linear-gradient(145deg, #263a5d, #1b2b49);
+}
+
+.growth-line {
+    height: 42px;
+    margin-top: 10px;
+}
+
+.growth-line svg {
+    width: 100%;
+    height: 100%;
+}
+
+.mini-bars {
+    display: flex;
+    align-items: end;
+    gap: 5px;
+    height: 24px;
+    margin-top: 12px;
+}
+
+.mini-bars i {
+    width: 9px;
+    border-radius: 4px;
+    background: #6488ff;
+}
+
+.mini-bars i:nth-child(1) { height: 35%; }
+.mini-bars i:nth-child(2) { height: 55%; }
+.mini-bars i:nth-child(3) { height: 45%; }
+.mini-bars i:nth-child(4) { height: 75%; }
+.mini-bars i:nth-child(5) { height: 65%; }
+.mini-bars i:nth-child(6) { height: 100%; }
+
+.security-card {
+    grid-column: 1 / -1;
+    min-height: auto;
+    display: flex;
+    align-items: center;
+    gap: 17px;
+}
+
+.security-card .security-icon {
+    margin: 0;
+    font-size: 31px;
+}
+
+.security-card h3 {
+    margin: 5px 0;
+}
+
+.visual-footer {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    color: #8292ad;
+    font-size: 8px;
+    letter-spacing: 1px;
+    margin-top: 35px;
+}
+
+/* RIGHT PANEL */
+
+.login-panel {
+    padding: 55px 48px 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--surface);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 410px;
+    margin: auto;
+}
+
+.mobile-brand {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+.mobile-brand .brand-symbol {
+    color: white;
+}
+
+.login-heading {
+    margin-bottom: 36px;
+}
+
+.welcome-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px 15px;
+    border-radius: 30px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    color: #4969bb;
+    background: var(--surface);
+    box-shadow:
+        inset 3px 3px 7px var(--shadow-dark),
+        inset -3px -3px 7px var(--shadow-light);
+}
+
+.welcome-tag span {
+    background: #32bd8a;
+}
+
+.login-heading h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(34px, 3.3vw, 43px);
+    line-height: 1.12;
+    letter-spacing: -1.5px;
+    color: #1d2a42;
+    margin-top: 24px;
+}
+
+.login-heading p {
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--muted);
+    margin-top: 14px;
+}
+
+.field-group {
+    margin-bottom: 23px;
+}
+
+.field-group > label,
+.label-row label {
+    display: block;
+    color: #56647c;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+    margin-bottom: 11px;
+}
+
+.label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.password-hint {
+    color: #8d9bb0;
+    font-size: 8px;
+    letter-spacing: 1px;
+}
+
+.input-wrapper {
+    height: 58px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 0 17px;
+    border-radius: 14px;
+    background: #e9edf4;
+    border: 1px solid rgba(255,255,255,.7);
+    box-shadow:
+        inset 5px 5px 10px #cbd2df,
+        inset -5px -5px 10px #ffffff;
+    transition: .25s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: rgba(65,105,225,.35);
+    box-shadow:
+        inset 3px 3px 7px #cbd2df,
+        inset -3px -3px 7px #ffffff,
+        0 0 0 4px rgba(65,105,225,.08);
+}
+
+.input-icon {
+    font-size: 18px;
+    color: #8090a8;
+}
+
+.input-wrapper input {
+    min-width: 0;
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #24334e;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.input-wrapper input::placeholder {
+    color: #a1adbf;
+}
+
+.password-toggle {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: #70809b;
+    background: #e9edf4;
+    box-shadow:
+        3px 3px 6px #cbd2df,
+        -3px -3px 6px #ffffff;
+}
+
+.password-toggle:active {
+    box-shadow:
+        inset 2px 2px 4px #cbd2df,
+        inset -2px -2px 4px #ffffff;
+}
+
+.password-toggle svg {
+    width: 17px;
+    height: 17px;
+}
+
+.password-strength {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.strength-track {
+    height: 5px;
+    flex: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #d8deea;
+}
+
+.strength-track span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--blue);
+    transition: width .3s ease;
+}
+
+.password-strength small {
+    color: #98a4b6;
+    font-size: 9px;
+}
+
+.caps-warning {
+    display: none;
+    color: var(--danger);
+    font-size: 10px;
+    margin-top: 10px;
+}
+
+.options-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 26px 0;
+}
+
+.remember-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: #62718a;
+    cursor: pointer;
+}
+
+.remember-option input {
+    position: absolute;
+    opacity: 0;
+}
+
+.custom-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    background: #e9edf4;
+    box-shadow:
+        inset 2px 2px 4px #cbd2df,
+        inset -2px -2px 4px #ffffff;
+    position: relative;
+}
+
+.remember-option input:checked + .custom-check {
+    background: var(--blue);
+    box-shadow: 2px 2px 5px rgba(65,105,225,.25);
+}
+
+.remember-option input:checked + .custom-check::after {
+    content: "✓";
+    position: absolute;
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+    top: 1px;
+    left: 4px;
+}
+
+.secure-note {
+    font-size: 10px;
+    color: #8291a8;
+}
+
+.secure-note span {
+    color: var(--blue);
+}
+
+.login-button {
+    width: 100%;
+    min-height: 59px;
+    border: none;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #5278ed, #3459c7);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 13px;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        7px 7px 15px rgba(65,105,225,.23),
+        -4px -4px 10px rgba(255,255,255,.8);
+    transition: .25s ease;
+}
+
+.login-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        9px 11px 20px rgba(65,105,225,.28),
+        -4px -4px 10px rgba(255,255,255,.8);
+}
+
+.login-button:active {
+    transform: translateY(1px);
+    box-shadow: inset 4px 4px 8px rgba(0,0,0,.16);
+}
+
+.login-button:disabled {
+    opacity: .7;
+    cursor: wait;
+}
+
+.button-arrow {
+    font-size: 18px;
+}
+
+.button-loader {
+    display: none;
+    width: 17px;
+    height: 17px;
+    border: 2px solid rgba(255,255,255,.35);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+.login-button.loading .button-loader {
+    display: block;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.feedback-message,
+.success-message {
+    font-size: 11px;
+    line-height: 1.6;
+    margin: -12px 0 15px;
+    display: none;
+}
+
+.feedback-message:not(:empty),
+.success-message:not(:empty) {
+    display: block;
+}
+
+.feedback-message {
+    color: var(--danger);
+}
+
+.success-message {
+    color: var(--success);
+}
+
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin: 32px 0 24px;
+}
+
+.login-divider span {
+    flex: 1;
+    height: 1px;
+    background: #d4dbe7;
+}
+
+.login-divider small {
+    color: #98a4b6;
+    font-size: 8px;
+    letter-spacing: 1.4px;
+    white-space: nowrap;
+}
+
+.security-info {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 17px;
+    border-radius: 14px;
+    background: #e9edf4;
+    box-shadow:
+        5px 5px 10px #cbd2df,
+        -5px -5px 10px #ffffff;
+}
+
+.security-shield {
+    width: 37px;
+    height: 37px;
+    flex-shrink: 0;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    color: #4169d9;
+    font-size: 20px;
+    background: #e9edf4;
+    box-shadow:
+        inset 3px 3px 6px #cbd2df,
+        inset -3px -3px 6px #ffffff;
+}
+
+.security-info strong {
+    display: block;
+    color: #35445e;
+    font-size: 11px;
+}
+
+.security-info small {
+    display: block;
+    color: #8c9ab0;
+    font-size: 9px;
+    margin-top: 5px;
+}
+
+.login-bottom {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: #9ba7b8;
+    font-size: 8px;
+    letter-spacing: 1px;
+    margin-top: 40px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+    body {
+        padding: 20px;
+    }
+
+    .app-shell {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+    }
+
+    .visual-panel {
+        padding: 35px;
+        min-height: 550px;
+    }
+
+    .hero-content {
+        margin-top: 65px;
+    }
+
+    .login-panel {
+        padding: 50px 35px 30px;
+    }
+
+    .login-card {
+        max-width: 470px;
+    }
+}
+
+@media (max-width: 520px) {
+    body {
+        padding: 12px;
+    }
+
+    .app-shell {
+        border-radius: 24px;
+    }
+
+    .visual-panel {
+        padding: 25px;
+        min-height: auto;
+    }
+
+    .brand-top {
+        gap: 10px;
+    }
+
+    .brand-symbol {
+        width: 42px;
+        height: 42px;
+    }
+
+    .brand-top strong {
+        font-size: 14px;
+    }
+
+    .brand-top small {
+        font-size: 8px;
+    }
+
+    .system-status {
+        font-size: 8px;
+    }
+
+    .hero-content {
+        margin-top: 55px;
+    }
+
+    .hero-content h1 {
+        font-size: 43px;
+    }
+
+    .hero-content p {
+        font-size: 12px;
+    }
+
+    .bento-grid {
+        margin-top: 35px;
+        gap: 10px;
+    }
+
+    .bento-card {
+        padding: 15px;
+        min-height: 150px;
+    }
+
+    .bento-card h3 {
+        font-size: 15px;
+    }
+
+    .bento-card small {
+        font-size: 9px;
+    }
+
+    .security-card {
+        min-height: auto;
+    }
+
+    .visual-footer {
+        flex-direction: column;
+        font-size: 7px;
+        margin-top: 25px;
+    }
+
+    .login-panel {
+        padding: 38px 23px 25px;
+    }
+
+    .login-heading h2 {
+        font-size: 36px;
+    }
+
+    .login-heading p {
+        font-size: 11px;
+    }
+
+    .options-row {
+        gap: 8px;
+    }
+
+    .login-bottom {
+        font-size: 7px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+    }
+}
