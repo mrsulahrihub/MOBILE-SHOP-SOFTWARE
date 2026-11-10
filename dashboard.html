@@ -1,94 +1,19 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex,nofollow">
-    <title>Dashboard | Mobile Shop</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        body { background:#f4f6fb; color:#172033; }
-        .dashboard { display:flex; min-height:100vh; }
-        .sidebar {
-            width:245px; background:#101a2d; color:white;
-            padding:25px 17px; display:flex; flex-direction:column;
-        }
-        .side-logo { font-size:20px; font-weight:800; margin-bottom:35px; }
-        .side-logo span { color:#7296ff; }
-        .nav-label { font-size:10px; color:#7e8da7; letter-spacing:2px; margin-bottom:12px; }
-        .nav-item {
-            padding:14px 13px; margin:4px 0; border-radius:9px;
-            color:#abb7ca; font-size:13px; text-decoration:none;
-            display:block;
-        }
-        .nav-item.active { background:#263a60; color:white; }
-        .main { flex:1; min-width:0; }
-        .topbar {
-            height:80px; background:white; border-bottom:1px solid #e8ebf1;
-            display:flex; align-items:center; justify-content:space-between;
-            padding:0 35px;
-        }
-        .topbar h1 { font-size:21px; }
-        .user-info { display:flex; align-items:center; gap:12px; }
-        .avatar {
-            width:40px; height:40px; background:#e7edff;
-            color:#315efb; border-radius:50%; display:grid;
-            place-items:center; font-weight:800;
-        }
-        .user-info strong { font-size:12px; display:block; }
-        .user-info small { color:#8792a5; font-size:10px; }
-        .content { padding:35px; }
-        .welcome h2 { font-size:26px; margin-bottom:8px; }
-        .welcome p { color:#8792a5; font-size:13px; }
-        .info {
-            margin-top:25px; padding:18px; border-radius:12px;
-            background:#edf3ff; color:#35539c; font-size:13px;
-            line-height:1.7;
-        }
-        .cards {
-            display:grid; grid-template-columns:repeat(3,1fr);
-            gap:16px; margin-top:25px;
-        }
-        .card {
-            background:white; padding:22px; border-radius:13px;
-            border:1px solid #e8ebf1;
-        }
-        .card h3 { font-size:14px; margin-bottom:8px; }
-        .card p { color:#8792a5; font-size:12px; line-height:1.7; }
-        .logout {
-            width:auto; padding:12px 18px; margin:0;
-            background:#fff0f0; color:#d14450;
-        }
-        @media(max-width:850px) {
-            .sidebar { width:190px; }
-            .content { padding:23px; }
-            .cards { grid-template-columns:repeat(2,1fr); }
-        }
-        @media(max-width:600px) {
-            .dashboard { display:block; }
-            .sidebar { width:100%; padding:15px; }
-            .side-logo { margin-bottom:12px; }
-            .nav-item { display:inline-block; padding:10px; }
-            .topbar { padding:15px; height:auto; }
-            .content { padding:20px 15px; }
-            .cards { grid-template-columns:1fr; }
-            .topbar h1 { font-size:17px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Dashboard | Mobile Shop</title>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <div class="dashboard">
 
     <aside class="sidebar">
-
-        <div class="side-logo">
-            MOBILE <span>SHOP</span>
-        </div>
-
+        <div class="side-logo">MOBILE <span>SHOP</span></div>
         <p class="nav-label">WORKSPACE</p>
-
         <a class="nav-item active" href="#">▦ Overview</a>
         <a class="nav-item" href="#">▣ Products</a>
         <a class="nav-item" href="#">▤ Inventory</a>
@@ -97,78 +22,79 @@
         <a class="nav-item" href="#">♙ Customers</a>
         <a class="nav-item" href="#">♧ Suppliers</a>
         <a class="nav-item" href="#">▥ Reports</a>
-
+        <div class="sidebar-foot">v1.0 · Admin Panel</div>
     </aside>
 
     <main class="main">
 
         <header class="topbar">
-
-            <h1>Dashboard</h1>
-
+            <div>
+                <h1>Dashboard</h1>
+                <p class="sub" id="todayDate"></p>
+            </div>
             <div class="user-info">
                 <div class="avatar" id="userAvatar">U</div>
-                <div>
+                <div class="user-text">
                     <strong id="userName">Loading...</strong>
                     <small id="userRole">Checking...</small>
                 </div>
                 <button class="logout" id="logoutBtn">Logout</button>
             </div>
-
         </header>
 
         <section class="content">
 
-            <div class="welcome">
-                <h2>Welcome, <span id="welcomeName">User</span></h2>
-                <p>Your business management overview.</p>
-                <p id="todayDate"></p>
+            <div class="welcome clay">
+                <h2>Welcome, <span id="welcomeName">User</span> 👋</h2>
+                <p>Your business management overview is ready.</p>
             </div>
 
-            <div class="info">
-                Your account has been authenticated successfully.
-                Inventory and sales modules will be activated after
-                secure database transaction functions are installed.
+            <div class="stats-row">
+                <div class="stat clay">
+                    <div class="stat-icon blue">▣</div>
+                    <div>
+                        <strong>1,284</strong>
+                        <small>Products</small>
+                    </div>
+                </div>
+                <div class="stat clay">
+                    <div class="stat-icon green">▤</div>
+                    <div>
+                        <strong>3,920</strong>
+                        <small>In Stock</small>
+                    </div>
+                </div>
+                <div class="stat clay">
+                    <div class="stat-icon orange">↗</div>
+                    <div>
+                        <strong>PKR 2.4M</strong>
+                        <small>Sales (30d)</small>
+                    </div>
+                </div>
+                <div class="stat clay">
+                    <div class="stat-icon purple">♙</div>
+                    <div>
+                        <strong>842</strong>
+                        <small>Customers</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info clay">
+                ✅ Your account is authenticated. Inventory & sales modules are being prepared for activation.
             </div>
 
             <div class="cards">
-
-                <article class="card">
-                    <h3>Products</h3>
-                    <p>Manage mobile phones, accessories, models and prices.</p>
-                </article>
-
-                <article class="card">
-                    <h3>Inventory</h3>
-                    <p>Monitor available stock and IMEI numbers.</p>
-                </article>
-
-                <article class="card">
-                    <h3>Sales</h3>
-                    <p>Manage customer sales and invoices.</p>
-                </article>
-
-                <article class="card">
-                    <h3>Purchases</h3>
-                    <p>Manage suppliers and incoming stock.</p>
-                </article>
-
-                <article class="card">
-                    <h3>Customers</h3>
-                    <p>Maintain customer information.</p>
-                </article>
-
-                <article class="card">
-                    <h3>Reports</h3>
-                    <p>View business performance and financial reports.</p>
-                </article>
-
+                <article class="card clay"><div class="card-icon">▣</div><h3>Products</h3><p>Manage mobile phones, accessories, models and prices.</p></article>
+                <article class="card clay"><div class="card-icon">▤</div><h3>Inventory</h3><p>Monitor available stock and IMEI numbers in real time.</p></article>
+                <article class="card clay"><div class="card-icon">↗</div><h3>Sales</h3><p>Manage customer sales, invoices and payments.</p></article>
+                <article class="card clay"><div class="card-icon">↙</div><h3>Purchases</h3><p>Manage suppliers and incoming stock.</p></article>
+                <article class="card clay"><div class="card-icon">♙</div><h3>Customers</h3><p>Maintain customer information and history.</p></article>
+                <article class="card clay"><div class="card-icon">▥</div><h3>Reports</h3><p>View business performance and financial reports.</p></article>
             </div>
 
         </section>
-
     </main>
-
 </div>
 
 <script type="module" src="js/dashboard.js"></script>
