@@ -2,9 +2,15 @@
 import { createClient } from
 'https://esm.sh/@supabase/supabase-js@2';
 
+const SUPABASE_URL =
+    'https://lateoozrmyzjckcgfytp.supabase.co';
+
+const SUPABASE_ANON_KEY =
+    'sb_publishable_5V9LTrlkpe5Sv-ALosMOng_hfXYNLKE';
+
 export const supabase = createClient(
-    'https://lateoozrmyzjckcgfytp.supabase.co',
-    '6b9199b2-8cd1-4f9c-ab3f-87de6ca67102',
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY,
     {
         auth: {
             persistSession: true,
