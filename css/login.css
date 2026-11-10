@@ -1,20 +1,42 @@
 
+/* =========================================
+   MOBILE SHOP MANAGEMENT
+   PREMIUM DARK NEUMORPHISM UI
+   Compatible with existing login.html
+========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
 :root {
-    --bg: #080d1c;
-    --panel: rgba(19, 29, 53, .70);
-    --glass: rgba(255, 255, 255, .055);
-    --border: rgba(255, 255, 255, .10);
-    --text: #f3f6ff;
-    --muted: #929db7;
-    --blue: #69bfff;
-    --cyan: #5ce2e4;
+    --bg: #111a2b;
+    --surface: #19253a;
+    --surface-light: #202e46;
+    --surface-dark: #141f32;
+
+    --text: #f2f6ff;
+    --muted: #94a4bf;
+
+    --blue: #639cff;
+    --cyan: #5ce0e5;
     --purple: #a18bff;
+
+    --green: #55e7bd;
+    --danger: #ff8d9b;
+
+    --shadow-dark: #0b1220;
+    --shadow-light: #273650;
+
+    --radius: 20px;
 }
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 body {
@@ -29,7 +51,8 @@ body {
     position: relative;
 }
 
-button, input {
+button,
+input {
     font: inherit;
 }
 
@@ -37,12 +60,16 @@ button {
     cursor: pointer;
 }
 
+/* =========================================
+   BACKGROUND AMBIENT LIGHTS
+========================================= */
+
 .ambient {
     position: fixed;
     border-radius: 50%;
     filter: blur(100px);
     pointer-events: none;
-    opacity: .23;
+    opacity: .19;
     z-index: 0;
 }
 
@@ -68,95 +95,163 @@ button {
     background: #00c9cf;
     top: 40%;
     left: 42%;
-    opacity: .10;
+    opacity: .09;
 }
+
+/* =========================================
+   MAIN APP CONTAINER
+========================================= */
 
 .app-shell {
     width: min(1180px, 100%);
     min-height: 740px;
+
     display: grid;
     grid-template-columns: 1.12fr .88fr;
+
     position: relative;
     z-index: 1;
-    border: 1px solid var(--border);
+
+    border: 1px solid rgba(255,255,255,.07);
     border-radius: 30px;
     overflow: hidden;
-    background: rgba(12, 20, 39, .68);
-    backdrop-filter: blur(35px);
-    -webkit-backdrop-filter: blur(35px);
-    box-shadow: 0 35px 100px rgba(0, 0, 0, .5);
+
+    background: var(--surface);
+
+    box-shadow:
+        22px 22px 50px var(--shadow-dark),
+        -12px -12px 35px rgba(255,255,255,.025),
+        inset 1px 1px 0 rgba(255,255,255,.045);
 }
 
-/* LEFT PANEL */
+/* =========================================
+   LEFT VISUAL PANEL
+========================================= */
 
 .visual-panel {
     padding: 38px 42px 27px;
+
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+
     background:
-        radial-gradient(ellipse at 25% 20%, rgba(54, 124, 255, .18), transparent 50%),
-        linear-gradient(145deg, rgba(32, 49, 85, .66), rgba(12, 19, 39, .8));
-    border-right: 1px solid var(--border);
+        radial-gradient(
+            ellipse at 25% 20%,
+            rgba(54,124,255,.17),
+            transparent 50%
+        ),
+        linear-gradient(
+            145deg,
+            #202f49,
+            #152137
+        );
+
+    border-right: 1px solid rgba(255,255,255,.06);
+
     position: relative;
+    overflow: hidden;
 }
 
 .visual-panel::before {
     content: "";
+
     position: absolute;
     width: 340px;
     height: 340px;
-    border: 1px solid rgba(111, 190, 255, .10);
+
+    border: 1px solid rgba(111,190,255,.10);
     border-radius: 50%;
+
     top: 25%;
     left: 24%;
+
     box-shadow:
-        0 0 0 35px rgba(111, 190, 255, .025),
-        0 0 0 70px rgba(111, 190, 255, .02);
+        0 0 0 35px rgba(111,190,255,.025),
+        0 0 0 70px rgba(111,190,255,.02);
+
     pointer-events: none;
 }
+
+.visual-panel::after {
+    content: "";
+
+    position: absolute;
+    width: 220px;
+    height: 220px;
+
+    right: -100px;
+    bottom: -100px;
+
+    border-radius: 50%;
+    background: rgba(83,132,255,.13);
+    filter: blur(55px);
+
+    pointer-events: none;
+}
+
+/* BRAND */
 
 .brand-top {
     display: flex;
     align-items: center;
     gap: 13px;
+
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 .brand-symbol {
-    width: 43px;
-    height: 43px;
+    width: 45px;
+    height: 45px;
+
     border-radius: 14px;
+
     display: grid;
     place-items: center;
+
     font-family: 'Outfit', sans-serif;
     font-size: 25px;
     font-weight: 800;
+
     color: white;
-    background: linear-gradient(135deg, #69c6ff, #6757ef);
-    box-shadow: 0 7px 24px rgba(69, 132, 255, .35);
+
+    background: linear-gradient(
+        145deg,
+        #609fff,
+        #435bd5
+    );
+
+    box-shadow:
+        7px 7px 15px rgba(0,0,0,.30),
+        -3px -3px 10px rgba(255,255,255,.07),
+        inset 1px 1px 2px rgba(255,255,255,.22);
 }
 
 .brand-top strong {
     display: block;
+
     font-family: 'Outfit', sans-serif;
     font-size: 16px;
 }
 
 .brand-top small {
     display: block;
+
     color: #8294b6;
     font-size: 9px;
     letter-spacing: 2px;
+
     margin-top: 3px;
 }
 
 .system-status {
     margin-left: auto;
+
     color: #9caecc;
     font-size: 9px;
     letter-spacing: 1px;
+
     display: flex;
     align-items: center;
     gap: 7px;
@@ -166,22 +261,29 @@ button {
 .welcome-tag span {
     width: 7px;
     height: 7px;
-    background: #55e7bd;
+
+    background: var(--green);
     border-radius: 50%;
-    box-shadow: 0 0 12px #55e7bd;
+
+    box-shadow: 0 0 12px var(--green);
 }
+
+/* HERO */
 
 .hero-content {
     position: relative;
-    z-index: 1;
+    z-index: 2;
+
     margin-top: 60px;
 }
 
 .eyebrow {
     color: #91c9ff;
+
     font-size: 10px;
     letter-spacing: 2px;
     font-weight: 700;
+
     margin-bottom: 22px;
 }
 
@@ -193,6 +295,7 @@ button {
 
 .hero-content h1 {
     font-family: 'Outfit', sans-serif;
+
     font-size: clamp(40px, 4.5vw, 58px);
     line-height: 1.12;
     letter-spacing: -2px;
@@ -200,7 +303,12 @@ button {
 }
 
 .hero-content h1 span {
-    background: linear-gradient(100deg, #69c9ff, #a18bff);
+    background: linear-gradient(
+        100deg,
+        #69c9ff,
+        #a18bff
+    );
+
     color: transparent;
     background-clip: text;
     -webkit-background-clip: text;
@@ -208,49 +316,91 @@ button {
 
 .hero-content p {
     max-width: 410px;
+
     color: #a3afc9;
     font-size: 13px;
     line-height: 1.9;
+
     margin-top: 20px;
 }
 
+/* =========================================
+   BENTO GRID
+========================================= */
+
 .bento-grid {
     position: relative;
-    z-index: 1;
+    z-index: 2;
+
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 13px;
+
+    gap: 15px;
     margin-top: 40px;
 }
 
 .bento-card {
     min-height: 150px;
     padding: 19px;
+
     border-radius: 19px;
-    background: rgba(255, 255, 255, .055);
-    border: 1px solid rgba(255, 255, 255, .09);
-    backdrop-filter: blur(15px);
-    transition: .3s ease;
+
+    background: linear-gradient(
+        145deg,
+        #22324c,
+        #19263d
+    );
+
+    border: 1px solid rgba(255,255,255,.055);
+
+    box-shadow:
+        8px 8px 17px #101a2b,
+        -5px -5px 14px rgba(255,255,255,.035),
+        inset 1px 1px 1px rgba(255,255,255,.035);
+
+    transition:
+        transform .3s ease,
+        box-shadow .3s ease,
+        border-color .3s ease;
+
     position: relative;
     overflow: hidden;
 }
 
 .bento-card:hover {
     transform: translateY(-5px);
-    border-color: rgba(105, 191, 255, .4);
-    background: rgba(255, 255, 255, .085);
+
+    border-color: rgba(105,191,255,.35);
+
+    box-shadow:
+        11px 13px 22px #0e1727,
+        -4px -4px 14px rgba(255,255,255,.045),
+        inset 1px 1px 1px rgba(255,255,255,.05);
 }
 
 .card-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
+    width: 34px;
+    height: 34px;
+
+    border-radius: 11px;
+
     display: grid;
     place-items: center;
-    background: rgba(91, 176, 255, .14);
+
+    background: linear-gradient(
+        145deg,
+        #243a5c,
+        #1a2b46
+    );
+
     color: #79c9ff;
     font-size: 20px;
+
     margin-bottom: 12px;
+
+    box-shadow:
+        4px 4px 8px #111c2e,
+        -3px -3px 7px rgba(255,255,255,.035);
 }
 
 .bento-card > span {
@@ -262,6 +412,7 @@ button {
 .bento-card h3 {
     font-size: 15px;
     margin: 5px 0;
+
     font-family: 'Outfit', sans-serif;
 }
 
@@ -270,10 +421,13 @@ button {
     font-size: 10px;
 }
 
+/* INVENTORY MINI CHART */
+
 .mini-bars {
     display: flex;
     gap: 5px;
     align-items: end;
+
     position: absolute;
     bottom: 18px;
     right: 18px;
@@ -282,7 +436,12 @@ button {
 .mini-bars i {
     width: 5px;
     border-radius: 5px;
-    background: linear-gradient(#74d4ff, #676bff);
+
+    background: linear-gradient(
+        #74d4ff,
+        #676bff
+    );
+
     height: 20px;
 }
 
@@ -291,6 +450,8 @@ button {
 .mini-bars i:nth-child(4) { height: 39px; }
 .mini-bars i:nth-child(5) { height: 29px; }
 .mini-bars i:nth-child(6) { height: 45px; }
+
+/* SALES GRAPH */
 
 .growth-line {
     width: 100%;
@@ -303,9 +464,13 @@ button {
     height: 100%;
 }
 
+/* SECURITY CARD */
+
 .security-card {
     grid-column: 1 / -1;
+
     min-height: 85px;
+
     display: flex;
     align-items: center;
     gap: 15px;
@@ -314,35 +479,62 @@ button {
 .security-icon {
     width: 43px;
     height: 43px;
+
     display: grid;
     place-items: center;
+
     border-radius: 14px;
+
     color: #a7a0ff;
     font-size: 25px;
-    background: rgba(147, 128, 255, .13);
+
+    background: linear-gradient(
+        145deg,
+        #302e59,
+        #242647
+    );
+
+    box-shadow:
+        5px 5px 10px #111a2c,
+        -3px -3px 8px rgba(255,255,255,.035);
 }
 
 .security-card h3 {
     margin: 4px 0;
 }
 
+/* LEFT FOOTER */
+
 .visual-footer {
     display: flex;
     justify-content: space-between;
+
     color: #6d7c99;
     font-size: 8px;
     letter-spacing: 1px;
+
     margin-top: 30px;
+
+    position: relative;
+    z-index: 2;
 }
 
-/* LOGIN PANEL */
+/* =========================================
+   LOGIN PANEL
+========================================= */
 
 .login-panel {
     padding: 50px 48px 28px;
+
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background: rgba(9, 15, 30, .30);
+
+    background: linear-gradient(
+        145deg,
+        #1b2940,
+        #172338
+    );
 }
 
 .login-card {
@@ -351,26 +543,45 @@ button {
     margin: auto;
 }
 
+/* MOBILE BRAND */
+
 .mobile-brand {
     display: none;
     align-items: center;
     gap: 12px;
+
     margin-bottom: 45px;
 }
+
+.mobile-brand .brand-symbol {
+    width: 43px;
+    height: 43px;
+}
+
+/* LOGIN HEADING */
 
 .login-heading {
     margin-bottom: 35px;
 }
 
 .welcome-tag {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 10px;
+
+    padding: 9px 13px;
+    border-radius: 30px;
+
     color: #83c7ff;
     font-size: 10px;
     letter-spacing: 2px;
     font-weight: 700;
-    margin-bottom: 18px;
+
+    background: var(--surface);
+
+    box-shadow:
+        inset 3px 3px 7px #101a2a,
+        inset -3px -3px 7px #253650;
 }
 
 .welcome-tag span {
@@ -380,17 +591,25 @@ button {
 
 .login-heading h2 {
     font-family: 'Outfit', sans-serif;
+
     font-size: 36px;
     line-height: 1.17;
     letter-spacing: -1.3px;
+
+    margin-top: 19px;
 }
 
 .login-heading p {
     color: #929db7;
     font-size: 12px;
     line-height: 1.8;
+
     margin-top: 12px;
 }
+
+/* =========================================
+   FORM FIELDS
+========================================= */
 
 .field-group {
     margin-bottom: 23px;
@@ -399,10 +618,13 @@ button {
 .field-group label,
 .label-row label {
     display: block;
+
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 1.3px;
+
     color: #aab5cb;
+
     margin-bottom: 10px;
 }
 
@@ -417,22 +639,37 @@ button {
     letter-spacing: 1px;
 }
 
+/* INSET INPUT */
+
 .input-wrapper {
     height: 55px;
+
     display: flex;
     align-items: center;
     gap: 12px;
-    border: 1px solid rgba(255, 255, 255, .10);
+
+    border: 1px solid rgba(255,255,255,.045);
     border-radius: 13px;
-    background: rgba(255, 255, 255, .045);
+
+    background: #17243a;
     padding: 0 15px;
+
+    box-shadow:
+        inset 5px 5px 10px #101a2a,
+        inset -4px -4px 9px #22334d;
+
     transition: .25s;
 }
 
 .input-wrapper:focus-within {
-    border-color: #68bfff;
-    background: rgba(91, 166, 255, .07);
-    box-shadow: 0 0 0 4px rgba(91, 166, 255, .09);
+    border-color: rgba(104,191,255,.55);
+
+    background: #192943;
+
+    box-shadow:
+        inset 3px 3px 7px #101a2a,
+        inset -3px -3px 7px #263a57,
+        0 0 0 4px rgba(91,166,255,.08);
 }
 
 .input-icon {
@@ -444,9 +681,11 @@ button {
     flex: 1;
     min-width: 0;
     height: 100%;
+
     background: transparent;
     border: none;
     outline: none;
+
     color: white;
     font-size: 12px;
 }
@@ -455,14 +694,37 @@ button {
     color: #63718c;
 }
 
+/* PASSWORD TOGGLE */
+
 .password-toggle {
-    background: transparent;
+    background: #1b2a42;
     border: 0;
+
     color: #92a4c2;
-    width: 30px;
-    height: 35px;
+
+    width: 32px;
+    height: 32px;
+
+    border-radius: 9px;
+
     display: grid;
     place-items: center;
+
+    box-shadow:
+        3px 3px 6px #101a2a,
+        -2px -2px 6px rgba(255,255,255,.04);
+
+    transition: .2s;
+}
+
+.password-toggle:hover {
+    color: white;
+}
+
+.password-toggle:active {
+    box-shadow:
+        inset 3px 3px 5px #101a2a,
+        inset -2px -2px 5px #263650;
 }
 
 .password-toggle svg {
@@ -470,9 +732,7 @@ button {
     height: 19px;
 }
 
-.password-toggle:hover {
-    color: white;
-}
+/* PASSWORD STRENGTH */
 
 .password-strength {
     display: none;
@@ -484,32 +744,45 @@ button {
 }
 
 .strength-track {
-    height: 3px;
-    background: rgba(255,255,255,.09);
+    height: 4px;
+
+    background: #111b2c;
     border-radius: 5px;
     overflow: hidden;
+
+    box-shadow:
+        inset 2px 2px 4px #0c1422,
+        inset -1px -1px 3px #26364e;
 }
 
 .strength-track span {
     display: block;
     height: 100%;
     width: 0;
+
     border-radius: 5px;
+
     transition: .3s;
-    background: #55e7bd;
+    background: var(--green);
 }
 
 .password-strength small {
     display: block;
+
     color: #8292af;
     font-size: 9px;
+
     margin-top: 5px;
 }
 
+/* CAPS LOCK */
+
 .caps-warning {
     display: none;
+
     color: #ffc978;
     font-size: 10px;
+
     margin-top: 8px;
 }
 
@@ -517,10 +790,15 @@ button {
     display: block;
 }
 
+/* =========================================
+   REMEMBER ME
+========================================= */
+
 .options-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
     margin: 7px 0 22px;
 }
 
@@ -528,8 +806,10 @@ button {
     display: flex;
     align-items: center;
     gap: 9px;
+
     font-size: 11px;
     color: #a8b5cd;
+
     cursor: pointer;
 }
 
@@ -540,23 +820,37 @@ button {
 }
 
 .custom-check {
-    width: 16px;
-    height: 16px;
+    width: 17px;
+    height: 17px;
+
     border: 1px solid #62718e;
     border-radius: 5px;
+
     display: inline-grid;
     place-items: center;
+
+    background: #19263c;
+
+    box-shadow:
+        inset 2px 2px 4px #101a2a,
+        inset -2px -2px 4px #263750;
+
+    transition: .2s;
 }
 
 .remember-option input:checked + .custom-check {
     background: #579df8;
     border-color: #579df8;
+
+    box-shadow:
+        2px 2px 6px rgba(65,105,225,.3);
 }
 
 .remember-option input:checked + .custom-check::after {
     content: "✓";
     color: white;
     font-size: 11px;
+    font-weight: 800;
 }
 
 .remember-option input:focus-visible + .custom-check {
@@ -573,56 +867,94 @@ button {
     color: #68c9d9;
 }
 
+/* =========================================
+   ERROR AND SUCCESS MESSAGES
+========================================= */
+
 .feedback-message,
 .success-message {
     display: none;
+
     padding: 11px 13px;
-    border-radius: 9px;
+    border-radius: 10px;
+
     font-size: 11px;
     line-height: 1.5;
+
     margin-bottom: 14px;
 }
 
 .feedback-message.visible {
     display: block;
+
     color: #ffb0b0;
-    background: rgba(255, 76, 76, .10);
-    border: 1px solid rgba(255, 76, 76, .18);
+
+    background: rgba(255,76,76,.10);
+    border: 1px solid rgba(255,76,76,.18);
 }
 
 .success-message.visible {
     display: block;
+
     color: #72e5bd;
-    background: rgba(61, 222, 162, .09);
-    border: 1px solid rgba(61, 222, 162, .17);
+
+    background: rgba(61,222,162,.09);
+    border: 1px solid rgba(61,222,162,.17);
 }
+
+/* =========================================
+   LOGIN BUTTON
+========================================= */
 
 .login-button {
     width: 100%;
     height: 56px;
+
     border: 0;
     border-radius: 13px;
-    background: linear-gradient(110deg, #4b9df5, #7669ed);
+
+    background: linear-gradient(
+        110deg,
+        #4b9df5,
+        #7669ed
+    );
+
     color: white;
+
     font-size: 12px;
     font-weight: 700;
     letter-spacing: .4px;
+
     display: flex;
     justify-content: center;
     align-items: center;
+
     position: relative;
-    box-shadow: 0 12px 28px rgba(74, 114, 240, .24);
+
+    box-shadow:
+        7px 7px 15px #101a2a,
+        -4px -4px 10px rgba(255,255,255,.045),
+        inset 1px 1px 2px rgba(255,255,255,.25);
+
     transition: .25s;
     overflow: hidden;
 }
 
 .login-button:hover:not(:disabled) {
     transform: translateY(-3px);
-    box-shadow: 0 17px 32px rgba(74, 114, 240, .38);
+
+    box-shadow:
+        9px 12px 20px #0e1727,
+        -3px -3px 9px rgba(255,255,255,.055),
+        0 0 22px rgba(74,114,240,.19);
 }
 
 .login-button:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translateY(1px);
+
+    box-shadow:
+        inset 4px 4px 8px rgba(0,0,0,.25),
+        inset -2px -2px 5px rgba(255,255,255,.08);
 }
 
 .login-button:disabled {
@@ -638,12 +970,17 @@ button {
 
 .button-loader {
     display: none;
+
     width: 17px;
     height: 17px;
+
     border: 2px solid rgba(255,255,255,.3);
     border-top-color: white;
+
     border-radius: 50%;
+
     animation: spin .7s linear infinite;
+
     position: absolute;
     right: 20px;
 }
@@ -657,19 +994,27 @@ button {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
+
+/* =========================================
+   LOGIN DIVIDER
+========================================= */
 
 .login-divider {
     display: flex;
     align-items: center;
     gap: 12px;
+
     margin: 28px 0;
 }
 
 .login-divider span {
     height: 1px;
     flex: 1;
+
     background: rgba(255,255,255,.09);
 }
 
@@ -679,29 +1024,53 @@ button {
     color: #72819e;
 }
 
+/* =========================================
+   SECURITY INFO CARD
+========================================= */
+
 .security-info {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px;
-    border: 1px solid rgba(255,255,255,.08);
+
+    padding: 15px;
+
+    border: 1px solid rgba(255,255,255,.045);
     border-radius: 13px;
-    background: rgba(255,255,255,.035);
+
+    background: #19263c;
+
+    box-shadow:
+        6px 6px 12px #101a2a,
+        -4px -4px 10px rgba(255,255,255,.035),
+        inset 1px 1px 1px rgba(255,255,255,.025);
 }
 
 .security-shield {
-    width: 33px;
-    height: 33px;
-    border-radius: 10px;
-    background: rgba(91, 219, 190, .10);
+    width: 36px;
+    height: 36px;
+
+    flex-shrink: 0;
+
+    border-radius: 11px;
+
+    background: #192941;
+
     color: #69dfbf;
+
     display: grid;
     place-items: center;
+
     font-size: 21px;
+
+    box-shadow:
+        inset 3px 3px 6px #101a2a,
+        inset -3px -3px 6px #263650;
 }
 
 .security-info strong {
     display: block;
+
     font-size: 10px;
     margin-bottom: 4px;
 }
@@ -711,18 +1080,27 @@ button {
     font-size: 9px;
 }
 
+/* =========================================
+   FOOTER
+========================================= */
+
 .login-bottom {
     display: flex;
     justify-content: space-between;
+
     color: #687791;
     font-size: 8px;
     letter-spacing: .8px;
+
     margin-top: 35px;
 }
 
-/* RESPONSIVE */
+/* =========================================
+   TABLET RESPONSIVE
+========================================= */
 
 @media (max-width: 950px) {
+
     body {
         padding: 20px;
     }
@@ -743,9 +1121,18 @@ button {
     .mobile-brand {
         display: flex;
     }
+
+    .login-card {
+        max-width: 420px;
+    }
 }
 
+/* =========================================
+   MOBILE RESPONSIVE
+========================================= */
+
 @media (max-width: 480px) {
+
     body {
         padding: 12px;
         align-items: start;
@@ -764,6 +1151,10 @@ button {
         font-size: 31px;
     }
 
+    .login-heading p {
+        font-size: 11px;
+    }
+
     .login-bottom {
         font-size: 7px;
     }
@@ -771,10 +1162,29 @@ button {
     .options-row {
         gap: 8px;
     }
+
+    .secure-note {
+        font-size: 9px;
+    }
+
+    .input-wrapper {
+        height: 53px;
+    }
+
+    .login-button {
+        height: 54px;
+    }
 }
 
+/* =========================================
+   ACCESSIBILITY
+========================================= */
+
 @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+
+    *,
+    *::before,
+    *::after {
         animation-duration: .01ms !important;
         transition-duration: .01ms !important;
         scroll-behavior: auto !important;
