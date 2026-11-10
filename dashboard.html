@@ -4,98 +4,319 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Dashboard | Mobile Shop</title>
-<link rel="stylesheet" href="css/style.css">
+<title>Dashboard | BM MOBILE ZONE</title>
+<link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
 
 <div class="dashboard">
 
-    <aside class="sidebar">
-        <div class="side-logo">MOBILE <span>SHOP</span></div>
-        <p class="nav-label">WORKSPACE</p>
-        <a class="nav-item active" href="#">▦ Overview</a>
-        <a class="nav-item" href="#">▣ Products</a>
-        <a class="nav-item" href="#">▤ Inventory</a>
-        <a class="nav-item" href="#">↗ Sales</a>
-        <a class="nav-item" href="#">↙ Purchases</a>
-        <a class="nav-item" href="#">♙ Customers</a>
-        <a class="nav-item" href="#">♧ Suppliers</a>
-        <a class="nav-item" href="#">▥ Reports</a>
-        <div class="sidebar-foot">v1.0 · Admin Panel</div>
-    </aside>
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="side-logo">BM <span>MOBILE ZONE</span></div>
 
-    <main class="main">
+    <p class="nav-label">WORKSPACE</p>
+    <button class="nav-item active" data-module="overview">▦ Overview</button>
+    <button class="nav-item" data-module="products">▣ Products</button>
+    <button class="nav-item" data-module="inventory">▤ Inventory</button>
+    <button class="nav-item" data-module="sales">↗ Sales / POS</button>
+    <button class="nav-item" data-module="purchases">↙ Purchases</button>
 
-        <header class="topbar">
-            <div>
-                <h1>Dashboard</h1>
-                <p class="sub" id="todayDate"></p>
+    <p class="nav-label">PEOPLE</p>
+    <button class="nav-item" data-module="customers">♙ Customers</button>
+    <button class="nav-item" data-module="suppliers">♧ Suppliers</button>
+    <button class="nav-item" data-module="credit">₹ Credit / Udhar</button>
+
+    <p class="nav-label">FINANCE</p>
+    <button class="nav-item" data-module="expenses">▥ Expenses</button>
+    <button class="nav-item" data-module="transactions">⇄ Transactions</button>
+    <button class="nav-item" data-module="reports">▨ Reports</button>
+
+    <p class="nav-label">SYSTEM</p>
+    <button class="nav-item" data-module="settings">⚙ Settings</button>
+
+    <div class="sidebar-foot">v2.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <header class="topbar no-print">
+      <div>
+        <h1 id="pageTitle">Dashboard</h1>
+        <p class="sub" id="todayDate"></p>
+      </div>
+      <div class="user-info">
+        <div class="avatar" id="userAvatar">U</div>
+        <div class="user-text">
+          <strong id="userName">Loading...</strong>
+          <small id="userRole">Checking...</small>
+        </div>
+        <button class="logout" id="logoutBtn">Logout</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- ============ OVERVIEW MODULE ============ -->
+      <section class="module active" id="module-overview">
+
+        <div class="welcome clay">
+          <h2>Welcome, <span id="welcomeName">User</span> 👋</h2>
+          <p>BM MOBILE ZONE — Chohan Mobile Market Zafarwal · 03099100546</p>
+        </div>
+
+        <div class="stats-row" id="dashStats">
+          <div class="stat clay"><div class="stat-icon blue">▣</div><div><strong id="stProducts">—</strong><small>Total Products</small></div></div>
+          <div class="stat clay"><div class="stat-icon green">▤</div><div><strong id="stStock">—</strong><small>Stock Units</small></div></div>
+          <div class="stat clay"><div class="stat-icon orange">↗</div><div><strong id="stTodaySales">—</strong><small>Today's Sales</small></div></div>
+          <div class="stat clay"><div class="stat-icon purple">▨</div><div><strong id="stMonthSales">—</strong><small>Monthly Sales</small></div></div>
+          <div class="stat clay"><div class="stat-icon blue">↙</div><div><strong id="stPurchases">—</strong><small>Total Purchases</small></div></div>
+          <div class="stat clay"><div class="stat-icon purple">♙</div><div><strong id="stCustomers">—</strong><small>Customers</small></div></div>
+          <div class="stat clay"><div class="stat-icon red">₹</div><div><strong id="stOutstanding">—</strong><small>Outstanding Credit</small></div></div>
+          <div class="stat clay"><div class="stat-icon orange">▥</div><div><strong id="stExpenses">—</strong><small>Total Expenses</small></div></div>
+        </div>
+
+        <div class="clay" style="padding:24px">
+          <div class="module-head"><div><h2>Recent Sales</h2><p>Last 5 sale transactions</p></div></div>
+          <div class="table-wrap" id="recentSales"><div class="empty">Loading…</div></div>
+        </div>
+
+      </section>
+
+      <!-- ============ PRODUCTS MODULE ============ -->
+      <section class="module" id="module-products">
+        <div class="module-head">
+          <div><h2>Products</h2><p>Manage all products & inventory items</p></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="search-bar"><input id="productSearch" placeholder="Search products…"></div>
+            <button class="btn btn-primary" id="btnAddProduct">+ Add Product</button>
+          </div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="table-wrap" id="productsTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ INVENTORY MODULE ============ -->
+      <section class="module" id="module-inventory">
+        <div class="module-head">
+          <div><h2>Inventory</h2><p>Stock levels & movement history</p></div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Low Stock Alerts</h3>
+          <div class="table-wrap" id="lowStockTable"><div class="empty">Loading…</div></div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Stock Movements</h3>
+          <div class="table-wrap" id="movementsTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ SALES / POS MODULE ============ -->
+      <section class="module" id="module-sales">
+        <div class="module-head">
+          <div><h2>New Sale</h2><p>Point of sale billing</p></div>
+          <button class="btn btn-ghost" id="btnSalesHistory">📋 Sales History</button>
+        </div>
+
+        <div class="pos-grid">
+          <div class="clay" style="padding:22px">
+            <div class="form-grid">
+              <div class="field">
+                <label>Customer Name</label>
+                <input id="saleCustName" placeholder="Walk-in Customer">
+              </div>
+              <div class="field">
+                <label>Customer Phone</label>
+                <input id="saleCustPhone" placeholder="03xx-xxxxxxx">
+              </div>
+              <div class="field full">
+                <label>Select Product</label>
+                <select id="saleProductSelect"><option value="">— Choose product —</option></select>
+              </div>
             </div>
-            <div class="user-info">
-                <div class="avatar" id="userAvatar">U</div>
-                <div class="user-text">
-                    <strong id="userName">Loading...</strong>
-                    <small id="userRole">Checking...</small>
-                </div>
-                <button class="logout" id="logoutBtn">Logout</button>
+            <button class="btn btn-primary" style="margin-top:14px" id="btnAddToCart">+ Add to Cart</button>
+          </div>
+
+          <div class="clay" style="padding:22px">
+            <h3 style="font-size:14px;font-weight:800;margin-bottom:12px">Cart</h3>
+            <div id="cartItems" style="max-height:260px;overflow-y:auto">
+              <div class="empty">Cart is empty</div>
             </div>
-        </header>
-
-        <section class="content">
-
-            <div class="welcome clay">
-                <h2>Welcome, <span id="welcomeName">User</span> 👋</h2>
-                <p>Your business management overview is ready.</p>
+            <div class="cart-total"><span>Subtotal</span><strong id="cartSubtotal">0</strong></div>
+            <div class="field" style="margin-top:8px">
+              <label>Discount</label>
+              <input id="saleDiscount" type="number" value="0" min="0">
             </div>
-
-            <div class="stats-row">
-                <div class="stat clay">
-                    <div class="stat-icon blue">▣</div>
-                    <div>
-                        <strong>1,284</strong>
-                        <small>Products</small>
-                    </div>
-                </div>
-                <div class="stat clay">
-                    <div class="stat-icon green">▤</div>
-                    <div>
-                        <strong>3,920</strong>
-                        <small>In Stock</small>
-                    </div>
-                </div>
-                <div class="stat clay">
-                    <div class="stat-icon orange">↗</div>
-                    <div>
-                        <strong>PKR 2.4M</strong>
-                        <small>Sales (30d)</small>
-                    </div>
-                </div>
-                <div class="stat clay">
-                    <div class="stat-icon purple">♙</div>
-                    <div>
-                        <strong>842</strong>
-                        <small>Customers</small>
-                    </div>
-                </div>
+            <div class="cart-total grand"><span>Total</span><span id="cartTotal">0</span></div>
+            <div class="field" style="margin-top:8px">
+              <label>Paid Amount</label>
+              <input id="salePaid" type="number" value="0" min="0">
             </div>
-
-            <div class="info clay">
-                ✅ Your account is authenticated. Inventory & sales modules are being prepared for activation.
+            <div class="field">
+              <label>Payment Method</label>
+              <select id="salePaymentMethod">
+                <option value="cash">Cash</option>
+                <option value="bank">Bank Transfer</option>
+                <option value="other">Other</option>
+              </select>
             </div>
+            <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" id="btnSaveSale">💾 Save Sale</button>
+          </div>
+        </div>
 
-            <div class="cards">
-                <article class="card clay"><div class="card-icon">▣</div><h3>Products</h3><p>Manage mobile phones, accessories, models and prices.</p></article>
-                <article class="card clay"><div class="card-icon">▤</div><h3>Inventory</h3><p>Monitor available stock and IMEI numbers in real time.</p></article>
-                <article class="card clay"><div class="card-icon">↗</div><h3>Sales</h3><p>Manage customer sales, invoices and payments.</p></article>
-                <article class="card clay"><div class="card-icon">↙</div><h3>Purchases</h3><p>Manage suppliers and incoming stock.</p></article>
-                <article class="card clay"><div class="card-icon">♙</div><h3>Customers</h3><p>Maintain customer information and history.</p></article>
-                <article class="card clay"><div class="card-icon">▥</div><h3>Reports</h3><p>View business performance and financial reports.</p></article>
+        <div class="clay" style="padding:22px" id="salesHistoryBox" hidden>
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Sales History</h3>
+          <div class="table-wrap" id="salesHistoryTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ PURCHASES MODULE ============ -->
+      <section class="module" id="module-purchases">
+        <div class="module-head">
+          <div><h2>Purchases</h2><p>Stock intake from suppliers</p></div>
+          <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase</button>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="table-wrap" id="purchasesTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ CUSTOMERS ============ -->
+      <section class="module" id="module-customers">
+        <div class="module-head">
+          <div><h2>Customers</h2><p>All registered customers</p></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="search-bar"><input id="custSearch" placeholder="Search customers…"></div>
+            <button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button>
+          </div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="table-wrap" id="customersTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ SUPPLIERS ============ -->
+      <section class="module" id="module-suppliers">
+        <div class="module-head">
+          <div><h2>Suppliers</h2><p>Vendors & payable balances</p></div>
+          <button class="btn btn-primary" id="btnAddSupplier">+ Add Supplier</button>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="table-wrap" id="suppliersTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ CREDIT / UDHAR ============ -->
+      <section class="module" id="module-credit">
+        <div class="module-head">
+          <div><h2>Credit / Udhar Management</h2><p>Outstanding customer balances & recovery</p></div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="table-wrap" id="creditTable"><div class="empty">Loading…</div></div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Credit Recoveries</h3>
+          <div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ EXPENSES ============ -->
+      <section class="module" id="module-expenses">
+        <div class="module-head">
+          <div><h2>Expenses</h2><p>Shop expenses & utilities</p></div>
+          <button class="btn btn-primary" id="btnAddExpense">+ Add Expense</button>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="table-wrap" id="expensesTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ TRANSACTIONS ============ -->
+      <section class="module" id="module-transactions">
+        <div class="module-head">
+          <div><h2>Transactions</h2><p>Unified money-in / money-out ledger</p></div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="table-wrap" id="transactionsTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- ============ REPORTS ============ -->
+      <section class="module" id="module-reports">
+        <div class="module-head">
+          <div><h2>Reports</h2><p>Business performance insights</p></div>
+        </div>
+        <div class="clay" style="padding:22px">
+          <div class="form-grid">
+            <div class="field">
+              <label>Report Type</label>
+              <select id="reportType">
+                <option value="sales">Sales Report</option>
+                <option value="purchases">Purchase Report</option>
+                <option value="credit">Credit Report</option>
+                <option value="expenses">Expense Report</option>
+              </select>
             </div>
+            <div class="field">
+              <label>From Date</label>
+              <input type="date" id="reportFrom">
+            </div>
+            <div class="field">
+              <label>To Date</label>
+              <input type="date" id="reportTo">
+            </div>
+            <div class="field" style="display:flex;align-items:flex-end;gap:10px">
+              <button class="btn btn-primary" id="btnRunReport">Run Report</button>
+              <button class="btn btn-ghost" id="btnPrintReport">🖨 Print</button>
+            </div>
+          </div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div id="reportOutput"><div class="empty">Select a report type and click "Run Report".</div></div>
+        </div>
+      </section>
 
-        </section>
-    </main>
+      <!-- ============ SETTINGS ============ -->
+      <section class="module" id="module-settings">
+        <div class="module-head">
+          <div><h2>Settings</h2><p>Shop information & configuration</p></div>
+        </div>
+        <div class="clay" style="padding:22px">
+          <div class="form-grid">
+            <div class="field"><label>Shop Name</label><input id="setShopName"></div>
+            <div class="field"><label>Owner Name</label><input id="setOwner"></div>
+            <div class="field full"><label>Address</label><input id="setAddress"></div>
+            <div class="field"><label>Contact</label><input id="setPhone"></div>
+            <div class="field"><label>Currency</label><input id="setCurrency"></div>
+            <div class="field full"><label>Footer Text</label><input id="setFooter"></div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:18px" id="btnSaveSettings">💾 Save Settings</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
 </div>
+
+<!-- ============ MODAL (shared) ============ -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">Modal</h3>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary" id="modalConfirm">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast-host" id="toastHost"></div>
+
+<!-- ============ PRINT AREA ============ -->
+<div id="printArea" style="display:none"></div>
 
 <script type="module" src="js/dashboard.js"></script>
 </body>
