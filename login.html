@@ -1,202 +1,524 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Shop - Admin Login</title>
-    
-    <!-- CSS FILE LINK (Bilkul aise hi likhein, shuru mein slash "/" mat lagayein) -->
-    <link rel="stylesheet" href="login.css">
-    
-    <!-- Icons ke liye FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Mobile Shop — Admin Login</title>
+
+<!-- Fonts & Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+:root{
+  --bg:#0a0f1c;
+  --text:#eaf1ff;
+  --muted:#9aa8c3;
+  --primary:#65a6ff;
+  --primary-2:#8b5cf6;
+  --cyan:#35d5e8;
+  --danger:#ff6b81;
+  --success:#32d69a;
+  --warning:#ffbd65;
+
+  --glass:rgba(255,255,255,.055);
+  --glass-strong:rgba(255,255,255,.09);
+  --glass-brd:rgba(255,255,255,.14);
+  --shadow:0 30px 70px rgba(0,0,0,.55);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  font-family:'Inter',sans-serif;
+  color:var(--text);
+  overflow-x:hidden;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  background:
+    radial-gradient(circle at 12% 8%, #1b3a7a 0%, transparent 42%),
+    radial-gradient(circle at 88% 90%, #4a1f7a 0%, transparent 45%),
+    var(--bg);
+}
+
+/* ---------- Ambient blobs (liquid feel) ---------- */
+.blob{
+  position:fixed;border-radius:50%;
+  filter:blur(90px);opacity:.5;z-index:0;pointer-events:none;
+  animation:float 15s ease-in-out infinite;
+}
+.blob-1{width:420px;height:420px;background:#2f7bff;top:-140px;left:-120px}
+.blob-2{width:380px;height:380px;background:#a855f7;bottom:-140px;right:-120px;animation-delay:-5s}
+.blob-3{width:300px;height:300px;background:#06b6d4;top:50%;left:55%;opacity:.35;animation-delay:-9s}
+@keyframes float{
+  0%,100%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(28px,-36px) scale(1.08)}
+}
+
+/* ---------- Glass shell ---------- */
+.shell{
+  position:relative;z-index:1;
+  width:min(1120px,100%);
+  min-height:min(700px,92vh);
+  display:grid;grid-template-columns:1.05fr .95fr;
+  border-radius:28px;
+  overflow:hidden;
+  background:var(--glass);
+  backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
+  border:1px solid var(--glass-brd);
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.14);
+}
+
+/* ---------- LEFT visual panel ---------- */
+.visual{
+  position:relative;
+  padding:42px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(101,166,255,.18), transparent 40%),
+    linear-gradient(160deg, rgba(27,41,68,.9), rgba(20,32,54,.9));
+}
+.visual::after{
+  content:"";position:absolute;width:420px;height:420px;
+  right:-180px;bottom:-180px;border-radius:50%;
+  border:1px solid rgba(101,166,255,.18);
+  box-shadow:0 0 0 36px rgba(101,166,255,.03), 0 0 0 72px rgba(101,166,255,.02);
+  pointer-events:none;
+}
+.brand{display:flex;align-items:center;gap:14px;position:relative;z-index:2}
+.brand-mark{
+  width:52px;height:52px;border-radius:15px;display:grid;place-items:center;
+  font-size:22px;font-weight:900;color:#fff;
+  background:linear-gradient(135deg,var(--primary),var(--primary-2));
+  box-shadow:0 12px 28px rgba(101,166,255,.4);
+}
+.brand strong{font-size:16px;letter-spacing:.5px}
+.brand strong span{color:var(--primary)}
+.status{
+  margin-left:auto;padding:8px 14px;border-radius:30px;
+  font-size:10px;font-weight:800;letter-spacing:1px;
+  color:var(--success);
+  background:rgba(50,214,154,.08);
+  border:1px solid rgba(50,214,154,.22);
+}
+.status::before{
+  content:"";display:inline-block;width:7px;height:7px;margin-right:7px;
+  border-radius:50%;background:var(--success);box-shadow:0 0 10px var(--success);
+}
+
+.hero{margin:46px 0 30px;position:relative;z-index:2}
+.eyebrow{
+  display:inline-block;padding:7px 13px;border-radius:30px;
+  background:rgba(53,213,232,.1);color:var(--cyan);
+  font-size:10px;font-weight:800;letter-spacing:2px;margin-bottom:18px;
+}
+.hero h1{
+  font-size:clamp(30px,3.6vw,44px);line-height:1.12;font-weight:800;
+  letter-spacing:-1.6px;max-width:520px;
+}
+.hero h1 span{
+  background:linear-gradient(135deg,#65a6ff,#8b5cf6,#35d5e8);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p{color:var(--muted);font-size:13.5px;line-height:1.85;margin-top:16px;max-width:460px}
+
+.feature-grid{
+  position:relative;z-index:2;
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+}
+.feature{
+  padding:18px;border-radius:18px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  transition:.25s ease;
+}
+.feature:hover{transform:translateY(-4px);background:rgba(255,255,255,.07)}
+.feature i{font-size:20px;color:var(--primary);margin-bottom:10px;display:block}
+.feature h3{font-size:13px;font-weight:700;margin-bottom:5px}
+.feature p{font-size:11px;color:var(--muted);line-height:1.6}
+.feature.wide{grid-column:span 2;display:flex;align-items:center;gap:14px}
+.feature.wide i{margin:0}
+.feature.wide div h3{margin-bottom:3px}
+
+.visual-foot{
+  position:relative;z-index:2;margin-top:30px;padding-top:18px;
+  border-top:1px solid rgba(255,255,255,.08);
+  color:var(--muted);font-size:11px;
+}
+
+/* ---------- RIGHT login panel ---------- */
+.panel{
+  padding:42px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(23,35,56,.55);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.card{
+  width:100%;max-width:420px;
+  padding:34px 30px;
+  border-radius:24px;
+  background:var(--glass-strong);
+  backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
+  border:1px solid var(--glass-brd);
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+.mobile-brand{
+  display:none;align-items:center;justify-content:center;gap:12px;margin-bottom:26px;
+}
+.mobile-brand .brand-mark{width:44px;height:44px;font-size:18px}
+
+.heading{margin-bottom:26px;text-align:left}
+.heading .tag{
+  display:inline-block;padding:7px 12px;border-radius:30px;
+  background:rgba(101,166,255,.12);color:var(--primary);
+  font-size:10px;font-weight:800;letter-spacing:1px;margin-bottom:16px;
+}
+.heading h2{font-size:27px;font-weight:800;letter-spacing:-.8px;margin-bottom:8px}
+.heading p{color:var(--muted);font-size:12.5px;line-height:1.7}
+
+/* ---------- Form ---------- */
+.field{margin-bottom:18px}
+.field label{
+  display:block;margin-bottom:9px;color:#cbd7e9;
+  font-size:12px;font-weight:700;
+}
+.control{
+  position:relative;display:flex;align-items:center;gap:12px;
+  padding:0 15px;min-height:54px;border-radius:13px;
+  background:rgba(10,16,28,.55);
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:inset 3px 3px 8px rgba(0,0,0,.35), inset -3px -3px 8px rgba(255,255,255,.04);
+  transition:.25s ease;
+}
+.control:focus-within{
+  border-color:rgba(101,166,255,.55);
+  box-shadow:inset 3px 3px 8px rgba(0,0,0,.35), inset -3px -3px 8px rgba(255,255,255,.04),
+             0 0 0 3px rgba(101,166,255,.1);
+}
+.control .icon{color:#7186a5;font-size:14px;display:flex;align-items:center}
+.control input{
+  flex:1;min-width:0;height:50px;border:none;outline:none;background:transparent;
+  color:var(--text);font-family:inherit;font-size:13.5px;
+}
+.control input::placeholder{color:#64748c}
+.toggle{
+  flex-shrink:0;padding:6px;border:none;background:transparent;cursor:pointer;
+  color:#8295b2;font-size:15px;transition:.2s;
+}
+.toggle:hover{color:var(--primary)}
+
+/* Strength */
+.strength{display:none;margin-top:10px}
+.strength.show{display:block}
+.strength .track{height:5px;border-radius:10px;background:rgba(0,0,0,.35);overflow:hidden}
+.strength .bar{height:100%;width:0;border-radius:10px;background:var(--danger);transition:.3s}
+.strength .txt{display:block;margin-top:6px;font-size:10px;color:var(--muted)}
+
+/* Caps */
+.caps{display:none;margin-top:8px;font-size:11px;color:var(--warning)}
+.caps.show{display:block}
+
+/* Options row */
+.options{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:18px 0 22px;
+}
+.remember{
+  display:flex;align-items:center;gap:8px;
+  font-size:11.5px;color:var(--muted);cursor:pointer;
+}
+.remember input{accent-color:var(--primary);width:15px;height:15px;cursor:pointer}
+.options a{color:var(--primary);font-size:11.5px;text-decoration:none;font-weight:600}
+.options a:hover{text-decoration:underline}
+
+/* Feedback */
+.feedback{
+  display:none;padding:12px 14px;border-radius:11px;
+  margin-bottom:16px;font-size:11.5px;line-height:1.6;
+}
+.feedback.error{
+  display:block;color:#ff8292;
+  background:rgba(255,102,125,.09);
+  border:1px solid rgba(255,102,125,.22);
+}
+.feedback.success{
+  display:block;color:var(--success);
+  background:rgba(50,214,154,.08);
+  border:1px solid rgba(50,214,154,.22);
+}
+
+/* Submit button */
+.submit{
+  position:relative;width:100%;min-height:54px;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  border:none;border-radius:13px;cursor:pointer;
+  color:#fff;font-family:inherit;font-size:13.5px;font-weight:800;letter-spacing:.3px;
+  background:linear-gradient(135deg,#65a6ff,#8b5cf6);
+  box-shadow:0 14px 30px rgba(101,166,255,.36);
+  transition:.25s ease;overflow:hidden;
+}
+.submit:hover{transform:translateY(-2px);box-shadow:0 18px 36px rgba(101,166,255,.45)}
+.submit:active{transform:scale(.98)}
+.submit:disabled{opacity:.7;cursor:not-allowed;transform:none}
+.submit .arrow{font-size:17px;transition:transform .2s}
+.submit:hover .arrow{transform:translateX(4px)}
+.submit .loader{
+  display:none;width:17px;height:17px;
+  border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
+  border-radius:50%;animation:spin .7s linear infinite;
+}
+.submit.loading .loader{display:block}
+.submit.loading .arrow{display:none}
+.submit.loading span.label{opacity:.7}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Divider */
+.divider{
+  display:flex;align-items:center;gap:12px;
+  margin:22px 0 18px;color:#71819b;font-size:10px;letter-spacing:1px;
+}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.09)}
+
+/* Security note */
+.security{
+  display:flex;align-items:center;gap:12px;padding:14px;
+  border-radius:13px;background:rgba(10,16,28,.5);
+  border:1px solid rgba(255,255,255,.06);
+}
+.security .shield{
+  width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+  color:var(--success);background:rgba(50,214,154,.1);flex-shrink:0;
+}
+.security strong{display:block;color:#dce8f8;font-size:11px;margin-bottom:2px}
+.security p{color:var(--muted);font-size:10px;line-height:1.6}
+
+.foot{
+  margin-top:20px;text-align:center;color:#72829c;font-size:10.5px;
+}
+.foot a{color:var(--primary);text-decoration:none}
+
+button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outline-offset:3px}
+::selection{background:#65a6ff;color:#fff}
+
+/* ---------- Responsive ---------- */
+@media(max-width:960px){
+  .shell{grid-template-columns:1fr;min-height:auto}
+  .visual{display:none}
+  .panel{padding:26px;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+  .mobile-brand{display:flex}
+  .card{padding:28px 24px}
+}
+@media(max-width:480px){
+  body{padding:14px}
+  .card{padding:24px 20px}
+  .heading h2{font-size:23px}
+  .options{flex-wrap:wrap}
+}
+</style>
 </head>
 <body>
 
-    <!-- Background Ambient Effects (CSS ke liye zaroori hain) -->
-    <div class="ambient ambient-one"></div>
-    <div class="ambient ambient-two"></div>
-    <div class="ambient ambient-three"></div>
+<!-- Liquid background blobs -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
 
-    <!-- Main App Shell -->
-    <div class="app-shell">
+<div class="shell">
 
-        <!-- LEFT VISUAL PANEL (Design ka hissa) -->
-        <div class="visual-panel">
-            
-            <!-- Brand Top -->
-            <div class="brand-top">
-                <div class="brand-symbol">M</div>
-                <div class="system-status">SYSTEM ONLINE</div>
-            </div>
-
-            <!-- Hero Content -->
-            <div class="hero-content">
-                <span class="eyebrow">WELCOME BACK</span>
-                <h1>Manage your <span>Mobile Shop</span> with ease.</h1>
-                <p>The ultimate premium dashboard for tracking inventory, sales, and customers in real-time.</p>
-            </div>
-
-            <!-- Bento Grid Feature Cards -->
-            <div class="bento-grid">
-                <div class="bento-card inventory-card">
-                    <i class="fa-solid fa-mobile-screen icon"></i>
-                    <h3>Inventory</h3>
-                    <p>Track all your mobile accessories and devices.</p>
-                </div>
-                <div class="bento-card sales-card">
-                    <i class="fa-solid fa-chart-line icon"></i>
-                    <h3>Sales</h3>
-                    <p>Monitor daily revenue and analytics.</p>
-                </div>
-                <div class="bento-card security-card">
-                    <i class="fa-solid fa-shield-halved icon"></i>
-                    <div>
-                        <h3>Secure Access</h3>
-                        <p>Your data is encrypted and safe.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Left Footer -->
-            <div class="visual-footer">
-                <span>© 2024 Mobile Shop Software</span>
-            </div>
-        </div>
-
-        <!-- RIGHT LOGIN PANEL -->
-        <div class="login-panel">
-            <div class="login-card">
-
-                <!-- Mobile Brand (Sirf mobile screen par nazar aayega) -->
-                <div class="mobile-brand">
-                    <div class="brand-symbol">M</div>
-                    <strong>Mobile Shop</strong>
-                </div>
-
-                <!-- Login Heading -->
-                <div class="login-heading">
-                    <span class="welcome-tag">ADMIN LOGIN</span>
-                    <h2>Welcome Back</h2>
-                    <p>Please enter your credentials to access the dashboard.</p>
-                </div>
-
-                <!-- Login Form -->
-                <form id="loginForm" action="#" method="POST">
-                    
-                    <!-- Email/Username Input -->
-                    <div class="input-group">
-                        <label for="username">Email or Username</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">
-                                <i class="fa-regular fa-user"></i>
-                            </span>
-                            <input type="text" id="username" name="username" placeholder="Enter your email" required>
-                        </div>
-                    </div>
-
-                    <!-- Password Input -->
-                    <div class="input-group">
-                        <label for="password">Password</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon">
-                                <i class="fa-solid fa-lock"></i>
-                            </span>
-                            <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                            
-                            <!-- Show/Hide Password Button -->
-                            <button type="button" id="togglePassword">
-                                <i class="fa-regular fa-eye"></i>
-                            </button>
-                        </div>
-                        
-                        <!-- Password Strength Meter (JS se control hoga) -->
-                        <div class="password-strength" id="passwordStrength">
-                            <div class="strength-track">
-                                <div id="strengthBar"></div>
-                            </div>
-                            <span id="strengthText">Weak</span>
-                        </div>
-                        
-                        <!-- Caps Lock Warning -->
-                        <div id="capsWarning">Caps Lock is ON</div>
-                    </div>
-
-                    <!-- Options Row (Remember Me & Forgot Password) -->
-                    <div class="options-row">
-                        <label class="remember-option">
-                            <input type="checkbox" id="rememberMe" name="rememberMe">
-                            <span class="custom-check"></span>
-                            Remember Me
-                        </label>
-                        <a href="#" style="color: #65a6ff; font-size: 11px; text-decoration: none;">Forgot Password?</a>
-                    </div>
-
-                    <!-- Feedback Messages (Error/Success ke liye) -->
-                    <div id="errorMessage"></div>
-                    <div id="successMessage"></div>
-
-                    <!-- Login Button -->
-                    <button type="submit" id="loginBtn">
-                        <span>Login to Dashboard</span>
-                        <span class="button-arrow">→</span>
-                        <span class="button-loader"></span>
-                    </button>
-
-                </form>
-
-                <!-- Divider -->
-                <div class="login-divider">
-                    SECURE CONNECTION
-                </div>
-
-                <!-- Security Info -->
-                <div class="security-info">
-                    <div class="security-shield">
-                        <i class="fa-solid fa-lock"></i>
-                    </div>
-                    <div>
-                        <strong>256-bit SSL Encrypted</strong>
-                        <p>Your login details are securely transmitted.</p>
-                    </div>
-                </div>
-
-                <!-- Bottom Text -->
-                <div class="login-bottom">
-                    <span>Need help? Contact Support</span>
-                </div>
-
-            </div>
-        </div>
-
+  <!-- LEFT visual panel -->
+  <aside class="visual">
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <strong>MOBILE <span>SHOP</span></strong>
+      <span class="status">SECURE</span>
     </div>
 
-    <!-- JavaScript (Password Show/Hide aur Button Loading ke liye) -->
-    <script>
-        // 1. Password Show/Hide Logic
-        const togglePassword = document.querySelector('#togglePassword');
-        const password = document.querySelector('#password');
+    <div class="hero">
+      <span class="eyebrow">WELCOME BACK</span>
+      <h1>Sign in to your <span>business cockpit.</span></h1>
+      <p>Manage inventory, sales, customers and reports from a single premium dashboard designed for speed and clarity.</p>
+    </div>
 
-        togglePassword.addEventListener('click', function (e) {
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
-            
-            // Icon change karna
-            this.innerHTML = type === 'password' ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
-        });
+    <div class="feature-grid">
+      <div class="feature">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+        <h3>Inventory</h3>
+        <p>Track phones, accessories and IMEI records.</p>
+      </div>
+      <div class="feature">
+        <i class="fa-solid fa-chart-line"></i>
+        <h3>Analytics</h3>
+        <p>Real-time sales and revenue insights.</p>
+      </div>
+      <div class="feature wide">
+        <i class="fa-solid fa-shield-halved"></i>
+        <div>
+          <h3>256-bit encrypted access</h3>
+          <p>Your session and credentials are protected end-to-end.</p>
+        </div>
+      </div>
+    </div>
 
-        // 2. Button Loading Effect (Form submit hone par)
-        const loginForm = document.getElementById('loginForm');
-        const loginBtn = document.getElementById('loginBtn');
+    <div class="visual-foot">© 2024 Mobile Shop Software · All rights reserved.</div>
+  </aside>
 
-        loginForm.addEventListener('submit', function(e) {
-            // Yahan aap apna backend logic (PHP/Node.js) add kar sakte hain
-            
-            // Example: Button ko loading state mein dalna
-            // e.preventDefault(); // Agar backend nahi hai toh ise uncomment karein
-            // loginBtn.classList.add('loading');
-            // loginBtn.disabled = true;
-        });
-    </script>
+  <!-- RIGHT login panel -->
+  <main class="panel">
+    <div class="card">
+
+      <!-- Mobile brand -->
+      <div class="mobile-brand">
+        <div class="brand-mark">M</div>
+        <strong>Mobile Shop</strong>
+      </div>
+
+      <!-- Heading -->
+      <div class="heading">
+        <span class="tag">ADMIN LOGIN</span>
+        <h2>Welcome back</h2>
+        <p>Enter your credentials to access the dashboard.</p>
+      </div>
+
+      <!-- Form -->
+      <form id="loginForm" action="#" method="POST" novalidate>
+
+        <!-- Email -->
+        <div class="field">
+          <label for="email">Email</label>
+          <div class="control">
+            <span class="icon"><i class="fa-regular fa-envelope"></i></span>
+            <input type="email" id="email" name="email"
+                   placeholder="you@example.com" autocomplete="email" required>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="control">
+            <span class="icon"><i class="fa-solid fa-lock"></i></span>
+            <input type="password" id="password" name="password"
+                   placeholder="Enter your password" autocomplete="current-password" required>
+            <button type="button" class="toggle" id="togglePassword" aria-label="Show password">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+
+          <!-- Strength -->
+          <div class="strength" id="strength">
+            <div class="track"><div class="bar" id="strengthBar"></div></div>
+            <span class="txt" id="strengthText">Weak</span>
+          </div>
+
+          <!-- Caps warning -->
+          <div class="caps" id="capsWarning"><i class="fa-solid fa-triangle-exclamation"></i> Caps Lock is ON</div>
+        </div>
+
+        <!-- Options -->
+        <div class="options">
+          <label class="remember">
+            <input type="checkbox" id="rememberMe" name="rememberMe">
+            Remember me
+          </label>
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <!-- Feedback -->
+        <div class="feedback" id="errorMessage" role="alert"></div>
+        <div class="feedback" id="successMessage" role="status"></div>
+
+        <!-- Submit -->
+        <button type="submit" class="submit" id="loginBtn">
+          <span class="label">Login to Dashboard</span>
+          <span class="arrow">→</span>
+          <span class="loader"></span>
+        </button>
+
+      </form>
+
+      <div class="divider">SECURE CONNECTION</div>
+
+      <div class="security">
+        <div class="shield"><i class="fa-solid fa-lock"></i></div>
+        <div>
+          <strong>256-bit SSL Encrypted</strong>
+          <p>Your credentials are transmitted over a secure channel.</p>
+        </div>
+      </div>
+
+      <div class="foot">
+        Need help? <a href="#">Contact support</a>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- ================= SCRIPTS ================= -->
+<!-- 1) UI helpers (password toggle, caps, strength) — plain JS, no modules -->
+<script>
+(function () {
+  const pwdInput  = document.getElementById('password');
+  const toggle    = document.getElementById('togglePassword');
+  const strength  = document.getElementById('strength');
+  const bar       = document.getElementById('strengthBar');
+  const text      = document.getElementById('strengthText');
+  const capsWarn  = document.getElementById('capsWarning');
+
+  // Show / hide password
+  toggle.addEventListener('click', () => {
+    const show = pwdInput.type === 'password';
+    pwdInput.type = show ? 'text' : 'password';
+    toggle.innerHTML = show
+      ? '<i class="fa-regular fa-eye-slash"></i>'
+      : '<i class="fa-regular fa-eye"></i>';
+    toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+  });
+
+  // Caps Lock
+  pwdInput.addEventListener('keyup', (e) => {
+    const on = e.getModifierState && e.getModifierState('CapsLock');
+    capsWarn.classList.toggle('show', !!on);
+  });
+  pwdInput.addEventListener('blur', () => capsWarn.classList.remove('show'));
+
+  // Strength meter
+  pwdInput.addEventListener('input', () => {
+    const v = pwdInput.value;
+    if (!v) { strength.classList.remove('show'); return; }
+    strength.classList.add('show');
+
+    let score = 0;
+    if (v.length >= 6) score++;
+    if (v.length >= 10) score++;
+    if (/[A-Z]/.test(v)) score++;
+    if (/\d/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+
+    const pct   = Math.min(100, score * 20);
+    const label = score <= 2 ? 'Weak' : score === 3 ? 'Fair' : score === 4 ? 'Good' : 'Strong';
+    const color = score <= 2 ? '#ff6b81' : score === 3 ? '#f59e42' : score === 4 ? '#65a6ff' : '#32d69a';
+
+    bar.style.width = pct + '%';
+    bar.style.background = color;
+    text.textContent = label;
+    text.style.color = color;
+  });
+})();
+</script>
+
+<!-- 2) Auth logic with Supabase (module) -->
+<script type="module" src="js/login.js"></script>
+
 </body>
 </html>
