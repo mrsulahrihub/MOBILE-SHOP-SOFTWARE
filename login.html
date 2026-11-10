@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Shop Management System - Login</title>
+    <title>Mobile Shop - Admin Login</title>
     
-    <!-- CSS File Link (Aapki file ka naam login.css hai) -->
+    <!-- CSS FILE LINK (Bilkul aise hi likhein, shuru mein slash "/" mat lagayein) -->
     <link rel="stylesheet" href="login.css">
     
-    <!-- Icons ke liye FontAwesome CDN (Optional, agar icons nahi dikh rahe toh) -->
+    <!-- Icons ke liye FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- Background Ambient Effects -->
+    <!-- Background Ambient Effects (CSS ke liye zaroori hain) -->
     <div class="ambient ambient-one"></div>
     <div class="ambient ambient-two"></div>
     <div class="ambient ambient-three"></div>
@@ -21,7 +21,7 @@
     <!-- Main App Shell -->
     <div class="app-shell">
 
-        <!-- LEFT VISUAL PANEL -->
+        <!-- LEFT VISUAL PANEL (Design ka hissa) -->
         <div class="visual-panel">
             
             <!-- Brand Top -->
@@ -68,7 +68,7 @@
         <div class="login-panel">
             <div class="login-card">
 
-                <!-- Mobile Brand (Sirf mobile par nazar aayega) -->
+                <!-- Mobile Brand (Sirf mobile screen par nazar aayega) -->
                 <div class="mobile-brand">
                     <div class="brand-symbol">M</div>
                     <strong>Mobile Shop</strong>
@@ -105,7 +105,7 @@
                             <input type="password" id="password" name="password" placeholder="Enter your password" required>
                             
                             <!-- Show/Hide Password Button -->
-                            <button type="button" id="togglePassword" style="background: none; border: none; cursor: pointer;">
+                            <button type="button" id="togglePassword">
                                 <i class="fa-regular fa-eye"></i>
                             </button>
                         </div>
@@ -132,7 +132,7 @@
                         <a href="#" style="color: #65a6ff; font-size: 11px; text-decoration: none;">Forgot Password?</a>
                     </div>
 
-                    <!-- Feedback Messages -->
+                    <!-- Feedback Messages (Error/Success ke liye) -->
                     <div id="errorMessage"></div>
                     <div id="successMessage"></div>
 
@@ -147,7 +147,7 @@
 
                 <!-- Divider -->
                 <div class="login-divider">
-                    <span></span> SECURE CONNECTION <span></span>
+                    SECURE CONNECTION
                 </div>
 
                 <!-- Security Info -->
@@ -171,9 +171,9 @@
 
     </div>
 
-    <!-- Simple JavaScript for UI Interactions (Password Toggle, etc.) -->
+    <!-- JavaScript (Password Show/Hide aur Button Loading ke liye) -->
     <script>
-        // Password Show/Hide Toggle
+        // 1. Password Show/Hide Logic
         const togglePassword = document.querySelector('#togglePassword');
         const password = document.querySelector('#password');
 
@@ -185,14 +185,14 @@
             this.innerHTML = type === 'password' ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
         });
 
-        // Button Loading Effect (Jab form submit ho)
+        // 2. Button Loading Effect (Form submit hone par)
         const loginForm = document.getElementById('loginForm');
         const loginBtn = document.getElementById('loginBtn');
 
         loginForm.addEventListener('submit', function(e) {
-            // Yahan aap apna backend logic add kar sakte hain
+            // Yahan aap apna backend logic (PHP/Node.js) add kar sakte hain
             
-            // Example: Loading animation dikhana
+            // Example: Button ko loading state mein dalna
             // e.preventDefault(); // Agar backend nahi hai toh ise uncomment karein
             // loginBtn.classList.add('loading');
             // loginBtn.disabled = true;
