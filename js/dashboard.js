@@ -1,16 +1,12 @@
 // =====================================================
-// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER
+// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v3.0)
 // =====================================================
-
 import { supabase } from './config.js';
 import { getActiveProfile } from './auth-guard.js';
 
 // ---------- Auth guard ----------
 const result = await getActiveProfile();
-if (!result) {
-  location.replace('./login.html');
-  throw new Error('Unauthorized');
-}
+if (!result) { location.replace('./login.html'); throw new Error('Unauthorized'); }
 const { profile } = result;
 
 document.getElementById('userName').textContent = profile.full_name;
@@ -52,10 +48,64 @@ function closeModal() {
 }
 $('modalCancel').onclick = closeModal;
 $('modalConfirm').onclick = async () => {
-  if (MODAL_ON_CONFIRM) {
-    try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); }
-  }
+  if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
+
+// ---------- Global Keyboard Shortcuts ----------
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+    if (e.key === 'Escape') e.target.blur();
+    return;
+  }
+  // Alt + S = Save Sale
+  if (e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); if ($('btnSaveSale') && !$('btnSaveSale').disabled) $('btnSaveSale').click(); }
+  // Alt + O = Overview
+  if (e.altKey && e.key.toLowerCase() === 'o') { e.preventDefault(); document.querySelector('[data-module="overview"]')?.click(); }
+  // Alt + P = Products
+  if (e.altKey && e.key.toLowerCase() === 'p') { e.preventDefault(); document.querySelector('[data-module="products"]')?.click(); }
+  // Alt + I = Inventory
+  if (e.altKey && e.key.toLowerCase() === 'i') { e.preventDefault(); document.querySelector('[data-module="inventory"]')?.click(); }
+  // Alt + L = Sales / POS
+  if (e.altKey && e.key.toLowerCase() === 'l') { e.preventDefault(); document.querySelector('[data-module="sales"]')?.click(); }
+  // Alt + C = Customers
+  if (e.altKey && e.key.toLowerCase() === 'c') { e.preventDefault(); document.querySelector('[data-module="customers"]')?.click(); }
+  // Alt + U = Credit / Udhar
+  if (e.altKey && e.key.toLowerCase() === 'u') { e.preventDefault(); document.querySelector('[data-module="credit"]')?.click(); }
+  // Alt + E = Expenses
+  if (e.altKey && e.key.toLowerCase() === 'e') { e.preventDefault(); document.querySelector('[data-module="expenses"]')?.click(); }
+  // Alt + R = Reports
+  if (e.altKey && e.key.toLowerCase() === 'r') { e.preventDefault(); document.querySelector('[data-module="reports"]')?.click(); }
+  // Esc = close modal
+  if (e.key === 'Escape' && $('modalBackdrop').classList.contains('open')) closeModal();
+  // Ctrl + Enter = confirm modal
+  if (e.ctrlKey && e.key === 'Enter' && $('modalBackdrop').classList.contains('open')) $('modalConfirm').click();
+  // F2 = Add to Cart (POS)
+  if (e.key === 'F2' && $('btnAddToCart') && !$('btnAddToCart').disabled) { e.preventDefault(); $('btnAddToCart').click(); }
+  // F4 = Save Sale (POS)
+  if (e.key === 'F4' && $('btnSaveSale') && !$('btnSaveSale').disabled) { e.preventDefault(); $('btnSaveSale').click(); }
+  // F8 = New Purchase
+  if (e.key === 'F8') { e.preventDefault(); $('btnNewPurchase')?.click(); }
+  // F9 = New Expense
+  if (e.key === 'F9') { e.preventDefault(); $('btnAddExpense')?.click(); }
+  // F1 = Help
+  if (e.key === 'F1') { e.preventDefault(); showShortcutHelp(); }
+});
+
+function showShortcutHelp() {
+  const body = `<div style="font-size:13px;line-height:1.8">
+    <b>Navigation:</b><br>
+    <code>Alt+O</code> Overview · <code>Alt+P</code> Products · <code>Alt+I</code> Inventory<br>
+    <code>Alt+L</code> POS · <code>Alt+C</code> Customers · <code>Alt+U</code> Udhar<br>
+    <code>Alt+E</code> Expenses · <code>Alt+R</code> Reports<br><br>
+    <b>POS Actions:</b><br>
+    <code>F2</code> Add to Cart · <code>F4</code> Save Sale · <code>Alt+S</code> Save Sale<br><br>
+    <b>Others:</b><br>
+    <code>F8</code> New Purchase · <code>F9</code> New Expense<br>
+    <code>Ctrl+Enter</code> Confirm Modal · <code>Esc</code> Close<br>
+    <code>F1</code> This Help
+  </div>`;
+  openModal('⌨️ Keyboard Shortcuts', body, () => closeModal(), 'Close');
+}
 
 // ---------- Module navigation ----------
 const MODULE_TITLES = {
@@ -117,7 +167,6 @@ async function loadOverview() {
   $('stOutstanding').textContent = fmt(sum(sales, 'balance'));
   $('stExpenses').textContent = fmt(sum(exp, 'amount'));
 
-  // Recent sales
   const { data: recent } = await supabase.from('sales').select('*').order('created_at', { ascending: false }).limit(5);
   const t = $('recentSales');
   if (!recent || !recent.length) { t.innerHTML = '<div class="empty">No sales yet.</div>'; return; }
@@ -127,7 +176,7 @@ async function loadOverview() {
 }
 
 // =====================================================
-// PRODUCTS
+// PRODUCTS (with Category, Subcategory, Dual IMEI)
 // =====================================================
 let ALL_PRODUCTS = [];
 async function loadProducts(filter = '') {
@@ -138,12 +187,12 @@ async function loadProducts(filter = '') {
   ALL_PRODUCTS = data || [];
   const t = $('productsTable');
   if (!ALL_PRODUCTS.length) { t.innerHTML = '<div class="empty">No products found. Add your first product.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Brand</th><th>IMEI / SKU</th><th class="num">Purchase</th><th class="num">Sale</th><th class="num">Stock</th><th>Status</th><th class="actions">Actions</th></tr></thead><tbody>
+  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category</th><th>IMEI / SKU</th><th class="num">Purchase</th><th class="num">Sale</th><th class="num">Stock</th><th>Status</th><th class="actions">Actions</th></tr></thead><tbody>
     ${ALL_PRODUCTS.map(p => `
       <tr>
         <td><strong>${esc(p.name)}</strong><br><small style="color:var(--muted)">${esc(p.model||'')}</small></td>
-        <td>${esc(p.brand||'—')}</td>
-        <td><small>${esc(p.imei || p.sku || '—')}</small></td>
+        <td><small>${esc(p.category||'—')}${p.sub_category ? ' / ' + esc(p.sub_category) : ''}</small></td>
+        <td><small>${esc(p.imei_1 || p.imei || p.sku || '—')}${p.imei_2 ? '<br>' + esc(p.imei_2) : ''}</small></td>
         <td class="num">${fmt(p.purchase_price)}</td>
         <td class="num">${fmt(p.sale_price)}</td>
         <td class="num">${p.quantity}</td>
@@ -157,13 +206,9 @@ async function loadProducts(filter = '') {
 }
 
 $('productSearch')?.addEventListener('input', e => loadProducts(e.target.value));
-
 $('btnAddProduct')?.addEventListener('click', () => openProductModal());
 
-window.editProduct = (id) => {
-  const p = ALL_PRODUCTS.find(x => x.id === id);
-  if (p) openProductModal(p);
-};
+window.editProduct = (id) => { const p = ALL_PRODUCTS.find(x => x.id === id); if (p) openProductModal(p); };
 window.deleteProduct = async (id) => {
   if (!confirm('Delete this product?')) return;
   const { error } = await supabase.from('products').delete().eq('id', id);
@@ -172,29 +217,54 @@ window.deleteProduct = async (id) => {
 };
 
 function openProductModal(p = null) {
+  const isMobile = (p?.category || 'Mobile') === 'Mobile';
+  const isCover = (p?.category) === 'Cover';
   const body = `
     <div class="form-grid">
       <div class="field full"><label>Product Name *</label><input id="pName" value="${esc(p?.name||'')}"></div>
+      <div class="field">
+        <label>Category *</label>
+        <select id="pCategory" onchange="toggleProductFields()">
+          <option value="Mobile" ${!p || p.category==='Mobile'?'selected':''}>Mobile</option>
+          <option value="Cover" ${p?.category==='Cover'?'selected':''}>Mobile Cover</option>
+          <option value="Accessory" ${p?.category==='Accessory'?'selected':''}>Accessory</option>
+          <option value="Other" ${p?.category==='Other'?'selected':''}>Other</option>
+        </select>
+      </div>
+      <div class="field" id="coverSubField" style="${isCover ? '' : 'display:none'}">
+        <label>Cover Type</label>
+        <select id="pSubCategory">
+          <option value="Simple" ${p?.sub_category==='Simple'?'selected':''}>Simple (White)</option>
+          <option value="Design" ${p?.sub_category==='Design'?'selected':''}>Design (Stylish)</option>
+          <option value="Ladies" ${p?.sub_category==='Ladies'?'selected':''}>Ladies Cover</option>
+        </select>
+      </div>
       <div class="field"><label>Brand</label><input id="pBrand" value="${esc(p?.brand||'')}"></div>
       <div class="field"><label>Model</label><input id="pModel" value="${esc(p?.model||'')}"></div>
+      <div class="field" id="imei1Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 1</label><input id="pImei1" value="${esc(p?.imei_1||p?.imei||'')}"></div>
+      <div class="field" id="imei2Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 2</label><input id="pImei2" value="${esc(p?.imei_2||'')}"></div>
       <div class="field"><label>Purchase Price</label><input id="pPurchase" type="number" value="${p?.purchase_price||0}"></div>
       <div class="field"><label>Sale Price</label><input id="pSale" type="number" value="${p?.sale_price||0}"></div>
       <div class="field"><label>Quantity</label><input id="pQty" type="number" value="${p?.quantity||0}"></div>
       <div class="field"><label>Min Stock</label><input id="pMin" type="number" value="${p?.min_stock||5}"></div>
-      <div class="field"><label>IMEI (unique)</label><input id="pImei" value="${esc(p?.imei||'')}"></div>
       <div class="field"><label>SKU</label><input id="pSku" value="${esc(p?.sku||'')}"></div>
       <div class="field full"><label>Description</label><textarea id="pDesc">${esc(p?.description||'')}</textarea></div>
     </div>`;
   openModal(p ? 'Edit Product' : 'Add Product', body, async () => {
+    const cat = $('pCategory').value;
     const payload = {
       name: $('pName').value.trim(),
+      category: cat,
+      sub_category: cat === 'Cover' ? $('pSubCategory').value : null,
       brand: $('pBrand').value.trim() || null,
       model: $('pModel').value.trim() || null,
+      imei_1: cat === 'Mobile' ? ($('pImei1').value.trim() || null) : null,
+      imei_2: cat === 'Mobile' ? ($('pImei2').value.trim() || null) : null,
+      imei: cat === 'Mobile' ? ($('pImei1').value.trim() || null) : null, // backward compat
       purchase_price: Number($('pPurchase').value) || 0,
       sale_price: Number($('pSale').value) || 0,
       quantity: Number($('pQty').value) || 0,
       min_stock: Number($('pMin').value) || 5,
-      imei: $('pImei').value.trim() || null,
       sku: $('pSku').value.trim() || null,
       description: $('pDesc').value.trim() || null
     };
@@ -208,6 +278,12 @@ function openProductModal(p = null) {
     loadProducts();
   });
 }
+window.toggleProductFields = () => {
+  const cat = $('pCategory').value;
+  $('coverSubField').style.display = cat === 'Cover' ? '' : 'none';
+  $('imei1Field').style.display = cat === 'Mobile' ? '' : 'none';
+  $('imei2Field').style.display = cat === 'Mobile' ? '' : 'none';
+};
 
 // =====================================================
 // INVENTORY
@@ -216,8 +292,8 @@ async function loadInventory() {
   const { data: low } = await supabase.from('products').select('*').order('quantity', { ascending: true }).limit(20);
   const t = $('lowStockTable');
   if (!low || !low.length) t.innerHTML = '<div class="empty">No products.</div>';
-  else t.innerHTML = `<table class="data"><thead><tr><th>Product</th><th class="num">Stock</th><th class="num">Min</th><th>Status</th></tr></thead><tbody>
-    ${low.map(p => `<tr><td>${esc(p.name)}</td><td class="num">${p.quantity}</td><td class="num">${p.min_stock}</td>
+  else t.innerHTML = `<table class="data"><thead><tr><th>Product</th><th>Category</th><th class="num">Stock</th><th class="num">Min</th><th>Status</th></tr></thead><tbody>
+    ${low.map(p => `<tr><td>${esc(p.name)}</td><td><small>${esc(p.category||'—')}${p.sub_category ? ' / '+esc(p.sub_category) : ''}</small></td><td class="num">${p.quantity}</td><td class="num">${p.min_stock}</td>
     <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}
   </tbody></table>`;
 
@@ -232,15 +308,19 @@ async function loadInventory() {
 }
 
 // =====================================================
-// SALES / POS
+// SALES / POS (with 80mm thermal print & auto-udhar)
 // =====================================================
 let CART = [];
+let LAST_SALE = null;
 
 async function loadSaleProducts() {
-  const { data } = await supabase.from('products').select('id,name,imei,sale_price,quantity').gt('quantity', 0).order('name');
+  const { data } = await supabase.from('products').select('id,name,category,sub_category,imei_1,imei_2,sale_price,quantity').gt('quantity', 0).order('name');
   const sel = $('saleProductSelect');
   sel.innerHTML = '<option value="">— Choose product —</option>' +
-    (data || []).map(p => `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei||'')}" data-stock="${p.quantity}">${esc(p.name)} — ${fmt(p.sale_price)} (${p.quantity} in stock)</option>`).join('');
+    (data || []).map(p => {
+      const label = `${p.name}${p.sub_category ? ' ('+p.sub_category+')' : ''} — ${fmt(p.sale_price)} (${p.quantity} in stock)`;
+      return `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei_1||'')}" data-imei2="${esc(p.imei_2||'')}" data-stock="${p.quantity}">${esc(label)}</option>`;
+    }).join('');
 }
 
 $('btnAddToCart').onclick = () => {
@@ -258,12 +338,14 @@ $('btnAddToCart').onclick = () => {
       product_id: opt.value,
       product_name: opt.dataset.name,
       imei: opt.dataset.imei || null,
+      imei_2: opt.dataset.imei2 || null,
       unit_price: Number(opt.dataset.price),
       quantity: 1,
       line_total: Number(opt.dataset.price)
     });
   }
   renderCart();
+  toast('Added to cart', 'success');
 };
 
 function renderCart() {
@@ -271,7 +353,7 @@ function renderCart() {
   if (!CART.length) { box.innerHTML = '<div class="empty">Cart is empty</div>'; }
   else {
     box.innerHTML = `<table class="data cart-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Total</th><th></th></tr></thead><tbody>
-      ${CART.map((c, i) => `<tr><td>${esc(c.product_name)}</td>
+      ${CART.map((c, i) => `<tr><td>${esc(c.product_name)}${c.imei ? '<br><small>IMEI: '+esc(c.imei)+'</small>' : ''}</td>
         <td class="num">${c.quantity}</td>
         <td class="num">${fmt(c.unit_price)}</td>
         <td class="num">${fmt(c.line_total)}</td>
@@ -283,7 +365,7 @@ function renderCart() {
   const total = Math.max(0, sub - disc);
   $('cartSubtotal').textContent = fmt(sub);
   $('cartTotal').textContent = fmt(total);
-  $('salePaid').value = total; // auto-fill full payment
+  if (Number($('salePaid').value) === 0) $('salePaid').value = total;
 }
 
 window.removeCart = (i) => { CART.splice(i, 1); renderCart(); };
@@ -296,13 +378,17 @@ $('btnSaveSale').onclick = async () => {
   const total = Math.max(0, sub - disc);
   const paid = Number($('salePaid').value) || 0;
   const method = $('salePaymentMethod').value;
+  const custName = $('saleCustName').value.trim() || 'Walk-in Customer';
+  const custPhone = $('saleCustPhone').value.trim() || null;
+
+  if (paid < 0 || paid > total) return toast('Invalid paid amount', 'error');
 
   $('btnSaveSale').disabled = true;
   try {
     const { data, error } = await supabase.rpc('create_sale', {
       p_customer_id: null,
-      p_customer_name: $('saleCustName').value.trim() || 'Walk-in Customer',
-      p_customer_phone: $('saleCustPhone').value.trim() || null,
+      p_customer_name: custName,
+      p_customer_phone: custPhone,
       p_subtotal: sub,
       p_discount: disc,
       p_total: total,
@@ -319,20 +405,85 @@ $('btnSaveSale').onclick = async () => {
       }))
     });
     if (error) throw new Error(error.message);
+
+    LAST_SALE = {
+      invoice: data.invoice_no,
+      customer: custName,
+      phone: custPhone,
+      total, paid,
+      balance: total - paid,
+      method,
+      items: [...CART],
+      date: new Date()
+    };
+
+    // Auto-Udhar Notification
+    if (total - paid > 0) {
+      toast(`Udhar ${fmt(total - paid)} saved in Credit section`, 'info');
+    }
+
     toast('Sale saved successfully', 'success');
     CART = [];
     $('saleCustName').value = '';
     $('saleCustPhone').value = '';
     $('saleDiscount').value = 0;
+    $('salePaid').value = 0;
     renderCart();
     loadSaleProducts();
     loadOverview();
+
+    // Auto-print 80mm thermal
+    if (confirm('Print 80mm thermal receipt?')) printThermal80mm(LAST_SALE);
   } catch (e) {
     toast(e.message, 'error');
   } finally {
     $('btnSaveSale').disabled = false;
   }
 };
+
+// =====================================================
+// 80mm THERMAL RECEIPT
+// =====================================================
+function printThermal80mm(sale) {
+  const w = window.open('', '_blank', 'width=340,height=600');
+  w.document.write(`<html><head><title>Receipt</title><style>
+    @page { size: 80mm auto; margin: 0; }
+    body { font-family: 'Courier New', monospace; font-size: 11px; width: 76mm; margin: 0 auto; padding: 2mm; }
+    .center { text-align: center; }
+    .line { border-top: 1px dashed #000; margin: 4px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    td, th { padding: 1px 0; text-align: left; }
+    .num { text-align: right; }
+    .big { font-size: 13px; font-weight: bold; }
+    .b { font-weight: bold; }
+  </style></head><body>
+    <div class="center">
+      <div class="big">BM MOBILE ZONE</div>
+      <div>Chohan Mobile Market, Zafarwal</div>
+      <div>03099100546</div>
+    </div>
+    <div class="line"></div>
+    <div>Invoice: <span class="b">${esc(sale.invoice)}</span></div>
+    <div>Date: ${sale.date.toLocaleString('en-PK')}</div>
+    <div>Customer: ${esc(sale.customer)}</div>
+    ${sale.phone ? `<div>Phone: ${esc(sale.phone)}</div>` : ''}
+    <div class="line"></div>
+    <table><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      ${sale.items.map(i => `<tr><td>${esc(i.product_name)}${i.imei ? '<br><small>'+esc(i.imei)+'</small>' : ''}</td><td class="num">${i.quantity}</td><td class="num">${fmt(i.line_total)}</td></tr>`).join('')}
+    </tbody></table>
+    <div class="line"></div>
+    <table>
+      <tr><td>Total</td><td class="num b">${fmt(sale.total)}</td></tr>
+      <tr><td>Paid (${sale.method})</td><td class="num">${fmt(sale.paid)}</td></tr>
+      <tr><td>Due</td><td class="num b">${fmt(sale.balance)}</td></tr>
+    </table>
+    <div class="line"></div>
+    <div class="center">Thank you for shopping!<br>Visit again</div>
+    <script>window.onload=function(){window.print();setTimeout(()=>window.close(),800);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
 
 $('btnSalesHistory').onclick = () => {
   const box = $('salesHistoryBox');
@@ -367,9 +518,8 @@ async function loadPurchases() {
 }
 
 $('btnNewPurchase').onclick = async () => {
-  // load products + suppliers for modal
   const [{ data: prods }, { data: sups }] = await Promise.all([
-    supabase.from('products').select('id,name,purchase_price').order('name'),
+    supabase.from('products').select('id,name,purchase_price,category').order('name'),
     supabase.from('suppliers').select('id,name').order('name')
   ]);
   const body = `
@@ -378,14 +528,14 @@ $('btnNewPurchase').onclick = async () => {
         <select id="puSup"><option value="">— None —</option>${(sups||[]).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
       </div>
       <div class="field"><label>Product</label>
-        <select id="puProd"><option value="">— Choose —</option>${(prods||[]).map(p => `<option value="${p.id}" data-name="${esc(p.name)}">${esc(p.name)}</option>`).join('')}</select>
+        <select id="puProd"><option value="">— Choose —</option>${(prods||[]).map(p => `<option value="${p.id}" data-name="${esc(p.name)}" data-price="${p.purchase_price||0}">${esc(p.name)}</option>`).join('')}</select>
       </div>
       <div class="field"><label>Quantity</label><input id="puQty" type="number" value="1" min="1"></div>
       <div class="field"><label>Unit Purchase Price</label><input id="puPrice" type="number" value="0"></div>
       <div class="field"><label>Total</label><input id="puTotal" type="number" readonly></div>
       <div class="field"><label>Paid</label><input id="puPaid" type="number" value="0"></div>
     </div>
-    <p style="font-size:11px;color:var(--muted);margin-top:12px">Note: This adds a single line purchase. Full multi-line POS purchase coming in v2.1</p>
+    <p style="font-size:11px;color:var(--muted);margin-top:12px">Full multi-line purchase coming in v3.1</p>
   `;
   openModal('New Purchase', body, async () => {
     const prodId = $('puProd').value;
@@ -400,25 +550,23 @@ $('btnNewPurchase').onclick = async () => {
     const { error } = await supabase.rpc('create_purchase', {
       p_supplier_id: $('puSup').value || null,
       p_supplier_name: sups?.name || null,
-      p_subtotal: total,
-      p_discount: 0,
-      p_total: total,
-      p_paid: paid,
-      p_payment_method: 'cash',
-      p_notes: null,
-      p_items: [{
-        product_id: prodId,
-        product_name: opt.dataset.name,
-        quantity: qty,
-        unit_price: price,
-        line_total: total
-      }]
+      p_subtotal: total, p_discount: 0, p_total: total, p_paid: paid,
+      p_payment_method: 'cash', p_notes: null,
+      p_items: [{ product_id: prodId, product_name: opt.dataset.name, quantity: qty, unit_price: price, line_total: total }]
     });
     if (error) throw new Error(error.message);
-    toast('Purchase saved', 'success');
-    closeModal();
-    loadPurchases();
+    toast('Purchase saved', 'success'); closeModal(); loadPurchases();
   });
+  // auto-fill on change
+  setTimeout(() => {
+    const prodSel = $('puProd');
+    prodSel.onchange = () => {
+      const o = prodSel.options[prodSel.selectedIndex];
+      if (o.dataset.price) $('puPrice').value = o.dataset.price;
+    };
+    const calc = () => $('puTotal').value = (Number($('puQty').value)||0) * (Number($('puPrice').value)||0);
+    $('puQty').oninput = calc; $('puPrice').oninput = calc;
+  }, 50);
 };
 
 // =====================================================
@@ -440,7 +588,6 @@ async function loadCustomers(filter = '') {
 }
 
 $('custSearch')?.addEventListener('input', e => loadCustomers(e.target.value));
-
 $('btnAddCustomer').onclick = () => openCustomerModal();
 window.editCustomer = (id) => openCustomerModal(ALL_CUST.find(c => c.id === id));
 window.deleteCustomer = async (id) => {
@@ -465,9 +612,7 @@ function openCustomerModal(c = null) {
       opening_balance: Number($('cBal').value) || 0
     };
     if (!payload.name) throw new Error('Name required');
-    const res = c
-      ? await supabase.from('customers').update(payload).eq('id', c.id)
-      : await supabase.from('customers').insert(payload);
+    const res = c ? await supabase.from('customers').update(payload).eq('id', c.id) : await supabase.from('customers').insert(payload);
     if (res.error) throw new Error(res.error.message);
     toast('Saved', 'success'); closeModal(); loadCustomers();
   });
@@ -495,7 +640,6 @@ window.deleteSupplier = async (id) => {
   const { error } = await supabase.from('suppliers').delete().eq('id', id);
   if (error) toast(error.message, 'error'); else { toast('Deleted', 'success'); loadSuppliers(); }
 };
-
 function openSupplierModal(s = null) {
   const body = `<div class="form-grid">
     <div class="field full"><label>Supplier Name *</label><input id="sName" value="${esc(s?.name||'')}"></div>
@@ -518,7 +662,7 @@ function openSupplierModal(s = null) {
 }
 
 // =====================================================
-// CREDIT / UDHAR
+// CREDIT / UDHAR (auto-synced from sales)
 // =====================================================
 async function loadCredit() {
   const { data: sales } = await supabase.from('sales').select('id,invoice_no,customer_name,customer_phone,total,paid,balance,created_at').gt('balance', 0).order('created_at', { ascending: false });
@@ -598,7 +742,6 @@ $('btnAddExpense').onclick = () => {
     };
     const { error } = await supabase.from('expenses').insert(payload);
     if (error) throw new Error(error.message);
-    // Also log transaction
     await supabase.from('transactions').insert({
       transaction_type: 'expense', amount: payload.amount,
       payment_method: payload.payment_method, direction: 'out',
@@ -631,7 +774,6 @@ $('btnRunReport').onclick = async () => {
   const type = $('reportType').value;
   const from = $('reportFrom').value ? new Date($('reportFrom').value).toISOString() : new Date(0).toISOString();
   const to = $('reportTo').value ? new Date($('reportTo').value + 'T23:59:59').toISOString() : new Date().toISOString();
-
   const out = $('reportOutput');
   out.innerHTML = '<div class="empty">Loading…</div>';
 
@@ -658,10 +800,8 @@ $('btnRunReport').onclick = async () => {
       ${(data||[]).map(x => `<tr><td>${esc(x.expense_date)}</td><td>${esc(x.category)}</td><td>${esc(x.description||'')}</td><td class="num">${fmt(x.amount)}</td></tr>`).join('')}
     </tbody></table>`;
   }
-
   out.innerHTML = `<h3 style="font-size:15px;font-weight:800;margin-bottom:12px">${title}</h3>${table}`;
 };
-
 $('btnPrintReport').onclick = () => window.print();
 
 // =====================================================
