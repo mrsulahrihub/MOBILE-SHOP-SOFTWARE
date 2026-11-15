@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v3.0)
+// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v4.0)
 // =====================================================
 import { supabase } from './config.js';
 import { getActiveProfile } from './auth-guard.js';
@@ -57,52 +57,25 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') e.target.blur();
     return;
   }
-  // Alt + S = Save Sale
   if (e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); if ($('btnSaveSale') && !$('btnSaveSale').disabled) $('btnSaveSale').click(); }
-  // Alt + O = Overview
-  if (e.altKey && e.key.toLowerCase() === 'o') { e.preventDefault(); document.querySelector('[data-module="overview"]')?.click(); }
-  // Alt + P = Products
   if (e.altKey && e.key.toLowerCase() === 'p') { e.preventDefault(); document.querySelector('[data-module="products"]')?.click(); }
-  // Alt + I = Inventory
-  if (e.altKey && e.key.toLowerCase() === 'i') { e.preventDefault(); document.querySelector('[data-module="inventory"]')?.click(); }
-  // Alt + L = Sales / POS
   if (e.altKey && e.key.toLowerCase() === 'l') { e.preventDefault(); document.querySelector('[data-module="sales"]')?.click(); }
-  // Alt + C = Customers
   if (e.altKey && e.key.toLowerCase() === 'c') { e.preventDefault(); document.querySelector('[data-module="customers"]')?.click(); }
-  // Alt + U = Credit / Udhar
   if (e.altKey && e.key.toLowerCase() === 'u') { e.preventDefault(); document.querySelector('[data-module="credit"]')?.click(); }
-  // Alt + E = Expenses
-  if (e.altKey && e.key.toLowerCase() === 'e') { e.preventDefault(); document.querySelector('[data-module="expenses"]')?.click(); }
-  // Alt + R = Reports
-  if (e.altKey && e.key.toLowerCase() === 'r') { e.preventDefault(); document.querySelector('[data-module="reports"]')?.click(); }
-  // Esc = close modal
   if (e.key === 'Escape' && $('modalBackdrop').classList.contains('open')) closeModal();
-  // Ctrl + Enter = confirm modal
-  if (e.ctrlKey && e.key === 'Enter' && $('modalBackdrop').classList.contains('open')) $('modalConfirm').click();
-  // F2 = Add to Cart (POS)
-  if (e.key === 'F2' && $('btnAddToCart') && !$('btnAddToCart').disabled) { e.preventDefault(); $('btnAddToCart').click(); }
-  // F4 = Save Sale (POS)
-  if (e.key === 'F4' && $('btnSaveSale') && !$('btnSaveSale').disabled) { e.preventDefault(); $('btnSaveSale').click(); }
-  // F8 = New Purchase
-  if (e.key === 'F8') { e.preventDefault(); $('btnNewPurchase')?.click(); }
-  // F9 = New Expense
-  if (e.key === 'F9') { e.preventDefault(); $('btnAddExpense')?.click(); }
-  // F1 = Help
   if (e.key === 'F1') { e.preventDefault(); showShortcutHelp(); }
+  if (e.key === 'F2' && $('btnAddToCart') && !$('btnAddToCart').disabled) { e.preventDefault(); $('btnAddToCart').click(); }
+  if (e.key === 'F4' && $('btnSaveSale') && !$('btnSaveSale').disabled) { e.preventDefault(); $('btnSaveSale').click(); }
 });
 
 function showShortcutHelp() {
   const body = `<div style="font-size:13px;line-height:1.8">
     <b>Navigation:</b><br>
-    <code>Alt+O</code> Overview · <code>Alt+P</code> Products · <code>Alt+I</code> Inventory<br>
-    <code>Alt+L</code> POS · <code>Alt+C</code> Customers · <code>Alt+U</code> Udhar<br>
-    <code>Alt+E</code> Expenses · <code>Alt+R</code> Reports<br><br>
+    <code>Alt+P</code> Products · <code>Alt+L</code> POS · <code>Alt+C</code> Customers · <code>Alt+U</code> Udhar<br><br>
     <b>POS Actions:</b><br>
-    <code>F2</code> Add to Cart · <code>F4</code> Save Sale · <code>Alt+S</code> Save Sale<br><br>
+    <code>F2</code> Add to Cart · <code>F4</code> / <code>Alt+S</code> Save Sale<br><br>
     <b>Others:</b><br>
-    <code>F8</code> New Purchase · <code>F9</code> New Expense<br>
-    <code>Ctrl+Enter</code> Confirm Modal · <code>Esc</code> Close<br>
-    <code>F1</code> This Help
+    <code>F1</code> Help · <code>Esc</code> Close
   </div>`;
   openModal('⌨️ Keyboard Shortcuts', body, () => closeModal(), 'Close');
 }
@@ -144,12 +117,12 @@ async function loadModule(mod) {
 }
 
 // =====================================================
-// OVERVIEW
+// OVERVIEW (With Low Stock Alerts)
 // =====================================================
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
     supabase.from('sales').select('balance'),
-    supabase.from('products').select('quantity,is_active'),
+    supabase.from('products').select('quantity,is_active,name,min_stock'),
     supabase.from('customers').select('id', { count: 'exact', head: true }),
     supabase.from('purchases').select('total'),
     supabase.from('expenses').select('amount'),
@@ -167,16 +140,45 @@ async function loadOverview() {
   $('stOutstanding').textContent = fmt(sum(sales, 'balance'));
   $('stExpenses').textContent = fmt(sum(exp, 'amount'));
 
-  const { data: recent } = await supabase.from('sales').select('*').order('created_at', { ascending: false }).limit(5);
-  const t = $('recentSales');
-  if (!recent || !recent.length) { t.innerHTML = '<div class="empty">No sales yet.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>
-    ${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}
-  </tbody></table>`;
+  // 🔴 NEW: Low Stock / Out of Stock Alert on Dashboard
+  const lowStockItems = (prods.data || []).filter(p => p.quantity <= p.min_stock);
+  let alertHTML = '';
+  
+  if (lowStockItems.length > 0) {
+    alertHTML = `<div class="clay" style="padding:20px; margin-bottom:20px; border-left:4px solid #ef4444; background:#fef2f2">
+      <h3 style="font-size:14px; font-weight:800; color:#991b1b; margin-bottom:10px">⚠️ Inventory Alerts (${lowStockItems.length} items)</h3>
+      <ul style="font-size:12px; color:#7f1d1d; padding-left:20px; line-height:1.8">
+        ${lowStockItems.map(p => `<li><strong>${esc(p.name)}</strong> - ${p.quantity === 0 ? '<span style="color:red;font-weight:bold">Out of Stock</span>' : `Only ${p.quantity} left (Min: ${p.min_stock})`}</li>`).join('')}
+      </ul>
+    </div>`;
+  }
+
+  const recentBox = $('recentSales');
+  if (recentBox) {
+    const { data: recent } = await supabase.from('sales').select('*').order('created_at', { ascending: false }).limit(5);
+    let recentHTML = '';
+    if (!recent || !recent.length) { recentHTML = '<div class="empty">No sales yet.</div>'; }
+    else {
+      recentHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>
+        ${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}
+      </tbody></table>`;
+    }
+    
+    // Insert alert before the recent sales table
+    const dashStats = $('dashStats');
+    if (dashStats && lowStockItems.length > 0) {
+      if ($('lowStockAlertBox')) $('lowStockAlertBox').remove();
+      const div = document.createElement('div');
+      div.id = 'lowStockAlertBox';
+      div.innerHTML = alertHTML;
+      dashStats.after(div);
+    }
+    recentBox.innerHTML = recentHTML;
+  }
 }
 
 // =====================================================
-// PRODUCTS (with Category, Subcategory, Dual IMEI)
+// PRODUCTS
 // =====================================================
 let ALL_PRODUCTS = [];
 async function loadProducts(filter = '') {
@@ -186,14 +188,13 @@ async function loadProducts(filter = '') {
   if (error) { toast(error.message, 'error'); return; }
   ALL_PRODUCTS = data || [];
   const t = $('productsTable');
-  if (!ALL_PRODUCTS.length) { t.innerHTML = '<div class="empty">No products found. Add your first product.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category</th><th>IMEI / SKU</th><th class="num">Purchase</th><th class="num">Sale</th><th class="num">Stock</th><th>Status</th><th class="actions">Actions</th></tr></thead><tbody>
+  if (!ALL_PRODUCTS.length) { t.innerHTML = '<div class="empty">No products found.</div>'; return; }
+  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category</th><th>IMEI / SKU</th><th class="num">Sale Price</th><th class="num">Stock</th><th>Status</th><th class="actions">Actions</th></tr></thead><tbody>
     ${ALL_PRODUCTS.map(p => `
       <tr>
-        <td><strong>${esc(p.name)}</strong><br><small style="color:var(--muted)">${esc(p.model||'')}</small></td>
+        <td><strong>${esc(p.name)}</strong><br><small>${esc(p.model||'')}</small></td>
         <td><small>${esc(p.category||'—')}${p.sub_category ? ' / ' + esc(p.sub_category) : ''}</small></td>
-        <td><small>${esc(p.imei_1 || p.imei || p.sku || '—')}${p.imei_2 ? '<br>' + esc(p.imei_2) : ''}</small></td>
-        <td class="num">${fmt(p.purchase_price)}</td>
+        <td><small>${esc(p.imei_1 || '—')}${p.imei_2 ? '<br>' + esc(p.imei_2) : ''}</small></td>
         <td class="num">${fmt(p.sale_price)}</td>
         <td class="num">${p.quantity}</td>
         <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low</span>' : '<span class="pill green">OK</span>'}</td>
@@ -228,7 +229,6 @@ function openProductModal(p = null) {
           <option value="Mobile" ${!p || p.category==='Mobile'?'selected':''}>Mobile</option>
           <option value="Cover" ${p?.category==='Cover'?'selected':''}>Mobile Cover</option>
           <option value="Accessory" ${p?.category==='Accessory'?'selected':''}>Accessory</option>
-          <option value="Other" ${p?.category==='Other'?'selected':''}>Other</option>
         </select>
       </div>
       <div class="field" id="coverSubField" style="${isCover ? '' : 'display:none'}">
@@ -241,14 +241,12 @@ function openProductModal(p = null) {
       </div>
       <div class="field"><label>Brand</label><input id="pBrand" value="${esc(p?.brand||'')}"></div>
       <div class="field"><label>Model</label><input id="pModel" value="${esc(p?.model||'')}"></div>
-      <div class="field" id="imei1Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 1</label><input id="pImei1" value="${esc(p?.imei_1||p?.imei||'')}"></div>
+      <div class="field" id="imei1Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 1</label><input id="pImei1" value="${esc(p?.imei_1||'')}"></div>
       <div class="field" id="imei2Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 2</label><input id="pImei2" value="${esc(p?.imei_2||'')}"></div>
       <div class="field"><label>Purchase Price</label><input id="pPurchase" type="number" value="${p?.purchase_price||0}"></div>
       <div class="field"><label>Sale Price</label><input id="pSale" type="number" value="${p?.sale_price||0}"></div>
       <div class="field"><label>Quantity</label><input id="pQty" type="number" value="${p?.quantity||0}"></div>
       <div class="field"><label>Min Stock</label><input id="pMin" type="number" value="${p?.min_stock||5}"></div>
-      <div class="field"><label>SKU</label><input id="pSku" value="${esc(p?.sku||'')}"></div>
-      <div class="field full"><label>Description</label><textarea id="pDesc">${esc(p?.description||'')}</textarea></div>
     </div>`;
   openModal(p ? 'Edit Product' : 'Add Product', body, async () => {
     const cat = $('pCategory').value;
@@ -260,13 +258,10 @@ function openProductModal(p = null) {
       model: $('pModel').value.trim() || null,
       imei_1: cat === 'Mobile' ? ($('pImei1').value.trim() || null) : null,
       imei_2: cat === 'Mobile' ? ($('pImei2').value.trim() || null) : null,
-      imei: cat === 'Mobile' ? ($('pImei1').value.trim() || null) : null, // backward compat
       purchase_price: Number($('pPurchase').value) || 0,
       sale_price: Number($('pSale').value) || 0,
       quantity: Number($('pQty').value) || 0,
-      min_stock: Number($('pMin').value) || 5,
-      sku: $('pSku').value.trim() || null,
-      description: $('pDesc').value.trim() || null
+      min_stock: Number($('pMin').value) || 5
     };
     if (!payload.name) throw new Error('Product name is required');
     let res;
@@ -308,7 +303,7 @@ async function loadInventory() {
 }
 
 // =====================================================
-// SALES / POS (with 80mm thermal print & auto-udhar)
+// SALES / POS
 // =====================================================
 let CART = [];
 let LAST_SALE = null;
@@ -345,7 +340,6 @@ $('btnAddToCart').onclick = () => {
     });
   }
   renderCart();
-  toast('Added to cart', 'success');
 };
 
 function renderCart() {
@@ -366,10 +360,18 @@ function renderCart() {
   $('cartSubtotal').textContent = fmt(sub);
   $('cartTotal').textContent = fmt(total);
   if (Number($('salePaid').value) === 0) $('salePaid').value = total;
+
+  // Auto-Show Udhar Warning
+  const paid = Number($('salePaid').value) || 0;
+  const udharWarn = $('udharWarning');
+  if (udharWarn) {
+    udharWarn.style.display = (total - paid > 0) ? 'block' : 'none';
+  }
 }
 
 window.removeCart = (i) => { CART.splice(i, 1); renderCart(); };
 $('saleDiscount').addEventListener('input', renderCart);
+$('salePaid')?.addEventListener('input', renderCart);
 
 $('btnSaveSale').onclick = async () => {
   if (!CART.length) return toast('Cart is empty', 'error');
@@ -389,35 +391,22 @@ $('btnSaveSale').onclick = async () => {
       p_customer_id: null,
       p_customer_name: custName,
       p_customer_phone: custPhone,
-      p_subtotal: sub,
-      p_discount: disc,
-      p_total: total,
-      p_paid: paid,
-      p_payment_method: method,
-      p_notes: null,
+      p_subtotal: sub, p_discount: disc, p_total: total, p_paid: paid,
+      p_payment_method: method, p_notes: null,
       p_items: CART.map(c => ({
-        product_id: c.product_id,
-        product_name: c.product_name,
-        imei: c.imei,
-        quantity: c.quantity,
-        unit_price: c.unit_price,
-        line_total: c.line_total
+        product_id: c.product_id, product_name: c.product_name,
+        imei: c.imei, quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total
       }))
     });
     if (error) throw new Error(error.message);
 
     LAST_SALE = {
       invoice: data.invoice_no,
-      customer: custName,
-      phone: custPhone,
-      total, paid,
-      balance: total - paid,
-      method,
-      items: [...CART],
-      date: new Date()
+      customer: custName, phone: custPhone,
+      total, paid, balance: total - paid,
+      method, items: [...CART], date: new Date()
     };
 
-    // Auto-Udhar Notification
     if (total - paid > 0) {
       toast(`Udhar ${fmt(total - paid)} saved in Credit section`, 'info');
     }
@@ -442,7 +431,7 @@ $('btnSaveSale').onclick = async () => {
 };
 
 // =====================================================
-// 80mm THERMAL RECEIPT
+// 80mm THERMAL RECEIPT (with Due & MS Tech Footer)
 // =====================================================
 function printThermal80mm(sale) {
   const w = window.open('', '_blank', 'width=340,height=600');
@@ -475,11 +464,16 @@ function printThermal80mm(sale) {
     <div class="line"></div>
     <table>
       <tr><td>Total</td><td class="num b">${fmt(sale.total)}</td></tr>
-      <tr><td>Paid (${sale.method})</td><td class="num">${fmt(sale.paid)}</td></tr>
-      <tr><td>Due</td><td class="num b">${fmt(sale.balance)}</td></tr>
+      <tr><td>Paid</td><td class="num">${fmt(sale.paid)}</td></tr>
+      <tr><td style="color:red;font-weight:bold">Due</td><td class="num b" style="color:red;font-weight:bold">${fmt(sale.balance)}</td></tr>
     </table>
     <div class="line"></div>
-    <div class="center">Thank you for shopping!<br>Visit again</div>
+    <div class="center" style="font-size:10px;margin-top:6px">
+      Thank you for shopping!<br>
+      Visit Again<br><br>
+      <b>Software Made by MS Tech</b><br>
+      📞 03099100546
+    </div>
     <script>window.onload=function(){window.print();setTimeout(()=>window.close(),800);}<\/script>
   </body></html>`);
   w.document.close();
@@ -519,7 +513,7 @@ async function loadPurchases() {
 
 $('btnNewPurchase').onclick = async () => {
   const [{ data: prods }, { data: sups }] = await Promise.all([
-    supabase.from('products').select('id,name,purchase_price,category').order('name'),
+    supabase.from('products').select('id,name,purchase_price').order('name'),
     supabase.from('suppliers').select('id,name').order('name')
   ]);
   const body = `
@@ -535,7 +529,6 @@ $('btnNewPurchase').onclick = async () => {
       <div class="field"><label>Total</label><input id="puTotal" type="number" readonly></div>
       <div class="field"><label>Paid</label><input id="puPaid" type="number" value="0"></div>
     </div>
-    <p style="font-size:11px;color:var(--muted);margin-top:12px">Full multi-line purchase coming in v3.1</p>
   `;
   openModal('New Purchase', body, async () => {
     const prodId = $('puProd').value;
@@ -546,10 +539,14 @@ $('btnNewPurchase').onclick = async () => {
     const paid = Number($('puPaid').value) || 0;
     if (!prodId) throw new Error('Select product');
 
-    const { data: sups } = await supabase.from('suppliers').select('name').eq('id', $('puSup').value).maybeSingle();
+    // Generate Invoice Number Manually to fix NOT NULL constraint
+    const invNo = 'PUR-' + Date.now().toString().slice(-6);
+
+    const { data: supsData } = await supabase.from('suppliers').select('name').eq('id', $('puSup').value).maybeSingle();
     const { error } = await supabase.rpc('create_purchase', {
+      p_invoice_no: invNo, // 🔴 FIX: Passing invoice number
       p_supplier_id: $('puSup').value || null,
-      p_supplier_name: sups?.name || null,
+      p_supplier_name: supsData?.name || null,
       p_subtotal: total, p_discount: 0, p_total: total, p_paid: paid,
       p_payment_method: 'cash', p_notes: null,
       p_items: [{ product_id: prodId, product_name: opt.dataset.name, quantity: qty, unit_price: price, line_total: total }]
@@ -557,7 +554,6 @@ $('btnNewPurchase').onclick = async () => {
     if (error) throw new Error(error.message);
     toast('Purchase saved', 'success'); closeModal(); loadPurchases();
   });
-  // auto-fill on change
   setTimeout(() => {
     const prodSel = $('puProd');
     prodSel.onchange = () => {
@@ -662,7 +658,7 @@ function openSupplierModal(s = null) {
 }
 
 // =====================================================
-// CREDIT / UDHAR (auto-synced from sales)
+// CREDIT / UDHAR
 // =====================================================
 async function loadCredit() {
   const { data: sales } = await supabase.from('sales').select('id,invoice_no,customer_name,customer_phone,total,paid,balance,created_at').gt('balance', 0).order('created_at', { ascending: false });
