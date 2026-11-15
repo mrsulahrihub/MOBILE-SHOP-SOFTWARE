@@ -7,7 +7,7 @@
 <title>Dashboard | BM MOBILE ZONE</title>
 <link rel="stylesheet" href="css/dashboard.css">
 </head>
-<body>
+<body class="theme-clay">
 
 <div class="dashboard">
 
@@ -35,7 +35,7 @@
     <p class="nav-label">SYSTEM</p>
     <button class="nav-item" data-module="settings">⚙ Settings</button>
 
-    <div class="sidebar-foot">v3.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
+    <div class="sidebar-foot">v6.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
   </aside>
 
   <!-- ============ MAIN ============ -->
@@ -47,7 +47,7 @@
         <p class="sub" id="todayDate"></p>
       </div>
       <div class="user-info">
-        <button class="btn btn-ghost" id="btnShortcutHelp" title="Keyboard Shortcuts (F1)" style="font-size:18px;padding:6px 10px">⌨️</button>
+        <!-- Theme Switcher Yahan JS se aayega -->
         <div class="avatar" id="userAvatar">U</div>
         <div class="user-text">
           <strong id="userName">Loading...</strong>
@@ -59,9 +59,8 @@
 
     <div class="content">
 
-      <!-- ============ OVERVIEW MODULE ============ -->
+      <!-- OVERVIEW -->
       <section class="module active" id="module-overview">
-
         <div class="welcome clay">
           <h2>Welcome, <span id="welcomeName">User</span> 👋</h2>
           <p>BM MOBILE ZONE — Chohan Mobile Market Zafarwal · 03099100546</p>
@@ -82,10 +81,9 @@
           <div class="module-head"><div><h2>Recent Sales</h2><p>Last 5 sale transactions</p></div></div>
           <div class="table-wrap" id="recentSales"><div class="empty">Loading…</div></div>
         </div>
-
       </section>
 
-      <!-- ============ PRODUCTS MODULE ============ -->
+      <!-- PRODUCTS -->
       <section class="module" id="module-products">
         <div class="module-head">
           <div><h2>Products</h2><p>Manage all products & inventory items</p></div>
@@ -99,11 +97,9 @@
         </div>
       </section>
 
-      <!-- ============ INVENTORY MODULE ============ -->
+      <!-- INVENTORY -->
       <section class="module" id="module-inventory">
-        <div class="module-head">
-          <div><h2>Inventory</h2><p>Stock levels & movement history</p></div>
-        </div>
+        <div class="module-head"><div><h2>Inventory</h2><p>Stock levels & movement history</p></div></div>
         <div class="clay" style="padding:20px">
           <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Low Stock Alerts</h3>
           <div class="table-wrap" id="lowStockTable"><div class="empty">Loading…</div></div>
@@ -114,63 +110,32 @@
         </div>
       </section>
 
-      <!-- ============ SALES / POS MODULE ============ -->
+      <!-- SALES / POS -->
       <section class="module" id="module-sales">
         <div class="module-head">
-          <div><h2>New Sale</h2><p>Point of sale billing · Auto invoice sequence</p></div>
+          <div><h2>New Sale</h2><p>Point of sale billing</p></div>
           <button class="btn btn-ghost" id="btnSalesHistory">📋 Sales History</button>
         </div>
 
         <div class="pos-grid">
           <div class="clay" style="padding:22px">
             <div class="form-grid">
-              <div class="field">
-                <label>Customer Name</label>
-                <input id="saleCustName" placeholder="Walk-in Customer">
-              </div>
-              <div class="field">
-                <label>Customer Phone</label>
-                <input id="saleCustPhone" placeholder="03xx-xxxxxxx">
-              </div>
-              <div class="field full">
-                <label>Select Product</label>
-                <select id="saleProductSelect"><option value="">— Choose product —</option></select>
-              </div>
+              <div class="field"><label>Customer Name</label><input id="saleCustName" placeholder="Walk-in Customer"></div>
+              <div class="field"><label>Customer Phone</label><input id="saleCustPhone" placeholder="03xx-xxxxxxx"></div>
+              <div class="field full"><label>Select Product</label><select id="saleProductSelect"><option value="">— Choose product —</option></select></div>
             </div>
             <button class="btn btn-primary" style="margin-top:14px" id="btnAddToCart">+ Add to Cart (F2)</button>
-
-            <div style="margin-top:16px;padding:12px;background:#f4f6fb;border-radius:10px;font-size:12px;color:var(--muted);line-height:1.7">
-              <strong style="color:var(--text)">💡 POS Shortcuts:</strong><br>
-              <code>F2</code> Add to Cart · <code>F4</code> / <code>Alt+S</code> Save Sale · <code>F1</code> All Shortcuts
-            </div>
           </div>
 
           <div class="clay" style="padding:22px">
             <h3 style="font-size:14px;font-weight:800;margin-bottom:12px">Cart</h3>
-            <div id="cartItems" style="max-height:260px;overflow-y:auto">
-              <div class="empty">Cart is empty</div>
-            </div>
+            <div id="cartItems" style="max-height:260px;overflow-y:auto"><div class="empty">Cart is empty</div></div>
             <div class="cart-total"><span>Subtotal</span><strong id="cartSubtotal">0</strong></div>
-            <div class="field" style="margin-top:8px">
-              <label>Discount</label>
-              <input id="saleDiscount" type="number" value="0" min="0">
-            </div>
+            <div class="field" style="margin-top:8px"><label>Discount</label><input id="saleDiscount" type="number" value="0" min="0"></div>
             <div class="cart-total grand"><span>Total</span><span id="cartTotal">0</span></div>
-            <div class="field" style="margin-top:8px">
-              <label>Paid Amount</label>
-              <input id="salePaid" type="number" value="0" min="0">
-            </div>
-            <div class="field">
-              <label>Payment Method</label>
-              <select id="salePaymentMethod">
-                <option value="cash">Cash</option>
-                <option value="bank">Bank Transfer</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div id="udharWarning" style="display:none;margin-top:10px;padding:10px;background:#fff4e0;border-left:3px solid #f59e0b;border-radius:6px;font-size:12px;color:#92400e">
-              ⚠️ Due amount will be auto-saved to <b>Credit / Udhar</b> section.
-            </div>
+            <div class="field" style="margin-top:8px"><label>Paid Amount</label><input id="salePaid" type="number" value="0" min="0"></div>
+            <div class="field"><label>Payment Method</label><select id="salePaymentMethod"><option value="cash">Cash</option><option value="bank">Bank Transfer</option><option value="other">Other</option></select></div>
+            <div id="udharWarning" style="display:none;margin-top:10px;padding:10px;background:rgba(245,158,66,0.1);border-left:3px solid #f59e0b;border-radius:6px;font-size:12px;color:#b45309">⚠️ Due amount will be auto-saved to Credit / Udhar section.</div>
             <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" id="btnSaveSale">💾 Save Sale (F4)</button>
           </div>
         </div>
@@ -181,18 +146,13 @@
         </div>
       </section>
 
-      <!-- ============ PURCHASES MODULE ============ -->
+      <!-- PURCHASES -->
       <section class="module" id="module-purchases">
-        <div class="module-head">
-          <div><h2>Purchases</h2><p>Stock intake from suppliers</p></div>
-          <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase (F8)</button>
-        </div>
-        <div class="clay" style="padding:20px">
-          <div class="table-wrap" id="purchasesTable"><div class="empty">Loading…</div></div>
-        </div>
+        <div class="module-head"><div><h2>Purchases</h2><p>Stock intake from suppliers</p></div><button class="btn btn-primary" id="btnNewPurchase">+ New Purchase (F8)</button></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="purchasesTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- ============ CUSTOMERS ============ -->
+      <!-- CUSTOMERS -->
       <section class="module" id="module-customers">
         <div class="module-head">
           <div><h2>Customers</h2><p>All registered customers</p></div>
@@ -201,97 +161,54 @@
             <button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button>
           </div>
         </div>
-        <div class="clay" style="padding:20px">
-          <div class="table-wrap" id="customersTable"><div class="empty">Loading…</div></div>
-        </div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="customersTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- ============ SUPPLIERS ============ -->
+      <!-- SUPPLIERS -->
       <section class="module" id="module-suppliers">
-        <div class="module-head">
-          <div><h2>Suppliers</h2><p>Vendors & payable balances</p></div>
-          <button class="btn btn-primary" id="btnAddSupplier">+ Add Supplier</button>
-        </div>
-        <div class="clay" style="padding:20px">
-          <div class="table-wrap" id="suppliersTable"><div class="empty">Loading…</div></div>
-        </div>
+        <div class="module-head"><div><h2>Suppliers</h2><p>Vendors & payable balances</p></div><button class="btn btn-primary" id="btnAddSupplier">+ Add Supplier</button></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="suppliersTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- ============ CREDIT / UDHAR ============ -->
+      <!-- CREDIT -->
       <section class="module" id="module-credit">
-        <div class="module-head">
-          <div><h2>Credit / Udhar Management</h2><p>Outstanding customer balances & recovery · Auto-synced from sales</p></div>
-        </div>
-        <div class="clay" style="padding:20px">
-          <div class="table-wrap" id="creditTable"><div class="empty">Loading…</div></div>
-        </div>
-        <div class="clay" style="padding:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Credit Recoveries</h3>
-          <div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div>
-        </div>
+        <div class="module-head"><div><h2>Credit / Udhar Management</h2><p>Outstanding customer balances & recovery</p></div></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="creditTable"><div class="empty">Loading…</div></div></div>
+        <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Credit Recoveries</h3><div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- ============ EXPENSES ============ -->
+      <!-- EXPENSES -->
       <section class="module" id="module-expenses">
-        <div class="module-head">
-          <div><h2>Expenses</h2><p>Shop expenses & utilities</p></div>
-          <button class="btn btn-primary" id="btnAddExpense">+ Add Expense (F9)</button>
-        </div>
-        <div class="clay" style="padding:20px">
-          <div class="table-wrap" id="expensesTable"><div class="empty">Loading…</div></div>
-        </div>
+        <div class="module-head"><div><h2>Expenses</h2><p>Shop expenses & utilities</p></div><button class="btn btn-primary" id="btnAddExpense">+ Add Expense (F9)</button></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="expensesTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- ============ TRANSACTIONS ============ -->
+      <!-- TRANSACTIONS -->
       <section class="module" id="module-transactions">
-        <div class="module-head">
-          <div><h2>Transactions</h2><p>Unified money-in / money-out ledger</p></div>
-        </div>
-        <div class="clay" style="padding:20px">
-          <div class="table-wrap" id="transactionsTable"><div class="empty">Loading…</div></div>
-        </div>
+        <div class="module-head"><div><h2>Transactions</h2><p>Unified money-in / money-out ledger</p></div></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="transactionsTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- ============ REPORTS ============ -->
+      <!-- REPORTS -->
       <section class="module" id="module-reports">
-        <div class="module-head">
-          <div><h2>Reports</h2><p>Business performance insights</p></div>
-        </div>
+        <div class="module-head"><div><h2>Reports</h2><p>Business performance insights</p></div></div>
         <div class="clay" style="padding:22px">
           <div class="form-grid">
-            <div class="field">
-              <label>Report Type</label>
-              <select id="reportType">
-                <option value="sales">Sales Report</option>
-                <option value="purchases">Purchase Report</option>
-                <option value="credit">Credit Report</option>
-                <option value="expenses">Expense Report</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>From Date</label>
-              <input type="date" id="reportFrom">
-            </div>
-            <div class="field">
-              <label>To Date</label>
-              <input type="date" id="reportTo">
-            </div>
+            <div class="field"><label>Report Type</label><select id="reportType"><option value="sales">Sales Report</option><option value="purchases">Purchase Report</option><option value="credit">Credit Report</option><option value="expenses">Expense Report</option></select></div>
+            <div class="field"><label>From Date</label><input type="date" id="reportFrom"></div>
+            <div class="field"><label>To Date</label><input type="date" id="reportTo"></div>
             <div class="field" style="display:flex;align-items:flex-end;gap:10px">
               <button class="btn btn-primary" id="btnRunReport">Run Report</button>
               <button class="btn btn-ghost" id="btnPrintReport">🖨 Print</button>
             </div>
           </div>
         </div>
-        <div class="clay" style="padding:20px">
-          <div id="reportOutput"><div class="empty">Select a report type and click "Run Report".</div></div>
-        </div>
+        <div class="clay" style="padding:20px"><div id="reportOutput"><div class="empty">Select a report type and click "Run Report".</div></div></div>
       </section>
 
-      <!-- ============ SETTINGS ============ -->
+      <!-- SETTINGS -->
       <section class="module" id="module-settings">
-        <div class="module-head">
-          <div><h2>Settings</h2><p>Shop information & configuration</p></div>
-        </div>
+        <div class="module-head"><div><h2>Settings</h2><p>Shop information & configuration</p></div></div>
         <div class="clay" style="padding:22px">
           <div class="form-grid">
             <div class="field"><label>Shop Name</label><input id="setShopName"></div>
@@ -303,28 +220,13 @@
           </div>
           <button class="btn btn-primary" style="margin-top:18px" id="btnSaveSettings">💾 Save Settings</button>
         </div>
-
-        <!-- Keyboard Shortcuts Help -->
-        <div class="clay" style="padding:22px;margin-top:14px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:12px">⌨️ Keyboard Shortcuts</h3>
-          <div style="font-size:12px;line-height:2;color:var(--muted)">
-            <b style="color:var(--text)">Navigation:</b><br>
-            <code>Alt+O</code> Overview · <code>Alt+P</code> Products · <code>Alt+I</code> Inventory · <code>Alt+L</code> POS<br>
-            <code>Alt+C</code> Customers · <code>Alt+U</code> Udhar · <code>Alt+E</code> Expenses · <code>Alt+R</code> Reports<br><br>
-            <b style="color:var(--text)">POS Actions:</b><br>
-            <code>F2</code> Add to Cart · <code>F4</code> or <code>Alt+S</code> Save Sale<br><br>
-            <b style="color:var(--text)">Others:</b><br>
-            <code>F1</code> This Help · <code>F8</code> New Purchase · <code>F9</code> New Expense<br>
-            <code>Ctrl+Enter</code> Confirm Modal · <code>Esc</code> Close Modal
-          </div>
-        </div>
       </section>
 
     </div>
   </main>
 </div>
 
-<!-- ============ MODAL (shared) ============ -->
+<!-- MODAL -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal">
     <h3 id="modalTitle">Modal</h3>
@@ -336,11 +238,8 @@
   </div>
 </div>
 
-<!-- ============ TOAST ============ -->
+<!-- TOAST -->
 <div class="toast-host" id="toastHost"></div>
-
-<!-- ============ PRINT AREA (80mm Thermal Fallback) ============ -->
-<div id="printArea" style="display:none"></div>
 
 <script type="module" src="js/dashboard.js"></script>
 </body>
