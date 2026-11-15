@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v8.0 Premium)
+// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v8.0 Ultimate)
 // =====================================================
 import { supabase } from './config.js';
 import { getActiveProfile } from './auth-guard.js';
@@ -44,7 +44,7 @@ $('modalConfirm').onclick = async () => {
   if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
 
-// 3. THEME & DAY/NIGHT SWITCHER
+// 3. THEME SWITCHER
 function initThemeSwitcher() {
   const topbarUserInfo = document.querySelector('.topbar .user-info');
   if (!topbarUserInfo) return;
@@ -70,27 +70,41 @@ function initThemeSwitcher() {
 }
 initThemeSwitcher();
 
-// 4. Keyboard Shortcuts
+// 4. SMART SIDEBAR TOGGLE
+const sidebar = document.getElementById('mainSidebar');
+const toggleBtn = document.getElementById('sidebarToggle');
+let sidebarTimeout;
+
+toggleBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  sidebar.classList.toggle('show');
+  if (sidebar.classList.contains('show')) resetSidebarTimer();
+});
+
+sidebar.addEventListener('mouseenter', () => clearTimeout(sidebarTimeout));
+sidebar.addEventListener('mouseleave', () => resetSidebarTimer());
+
+document.addEventListener('click', (e) => {
+  if (!sidebar.contains(e.target) && e.target !== toggleBtn) {
+    sidebar.classList.remove('show');
+  }
+});
+
+function resetSidebarTimer() {
+  clearTimeout(sidebarTimeout);
+  sidebarTimeout = setTimeout(() => sidebar.classList.remove('show'), 15000);
+}
+
+// 5. Shortcuts
 document.addEventListener('keydown', (e) => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
   if (e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); $('btnSaveSale')?.click(); }
   if (e.altKey && e.key.toLowerCase() === 'p') { e.preventDefault(); document.querySelector('[data-module="products"]')?.click(); }
   if (e.altKey && e.key.toLowerCase() === 'l') { e.preventDefault(); document.querySelector('[data-module="sales"]')?.click(); }
-  if (e.key === 'F1') { e.preventDefault(); showShortcutHelp(); }
 });
 
-function showShortcutHelp() {
-  const body = `<div style="font-size:13px;line-height:1.8">
-    <b>Navigation:</b><br><code>Alt+P</code> Products · <code>Alt+L</code> POS<br><br>
-    <b>POS Actions:</b><br><code>Alt+S</code> Save Sale<br><br>
-    <b>Others:</b><br><code>F1</code> Help
-  </div>`;
-  openModal('⌨️ Keyboard Shortcuts', body, () => closeModal(), 'Close');
-}
-
-// 5. Navigation Logic
+// 6. Navigation
 const MODULE_TITLES = { overview: 'Dashboard', products: 'Products', inventory: 'Inventory', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers', suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses', transactions: 'Transactions', reports: 'Reports', settings: 'Settings' };
-
 document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
   btn.addEventListener('click', () => {
     const mod = btn.dataset.module;
@@ -100,22 +114,16 @@ document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
     $('module-' + mod).classList.add('active');
     $('pageTitle').textContent = MODULE_TITLES[mod] || mod;
     loadModule(mod);
+    sidebar.classList.remove('show'); // Mobile par click karne par band ho jaye
   });
 });
 
 async function loadModule(mod) {
   switch (mod) {
-    case 'overview': return loadOverview();
-    case 'products': return loadProducts();
-    case 'inventory': return loadInventory();
-    case 'sales': return loadSaleProducts();
-    case 'purchases': return loadPurchases();
-    case 'customers': return loadCustomers();
-    case 'suppliers': return loadSuppliers();
-    case 'credit': return loadCredit();
-    case 'expenses': return loadExpenses();
-    case 'transactions': return loadTransactions();
-    case 'settings': return loadSettings();
+    case 'overview': return loadOverview(); case 'products': return loadProducts(); case 'inventory': return loadInventory();
+    case 'sales': return loadSaleProducts(); case 'purchases': return loadPurchases(); case 'customers': return loadCustomers();
+    case 'suppliers': return loadSuppliers(); case 'credit': return loadCredit(); case 'expenses': return loadExpenses();
+    case 'transactions': return loadTransactions(); case 'settings': return loadSettings();
   }
 }
 
@@ -542,7 +550,7 @@ $('btnSaveSettings').onclick = async () => {
 };
 
 // =====================================================
-// 80mm THERMAL RECEIPT (CSS Custom Watermark)
+// 80mm THERMAL RECEIPT (Custom Crown BM Watermark)
 // =====================================================
 function printThermal80mm(sale) {
   const w = window.open('', '_blank', 'width=340,height=600');
