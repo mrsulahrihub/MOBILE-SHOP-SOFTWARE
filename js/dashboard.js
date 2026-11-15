@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v6.0)
+//  MS.Mobile ZONE - MAIN DASHBOARD CONTROLLER 
 // =====================================================
 import { supabase } from './config.js';
 import { getActiveProfile } from './auth-guard.js';
@@ -141,7 +141,9 @@ async function loadModule(mod) {
   }
 }
 
-// 6. Load Overview
+// =====================================================
+// 6. OVERVIEW
+// =====================================================
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
     supabase.from('sales').select('balance'), supabase.from('products').select('quantity,is_active,name,min_stock'),
@@ -174,7 +176,9 @@ async function loadOverview() {
   else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 }
 
-// 7. Products (Add, Edit, Delete)
+// =====================================================
+// 7. PRODUCTS
+// =====================================================
 let ALL_PRODUCTS = [];
 async function loadProducts(filter = '') {
   let q = supabase.from('products').select('*').order('created_at', { ascending: false });
@@ -222,7 +226,31 @@ window.toggleProductFields = () => {
   $('imei2Field').style.display = cat === 'Mobile' ? '' : 'none';
 };
 
-// 8. POS / Sales Logic
+// =====================================================
+// 8. INVENTORY
+// =====================================================
+async function loadInventory() {
+  const { data: low } = await supabase.from('products').select('*').order('quantity', { ascending: true }).limit(20);
+  const t = $('lowStockTable');
+  if (!low || !low.length) t.innerHTML = '<div class="empty">No products.</div>';
+  else t.innerHTML = `<table class="data"><thead><tr><th>Product</th><th>Category</th><th class="num">Stock</th><th class="num">Min</th><th>Status</th></tr></thead><tbody>
+    ${low.map(p => `<tr><td>${esc(p.name)}</td><td><small>${esc(p.category||'—')}${p.sub_category ? ' / '+esc(p.sub_category) : ''}</small></td><td class="num">${p.quantity}</td><td class="num">${p.min_stock}</td>
+    <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}
+  </tbody></table>`;
+
+  const { data: mov } = await supabase.from('inventory_movements').select('*, products(name)').order('created_at', { ascending: false }).limit(20);
+  const tm = $('movementsTable');
+  if (!mov || !mov.length) tm.innerHTML = '<div class="empty">No movements yet.</div>';
+  else tm.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Product</th><th>Type</th><th class="num">Qty</th><th>Notes</th></tr></thead><tbody>
+    ${mov.map(m => `<tr><td>${new Date(m.created_at).toLocaleString()}</td><td>${esc(m.products?.name || '—')}</td>
+    <td><span class="pill ${m.quantity > 0 ? 'green' : 'orange'}">${esc(m.movement_type)}</span></td>
+    <td class="num">${m.quantity}</td><td>${esc(m.notes || '')}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// =====================================================
+// 9. SALES / POS
+// =====================================================
 let CART = [];
 async function loadSaleProducts() {
   const { data } = await supabase.from('products').select('*').gt('quantity', 0).order('name');
@@ -272,15 +300,274 @@ $('btnSaveSale').onclick = async () => {
   } catch (e) { toast(e.message, 'error'); } finally { $('btnSaveSale').disabled = false; }
 };
 
-// 9. Print 80mm
-function printThermal80mm(sale) {
-  const w = window.open('', '_blank', 'width=340,height=600');
-  w.document.write(`<html><head><title>Receipt</title><style>@page{size:80mm auto;margin:0}body{font-family:'Courier New',monospace;font-size:11px;width:76mm;margin:0 auto;padding:2mm;position:relative;background:#fff;color:#000}body::before{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50mm;height:50mm;background-image:url('https://i.ibb.co/6PZ9Z9x/bm-logo.png');background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.08;z-index:-1}.center{text-align:center}.line{border-top:1px dashed #000;margin:4px 0}table{width:100%;border-collapse:collapse;font-size:10px;position:relative;z-index:1}td,th{padding:1px 0;text-align:left}.num{text-align:right}.big{font-size:13px;font-weight:bold}.b{font-weight:bold}.due{color:red;font-weight:bold}</style></head><body>
-    <div class="center"><div class="big">BM MOBILE ZONE</div><div>Chohan Mobile Market</div><div>03099100546</div></div><div class="line"></div>
-    <div>Invoice: <span class="b">${esc(sale.invoice)}</span></div><div>Date: ${sale.date.toLocaleString()}</div><div>Customer: ${esc(sale.customer)}</div><div class="line"></div>
-    <table><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th></tr></thead><tbody>${sale.items.map(i => `<tr><td>${esc(i.product_name)}</td><td class="num">${i.quantity}</td><td class="num">${fmt(i.line_total)}</td></tr>`).join('')}</tbody></table><div class="line"></div>
-    <table><tr><td>Total</td><td class="num b">${fmt(sale.total)}</td></tr><tr><td>Paid</td><td class="num">${fmt(sale.paid)}</td></tr><tr><td class="due">Due</td><td class="num due">${fmt(sale.balance)}</td></tr></table><div class="line"></div>
-    <div class="center" style="font-size:10px;margin-top:6px;position:relative;z-index:1">Thank you!<br>Visit Again<br><br><b>Software Made by MS Tech</b><br>📞 03099100546</div>
-    <script>window.onload=function(){window.print();setTimeout(()=>window.close(),800);}<\/script></body></html>`);
-  w.document.close();
+$('btnSalesHistory').onclick = async () => {
+  const box = $('salesHistoryBox'); box.hidden = !box.hidden;
+  if (!box.hidden) {
+    const { data } = await supabase.from('sales').select('*').order('created_at', { ascending: false }).limit(50);
+    if (!data || !data.length) $('salesHistoryTable').innerHTML = '<div class="empty">No sales yet.</div>';
+    else $('salesHistoryTable').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Method</th><th>Date</th></tr></thead><tbody>${data.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${s.balance > 0 ? `<span class="pill red">${fmt(s.balance)}</span>` : '<span class="pill green">Paid</span>'}</td><td>${esc(s.payment_method)}</td><td>${new Date(s.created_at).toLocaleString()}</td></tr>`).join('')}</tbody></table>`;
+  }
+};
+
+// =====================================================
+// 10. PURCHASES
+// =====================================================
+async function loadPurchases() {
+  const { data } = await supabase.from('purchases').select('*').order('created_at', { ascending: false }).limit(50);
+  const t = $('purchasesTable');
+  if (!data || !data.length) { t.innerHTML = '<div class="empty">No purchases yet.</div>'; return; }
+  t.innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Supplier</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>
+    ${data.map(p => `<tr><td>${esc(p.invoice_no)}</td><td>${esc(p.supplier_name || '—')}</td>
+      <td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td class="num">${fmt(p.balance)}</td>
+      <td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('')}
+  </tbody></table>`;
 }
+
+$('btnNewPurchase').onclick = async () => {
+  const [{ data: prods }, { data: sups }] = await Promise.all([
+    supabase.from('products').select('id,name,purchase_price').order('name'), supabase.from('suppliers').select('id,name').order('name')
+  ]);
+  const body = `<div class="form-grid">
+      <div class="field"><label>Supplier</label><select id="puSup"><option value="">— None —</option>${(sups||[]).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Product</label><select id="puProd"><option value="">— Choose —</option>${(prods||[]).map(p => `<option value="${p.id}" data-name="${esc(p.name)}" data-price="${p.purchase_price||0}">${esc(p.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Quantity</label><input id="puQty" type="number" value="1" min="1"></div>
+      <div class="field"><label>Unit Purchase Price</label><input id="puPrice" type="number" value="0"></div>
+      <div class="field"><label>Total</label><input id="puTotal" type="number" readonly></div>
+      <div class="field"><label>Paid</label><input id="puPaid" type="number" value="0"></div>
+    </div>`;
+  openModal('New Purchase', body, async () => {
+    const prodId = $('puProd').value; const opt = $('puProd').options[$('puProd').selectedIndex];
+    const qty = Number($('puQty').value) || 1; const price = Number($('puPrice').value) || 0;
+    const total = qty * price; const paid = Number($('puPaid').value) || 0;
+    if (!prodId) throw new Error('Select product');
+    const invNo = 'PUR-' + Date.now().toString().slice(-6);
+    const { data: supsData } = await supabase.from('suppliers').select('name').eq('id', $('puSup').value).maybeSingle();
+    const { error } = await supabase.rpc('create_purchase', {
+      p_invoice_no: invNo, p_supplier_id: $('puSup').value || null, p_supplier_name: supsData?.name || null,
+      p_subtotal: total, p_discount: 0, p_total: total, p_paid: paid, p_payment_method: 'cash', p_notes: null,
+      p_items: [{ product_id: prodId, product_name: opt.dataset.name, quantity: qty, unit_price: price, line_total: total }]
+    });
+    if (error) throw new Error(error.message);
+    toast('Purchase saved', 'success'); closeModal(); loadPurchases();
+  });
+  setTimeout(() => {
+    const prodSel = $('puProd');
+    prodSel.onchange = () => { const o = prodSel.options[prodSel.selectedIndex]; if (o.dataset.price) $('puPrice').value = o.dataset.price; };
+    const calc = () => $('puTotal').value = (Number($('puQty').value)||0) * (Number($('puPrice').value)||0);
+    $('puQty').oninput = calc; $('puPrice').oninput = calc;
+  }, 50);
+};
+
+// =====================================================
+// 11. CUSTOMERS
+// =====================================================
+let ALL_CUST = [];
+async function loadCustomers(filter = '') {
+  let q = supabase.from('customers').select('*').order('created_at', { ascending: false });
+  if (filter) q = q.ilike('name', `%${filter}%`);
+  const { data } = await q;
+  ALL_CUST = data || [];
+  const t = $('customersTable');
+  if (!ALL_CUST.length) { t.innerHTML = '<div class="empty">No customers. Add first customer.</div>'; return; }
+  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="actions">Actions</th></tr></thead><tbody>
+    ${ALL_CUST.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone||'—')}</td><td>${esc(c.address||'—')}</td>
+      <td class="actions"><button class="btn btn-ghost btn-sm" onclick="editCustomer('${c.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button></td></tr>`).join('')}
+  </tbody></table>`;
+}
+$('custSearch')?.addEventListener('input', e => loadCustomers(e.target.value));
+$('btnAddCustomer').onclick = () => openCustomerModal();
+window.editCustomer = (id) => openCustomerModal(ALL_CUST.find(c => c.id === id));
+window.deleteCustomer = async (id) => { if (!confirm('Delete?')) return; await supabase.from('customers').delete().eq('id', id); toast('Deleted'); loadCustomers(); };
+
+function openCustomerModal(c = null) {
+  const body = `<div class="form-grid">
+      <div class="field full"><label>Name *</label><input id="cName" value="${esc(c?.name||'')}"></div>
+      <div class="field"><label>Phone</label><input id="cPhone" value="${esc(c?.phone||'')}"></div>
+      <div class="field"><label>Opening Balance</label><input id="cBal" type="number" value="${c?.opening_balance||0}"></div>
+      <div class="field full"><label>Address</label><textarea id="cAddr">${esc(c?.address||'')}</textarea></div>
+    </div>`;
+  openModal(c ? 'Edit Customer' : 'Add Customer', body, async () => {
+    const payload = { name: $('cName').value.trim(), phone: $('cPhone').value.trim() || null, address: $('cAddr').value.trim() || null, opening_balance: Number($('cBal').value) || 0 };
+    if (!payload.name) throw new Error('Name required');
+    if (c) await supabase.from('customers').update(payload).eq('id', c.id); else await supabase.from('customers').insert(payload);
+    toast('Saved', 'success'); closeModal(); loadCustomers();
+  });
+}
+
+// =====================================================
+// 12. SUPPLIERS
+// =====================================================
+let ALL_SUP = [];
+async function loadSuppliers() {
+  const { data } = await supabase.from('suppliers').select('*').order('created_at', { ascending: false });
+  ALL_SUP = data || [];
+  const t = $('suppliersTable');
+  if (!ALL_SUP.length) { t.innerHTML = '<div class="empty">No suppliers yet.</div>'; return; }
+  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="actions">Actions</th></tr></thead><tbody>
+    ${ALL_SUP.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.phone||'—')}</td><td>${esc(s.address||'—')}</td>
+      <td class="actions"><button class="btn btn-ghost btn-sm" onclick="editSupplier('${s.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSupplier('${s.id}')">Del</button></td></tr>`).join('')}
+  </tbody></table>`;
+}
+$('btnAddSupplier').onclick = () => openSupplierModal();
+window.editSupplier = (id) => openSupplierModal(ALL_SUP.find(s => s.id === id));
+window.deleteSupplier = async (id) => { if (!confirm('Delete?')) return; await supabase.from('suppliers').delete().eq('id', id); toast('Deleted'); loadSuppliers(); };
+
+function openSupplierModal(s = null) {
+  const body = `<div class="form-grid">
+    <div class="field full"><label>Supplier Name *</label><input id="sName" value="${esc(s?.name||'')}"></div>
+    <div class="field"><label>Phone</label><input id="sPhone" value="${esc(s?.phone||'')}"></div>
+    <div class="field"><label>Opening Balance</label><input id="sBal" type="number" value="${s?.opening_balance||0}"></div>
+    <div class="field full"><label>Address</label><textarea id="sAddr">${esc(s?.address||'')}</textarea></div>
+  </div>`;
+  openModal(s ? 'Edit Supplier' : 'Add Supplier', body, async () => {
+    const payload = { name: $('sName').value.trim(), phone: $('sPhone').value.trim() || null, address: $('sAddr').value.trim() || null, opening_balance: Number($('sBal').value) || 0 };
+    if (!payload.name) throw new Error('Name required');
+    if (s) await supabase.from('suppliers').update(payload).eq('id', s.id); else await supabase.from('suppliers').insert(payload);
+    toast('Saved', 'success'); closeModal(); loadSuppliers();
+  });
+}
+
+// =====================================================
+// 13. CREDIT / UDHAR
+// =====================================================
+async function loadCredit() {
+  const { data: sales } = await supabase.from('sales').select('id,invoice_no,customer_name,customer_phone,total,paid,balance,created_at').gt('balance', 0).order('created_at', { ascending: false });
+  const t = $('creditTable');
+  if (!sales || !sales.length) { t.innerHTML = '<div class="empty">No outstanding credit.</div>'; }
+  else {
+    t.innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Phone</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th class="actions">Action</th></tr></thead><tbody>
+      ${sales.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name)}</td><td>${esc(s.customer_phone||'—')}</td>
+        <td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td>
+        <td class="num"><span class="pill red">${fmt(s.balance)}</span></td>
+        <td class="actions"><button class="btn btn-primary btn-sm" onclick="openRecovery('${s.id}','${esc(s.customer_name)}',${s.balance})">Receive Payment</button></td></tr>`).join('')}
+    </tbody></table>`;
+  }
+
+  const { data: rec } = await supabase.from('customer_payments').select('*, customers(name)').order('created_at', { ascending: false }).limit(20);
+  const tr = $('recoveriesTable');
+  if (!rec || !rec.length) tr.innerHTML = '<div class="empty">No recoveries yet.</div>';
+  else tr.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Customer</th><th class="num">Amount</th><th>Method</th></tr></thead><tbody>
+    ${rec.map(r => `<tr><td>${new Date(r.created_at).toLocaleString()}</td><td>${esc(r.customers?.name || '—')}</td>
+      <td class="num">${fmt(r.amount)}</td><td>${esc(r.payment_method)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+window.openRecovery = (saleId, custName, balance) => {
+  const body = `<div class="form-grid">
+    <div class="field full"><label>Customer</label><input readonly value="${esc(custName)}"></div>
+    <div class="field"><label>Outstanding Balance</label><input readonly value="${fmt(balance)}"></div>
+    <div class="field"><label>Amount Received</label><input id="recAmt" type="number" value="${balance}" max="${balance}"></div>
+    <div class="field"><label>Payment Method</label><select id="recMethod"><option value="cash">Cash</option><option value="bank">Bank</option><option value="other">Other</option></select></div>
+  </div>`;
+  openModal('Receive Credit Payment', body, async () => {
+    const amt = Number($('recAmt').value) || 0;
+    if (amt <= 0) throw new Error('Enter valid amount');
+    const { data: sale } = await supabase.from('sales').select('customer_id').eq('id', saleId).single();
+    const { error } = await supabase.rpc('record_customer_payment', {
+      p_customer_id: sale.customer_id, p_sale_id: saleId, p_amount: amt, p_payment_method: $('recMethod').value, p_notes: null
+    });
+    if (error) throw new Error(error.message);
+    toast('Payment recorded', 'success'); closeModal(); loadCredit();
+  });
+};
+
+// =====================================================
+// 14. EXPENSES
+// =====================================================
+async function loadExpenses() {
+  const { data } = await supabase.from('expenses').select('*').order('expense_date', { ascending: false }).limit(50);
+  const t = $('expensesTable');
+  if (!data || !data.length) { t.innerHTML = '<div class="empty">No expenses yet.</div>'; return; }
+  t.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th><th>Method</th></tr></thead><tbody>
+    ${data.map(e => `<tr><td>${esc(e.expense_date)}</td><td>${esc(e.category)}</td><td>${esc(e.description||'')}</td>
+      <td class="num">${fmt(e.amount)}</td><td>${esc(e.payment_method)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+$('btnAddExpense').onclick = () => {
+  const body = `<div class="form-grid">
+    <div class="field"><label>Category</label><input id="eCat" value="General"></div>
+    <div class="field"><label>Amount</label><input id="eAmt" type="number" value="0"></div>
+    <div class="field"><label>Date</label><input id="eDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="field"><label>Method</label><select id="eMethod"><option value="cash">Cash</option><option value="bank">Bank</option></select></div>
+    <div class="field full"><label>Description</label><textarea id="eDesc"></textarea></div>
+  </div>`;
+  openModal('Add Expense', body, async () => {
+    const payload = { category: $('eCat').value.trim() || 'General', description: $('eDesc').value.trim() || null, amount: Number($('eAmt').value) || 0, payment_method: $('eMethod').value, expense_date: $('eDate').value, created_by: profile.id };
+    const { error } = await supabase.from('expenses').insert(payload);
+    if (error) throw new Error(error.message);
+    await supabase.from('transactions').insert({ transaction_type: 'expense', amount: payload.amount, payment_method: payload.payment_method, direction: 'out', notes: payload.description, created_by: profile.id });
+    toast('Expense added', 'success'); closeModal(); loadExpenses();
+  });
+};
+
+// =====================================================
+// 15. TRANSACTIONS
+// =====================================================
+async function loadTransactions() {
+  const { data } = await supabase.from('transactions').select('*').order('created_at', { ascending: false }).limit(100);
+  const t = $('transactionsTable');
+  if (!data || !data.length) { t.innerHTML = '<div class="empty">No transactions yet.</div>'; return; }
+  t.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Type</th><th>Party</th><th class="num">Amount</th><th>Direction</th><th>Method</th></tr></thead><tbody>
+    ${data.map(x => `<tr><td>${new Date(x.created_at).toLocaleString()}</td><td>${esc(x.transaction_type)}</td><td>${esc(x.party_name || '—')}</td><td class="num">${fmt(x.amount)}</td><td><span class="pill ${x.direction === 'in' ? 'green' : 'orange'}">${x.direction === 'in' ? 'IN' : 'OUT'}</span></td><td>${esc(x.payment_method||'—')}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// =====================================================
+// 16. REPORTS
+// =====================================================
+$('btnRunReport').onclick = async () => {
+  const type = $('reportType').value;
+  const from = $('reportFrom').value ? new Date($('reportFrom').value).toISOString() : new Date(0).toISOString();
+  const to = $('reportTo').value ? new Date($('reportTo').value + 'T23:59:59').toISOString() : new Date().toISOString();
+  const out = $('reportOutput'); out.innerHTML = '<div class="empty">Loading…</div>';
+
+  let table = '', title = '';
+  if (type === 'sales' || type === 'purchases') {
+    const { data } = await supabase.from(type).select('*').gte('created_at', from).lte('created_at', to).order('created_at', { ascending: false });
+    title = type === 'sales' ? 'Sales Report' : 'Purchase Report';
+    table = `<table class="data"><thead><tr><th>Invoice</th><th>Party</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>
+      ${(data||[]).map(x => `<tr><td>${esc(x.invoice_no)}</td><td>${esc(x.customer_name || x.supplier_name || '—')}</td><td class="num">${fmt(x.total)}</td><td class="num">${fmt(x.paid)}</td><td class="num">${fmt(x.balance)}</td><td>${new Date(x.created_at).toLocaleString()}</td></tr>`).join('')}
+    </tbody></table>`;
+  } else if (type === 'credit') {
+    const { data } = await supabase.from('sales').select('*').gt('balance', 0).gte('created_at', from).lte('created_at', to);
+    title = 'Credit Report';
+    table = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>
+      ${(data||[]).map(x => `<tr><td>${esc(x.invoice_no)}</td><td>${esc(x.customer_name)}</td><td class="num">${fmt(x.balance)}</td><td>${new Date(x.created_at).toLocaleDateString()}</td></tr>`).join('')}
+    </tbody></table>`;
+  } else if (type === 'expenses') {
+    const { data } = await supabase.from('expenses').select('*').gte('expense_date', $('reportFrom').value || '1970-01-01').lte('expense_date', $('reportTo').value || '2999-12-31');
+    title = 'Expense Report';
+    table = `<table class="data"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th></tr></thead><tbody>
+      ${(data||[]).map(x => `<tr><td>${esc(x.expense_date)}</td><td>${esc(x.category)}</td><td>${esc(x.description||'')}</td><td class="num">${fmt(x.amount)}</td></tr>`).join('')}
+    </tbody></table>`;
+  }
+  out.innerHTML = `<h3 style="font-size:15px;font-weight:800;margin-bottom:12px">${title}</h3>${table}`;
+};
+$('btnPrintReport').onclick = () => window.print();
+
+// =====================================================
+// 17. SETTINGS
+// =====================================================
+async function loadSettings() {
+  const { data } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
+  if (!data) return;
+  $('setShopName').value = data.shop_name || '';
+  $('setOwner').value = data.owner_name || '';
+  $('setAddress').value = data.address || '';
+  $('setPhone').value = data.phone || '';
+  $('setCurrency').value = data.currency || 'PKR';
+  $('setFooter').value = data.footer_text || '';
+}
+$('btnSaveSettings').onclick = async () => {
+  const payload = { shop_name: $('setShopName').value.trim(), owner_name: $('setOwner').value.trim(), address: $('setAddress').value.trim(), phone: $('setPhone').value.trim(), currency: $('setCurrency').value.trim(), footer_text: $('setFooter').value.trim(), updated_at: new Date().toISOString() };
+  const { error } = await supabase.from('settings').update(payload).eq('id', 1);
+  if (error) toast(error.message, 'error'); else toast('Settings saved', 'success');
+};
+
+// =====================================================
+// INITIAL LOAD
+// =====================================================
+renderCart();
+loadOverview();
