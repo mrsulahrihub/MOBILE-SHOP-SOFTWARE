@@ -1,5 +1,5 @@
 /* =====================================================
-   BM MOBILE ZONE - DASHBOARD STYLES (v7.0 Premium Final)
+   BM MOBILE ZONE - DASHBOARD STYLES (v8.0 Premium Final)
 ===================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
@@ -10,13 +10,8 @@
   --radius: 20px; --transition: all 0.3s ease-in-out;
 }
 
-/* DARK MODE */
-body.dark-mode {
-  --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --muted: #94a3b8;
-  --border-color: rgba(255, 255, 255, 0.08); --shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-}
+body.dark-mode { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --muted: #94a3b8; --border-color: rgba(255, 255, 255, 0.08); --shadow: 0 8px 24px rgba(0, 0, 0, 0.3); }
 
-/* THEMES */
 body.theme-glass { --bg: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); --card-bg: rgba(255, 255, 255, 0.4); --border-color: rgba(255, 255, 255, 0.6); --shadow: 0 8px 32px rgba(31, 38, 135, 0.15); }
 body.theme-glass.dark-mode { --bg: linear-gradient(135deg, #0f2027 0%, #203a43 100%); --card-bg: rgba(15, 23, 42, 0.5); --border-color: rgba(255, 255, 255, 0.1); }
 body.theme-glass .clay, body.theme-glass .sidebar, body.theme-glass .modal { backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
@@ -44,7 +39,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
 .dashboard { display: flex; min-height: 100vh; }
 
 /* =====================================================
-   SIDEBAR (Auto-Hide Feature)
+   SIDEBAR & SMART HANDLE
 ===================================================== */
 .sidebar {
   width: 260px; flex-shrink: 0; background: var(--bg); padding: 28px 18px;
@@ -52,35 +47,31 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--tex
   border-radius: 0 28px 28px 0; position: fixed; top: 0; left: -260px;
   height: 100vh; overflow-y: auto; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease; z-index: 1000;
 }
-
-/* 🔥 Sidebar Open via JS 🔥 */
 .sidebar.show { left: 0 !important; box-shadow: 10px 0 30px rgba(0, 0, 0, 0.15); }
 
-/* Toggle Button */
-.sidebar-toggle-btn {
-  position: fixed; top: 20px; left: 20px; z-index: 1001;
-  background: var(--card-bg); color: var(--text); border: 1px solid var(--border-color);
-  padding: 10px 15px; border-radius: 10px; font-size: 20px; cursor: pointer;
-  box-shadow: var(--shadow); transition: all 0.3s ease;
+/* Smart Handle */
+.sidebar-handle {
+  position: fixed; top: 50%; left: 0; transform: translateY(-50%);
+  width: 24px; height: 80px; background: var(--card-bg); border: 1px solid var(--border-color);
+  border-left: none; border-radius: 0 12px 12px 0; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 1001; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; opacity: 0.4;
 }
-.sidebar-toggle-btn:hover { background: var(--primary); color: #fff; }
+.sidebar-handle:hover { opacity: 1; width: 30px; background: var(--primary); color: #fff; }
+.sidebar-handle .arrow-icon { font-size: 24px; font-weight: 800; color: var(--text); transition: transform 0.3s ease; }
+.sidebar-handle:hover .arrow-icon { color: #fff; }
+.sidebar-handle.open .arrow-icon { transform: rotate(180deg); }
+.sidebar-handle.open { left: 260px; background: var(--danger); color: #fff; opacity: 1; }
 
 .side-logo { font-size: 18px; font-weight: 900; margin-bottom: 32px; padding-left: 6px; }
 .side-logo span { color: var(--primary); }
 .nav-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; margin: 14px 0 8px; padding-left: 8px; font-weight: 700; }
-.nav-item {
-  padding: 12px 14px; border-radius: 14px; color: var(--muted); font-size: 13px; font-weight: 600;
-  display: flex; align-items: center; gap: 10px; transition: .2s; cursor: pointer; border: none;
-  background: transparent; width: 100%; text-align: left; font-family: inherit;
-}
+.nav-item { padding: 12px 14px; border-radius: 14px; color: var(--muted); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: .2s; cursor: pointer; border: none; background: transparent; width: 100%; text-align: left; font-family: inherit; }
 .nav-item:hover { color: var(--text); background: rgba(0,0,0,0.03); }
 body.dark-mode .nav-item:hover { background: rgba(255,255,255,0.05); }
 .nav-item.active { color: var(--primary); background: rgba(91, 141, 239, 0.1); }
 .sidebar-foot { margin-top: auto; font-size: 11px; color: var(--muted); padding: 12px 8px; text-align: center; border-top: 1px solid var(--border-color); }
 
-/* =====================================================
-   MAIN CONTENT
-===================================================== */
+/* MAIN */
 .main { flex: 1; min-width: 0; padding: 26px 32px 40px; width: 100%; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
 .topbar h1 { font-size: 24px; font-weight: 800; }
@@ -161,7 +152,6 @@ table.data td.actions { text-align: right; }
 .cart-total { display: flex; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border-color); font-size: 13px; }
 .cart-total.grand { font-size: 16px; font-weight: 800; color: var(--primary); }
 
-/* RESPONSIVE */
 @media(max-width: 1100px) { .stats-row { grid-template-columns: repeat(2, 1fr); } .pos-grid { grid-template-columns: 1fr; } }
-@media(max-width: 850px) { .sidebar { width: 240px; left: -240px; } .sidebar.show { left: 0; } .form-grid { grid-template-columns: 1fr; } }
+@media(max-width: 850px) { .sidebar { width: 240px; left: -240px; } .sidebar.show { left: 0; } .sidebar-handle.open { left: 240px; } .form-grid { grid-template-columns: 1fr; } }
 @media(max-width: 680px) { .dashboard { display: block; } .stats-row { grid-template-columns: 1fr 1fr; } .topbar h1 { font-size: 19px; } .welcome { padding: 22px; } .welcome h2 { font-size: 20px; } .theme-controls { flex-direction: column; align-items: flex-end; gap: 8px; } }
