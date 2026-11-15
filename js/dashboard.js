@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v4.0)
+// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v5.0 Premium)
 // =====================================================
 import { supabase } from './config.js';
 import { getActiveProfile } from './auth-guard.js';
@@ -25,6 +25,19 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => 'PKR ' + Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+// Sound Beep for POS
+const playBeep = () => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.1);
+  } catch(e) {}
+};
+
 function toast(msg, type = 'info') {
   const host = $('toastHost');
   const el = document.createElement('div');
@@ -34,24 +47,57 @@ function toast(msg, type = 'info') {
   setTimeout(() => el.remove(), 3500);
 }
 
-let MODAL_ON_CONFIRM = null;
-function openModal(title, bodyHTML, onConfirm, confirmLabel = 'Save') {
-  $('modalTitle').textContent = title;
-  $('modalBody').innerHTML = bodyHTML;
-  $('modalConfirm').textContent = confirmLabel;
-  MODAL_ON_CONFIRM = onConfirm;
-  $('modalBackdrop').classList.add('open');
-}
-function closeModal() {
-  $('modalBackdrop').classList.remove('open');
-  MODAL_ON_CONFIRM = null;
-}
-$('modalCancel').onclick = closeModal;
-$('modalConfirm').onclick = async () => {
-  if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
-};
+// =====================================================
+// THEME SWITCHER (20+ Themes)
+// =====================================================
+const THEMES = [
+  "Default", "Glassmorphism", "Neumorphism", "Claymorphism", "Skeuomorphism", 
+  "Minimalism", "Bento Grid", "Brutalism", "Aurora UI", "Dark UI", 
+  "3D Immersive UI", "Bauhaus", "Cyberpunk UI", "Flat Design", "Material Design", 
+  "Fluent Design", "Motion UI", "Organic UI", "Retro-Futurism", "Swiss Style", 
+  "Gradient Mesh UI", "Editorial UI", "Parallax Design", "Isometric UI", 
+  "Hyperrealism UI", "Liquid Glass UI"
+];
 
-// ---------- Global Keyboard Shortcuts ----------
+function initThemeSwitcher() {
+  const topbar = document.querySelector('.topbar .user-info');
+  if (!topbar) return;
+  
+  const select = document.createElement('select');
+  select.id = 'themeSelector';
+  select.style.cssText = "margin-right:15px; padding:5px; border-radius:5px; border:1px solid #ccc; font-size:12px;";
+  
+  THEMES.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.toLowerCase().replace(/\s+/g, '-');
+    opt.textContent = t;
+    select.appendChild(opt);
+  });
+
+  // Load saved theme
+  const savedTheme = localStorage.getItem('bm_theme') || 'default';
+  select.value = savedTheme;
+  applyTheme(savedTheme);
+
+  select.addEventListener('change', (e) => {
+    applyTheme(e.target.value);
+    localStorage.setItem('bm_theme', e.target.value);
+  });
+
+  topbar.insertBefore(select, topbar.firstChild);
+}
+
+function applyTheme(theme) {
+  document.body.className = ''; // Clear existing
+  if (theme !== 'default') {
+    document.body.classList.add(`theme-${theme}`);
+  }
+}
+initThemeSwitcher();
+
+// =====================================================
+// KEYBOARD SHORTCUTS
+// =====================================================
 document.addEventListener('keydown', (e) => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
     if (e.key === 'Escape') e.target.blur();
@@ -62,7 +108,7 @@ document.addEventListener('keydown', (e) => {
   if (e.altKey && e.key.toLowerCase() === 'l') { e.preventDefault(); document.querySelector('[data-module="sales"]')?.click(); }
   if (e.altKey && e.key.toLowerCase() === 'c') { e.preventDefault(); document.querySelector('[data-module="customers"]')?.click(); }
   if (e.altKey && e.key.toLowerCase() === 'u') { e.preventDefault(); document.querySelector('[data-module="credit"]')?.click(); }
-  if (e.key === 'Escape' && $('modalBackdrop').classList.contains('open')) closeModal();
+  if (e.key === 'Escape' && $('modalBackdrop')?.classList.contains('open')) closeModal();
   if (e.key === 'F1') { e.preventDefault(); showShortcutHelp(); }
   if (e.key === 'F2' && $('btnAddToCart') && !$('btnAddToCart').disabled) { e.preventDefault(); $('btnAddToCart').click(); }
   if (e.key === 'F4' && $('btnSaveSale') && !$('btnSaveSale').disabled) { e.preventDefault(); $('btnSaveSale').click(); }
@@ -80,7 +126,24 @@ function showShortcutHelp() {
   openModal('⌨️ Keyboard Shortcuts', body, () => closeModal(), 'Close');
 }
 
-// ---------- Module navigation ----------
+// ---------- Modal & Nav ----------
+let MODAL_ON_CONFIRM = null;
+function openModal(title, bodyHTML, onConfirm, confirmLabel = 'Save') {
+  $('modalTitle').textContent = title;
+  $('modalBody').innerHTML = bodyHTML;
+  $('modalConfirm').textContent = confirmLabel;
+  MODAL_ON_CONFIRM = onConfirm;
+  $('modalBackdrop').classList.add('open');
+}
+function closeModal() {
+  $('modalBackdrop').classList.remove('open');
+  MODAL_ON_CONFIRM = null;
+}
+$('modalCancel').onclick = closeModal;
+$('modalConfirm').onclick = async () => {
+  if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
+};
+
 const MODULE_TITLES = {
   overview: 'Dashboard', products: 'Products', inventory: 'Inventory',
   sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers',
@@ -117,7 +180,7 @@ async function loadModule(mod) {
 }
 
 // =====================================================
-// OVERVIEW (With Low Stock Alerts)
+// OVERVIEW
 // =====================================================
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
@@ -140,10 +203,9 @@ async function loadOverview() {
   $('stOutstanding').textContent = fmt(sum(sales, 'balance'));
   $('stExpenses').textContent = fmt(sum(exp, 'amount'));
 
-  // 🔴 NEW: Low Stock / Out of Stock Alert on Dashboard
+  // Low Stock Alert
   const lowStockItems = (prods.data || []).filter(p => p.quantity <= p.min_stock);
   let alertHTML = '';
-  
   if (lowStockItems.length > 0) {
     alertHTML = `<div class="clay" style="padding:20px; margin-bottom:20px; border-left:4px solid #ef4444; background:#fef2f2">
       <h3 style="font-size:14px; font-weight:800; color:#991b1b; margin-bottom:10px">⚠️ Inventory Alerts (${lowStockItems.length} items)</h3>
@@ -163,8 +225,6 @@ async function loadOverview() {
         ${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}
       </tbody></table>`;
     }
-    
-    // Insert alert before the recent sales table
     const dashStats = $('dashStats');
     if (dashStats && lowStockItems.length > 0) {
       if ($('lowStockAlertBox')) $('lowStockAlertBox').remove();
@@ -339,6 +399,7 @@ $('btnAddToCart').onclick = () => {
       line_total: Number(opt.dataset.price)
     });
   }
+  playBeep(); // Audio Beep on Add
   renderCart();
 };
 
@@ -361,7 +422,6 @@ function renderCart() {
   $('cartTotal').textContent = fmt(total);
   if (Number($('salePaid').value) === 0) $('salePaid').value = total;
 
-  // Auto-Show Udhar Warning
   const paid = Number($('salePaid').value) || 0;
   const udharWarn = $('udharWarning');
   if (udharWarn) {
@@ -388,9 +448,7 @@ $('btnSaveSale').onclick = async () => {
   $('btnSaveSale').disabled = true;
   try {
     const { data, error } = await supabase.rpc('create_sale', {
-      p_customer_id: null,
-      p_customer_name: custName,
-      p_customer_phone: custPhone,
+      p_customer_id: null, p_customer_name: custName, p_customer_phone: custPhone,
       p_subtotal: sub, p_discount: disc, p_total: total, p_paid: paid,
       p_payment_method: method, p_notes: null,
       p_items: CART.map(c => ({
@@ -400,8 +458,11 @@ $('btnSaveSale').onclick = async () => {
     });
     if (error) throw new Error(error.message);
 
+    // Fallback for invoice number
+    const invNo = data.invoice_no || data.invoice_number || 'INV-' + Date.now().toString().slice(-6);
+
     LAST_SALE = {
-      invoice: data.invoice_no,
+      invoice: invNo,
       customer: custName, phone: custPhone,
       total, paid, balance: total - paid,
       method, items: [...CART], date: new Date()
@@ -421,7 +482,6 @@ $('btnSaveSale').onclick = async () => {
     loadSaleProducts();
     loadOverview();
 
-    // Auto-print 80mm thermal
     if (confirm('Print 80mm thermal receipt?')) printThermal80mm(LAST_SALE);
   } catch (e) {
     toast(e.message, 'error');
@@ -431,20 +491,46 @@ $('btnSaveSale').onclick = async () => {
 };
 
 // =====================================================
-// 80mm THERMAL RECEIPT (with Due & MS Tech Footer)
+// 80mm THERMAL RECEIPT (With Logo Background)
 // =====================================================
 function printThermal80mm(sale) {
   const w = window.open('', '_blank', 'width=340,height=600');
   w.document.write(`<html><head><title>Receipt</title><style>
     @page { size: 80mm auto; margin: 0; }
-    body { font-family: 'Courier New', monospace; font-size: 11px; width: 76mm; margin: 0 auto; padding: 2mm; }
+    body { 
+      font-family: 'Courier New', monospace; 
+      font-size: 11px; 
+      width: 76mm; 
+      margin: 0 auto; 
+      padding: 2mm; 
+      position: relative;
+      background-color: #fff;
+    }
+    /* Background Watermark Logo */
+    body::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 50mm;
+      height: 50mm;
+      /* Yahan apni BM logo ka direct URL dalein */
+      background-image: url('https://i.ibb.co/6PZ9Z9x/bm-logo.png'); 
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      opacity: 0.1; /* Black & white low brightness effect */
+      z-index: -1;
+    }
     .center { text-align: center; }
     .line { border-top: 1px dashed #000; margin: 4px 0; }
-    table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 10px; position: relative; z-index: 1; }
     td, th { padding: 1px 0; text-align: left; }
     .num { text-align: right; }
     .big { font-size: 13px; font-weight: bold; }
     .b { font-weight: bold; }
+    .due { color: red; font-weight: bold; }
   </style></head><body>
     <div class="center">
       <div class="big">BM MOBILE ZONE</div>
@@ -452,7 +538,7 @@ function printThermal80mm(sale) {
       <div>03099100546</div>
     </div>
     <div class="line"></div>
-    <div>Invoice: <span class="b">${esc(sale.invoice)}</span></div>
+    <div>Invoice: <span class="b">${esc(sale.invoice || 'N/A')}</span></div>
     <div>Date: ${sale.date.toLocaleString('en-PK')}</div>
     <div>Customer: ${esc(sale.customer)}</div>
     ${sale.phone ? `<div>Phone: ${esc(sale.phone)}</div>` : ''}
@@ -465,10 +551,10 @@ function printThermal80mm(sale) {
     <table>
       <tr><td>Total</td><td class="num b">${fmt(sale.total)}</td></tr>
       <tr><td>Paid</td><td class="num">${fmt(sale.paid)}</td></tr>
-      <tr><td style="color:red;font-weight:bold">Due</td><td class="num b" style="color:red;font-weight:bold">${fmt(sale.balance)}</td></tr>
+      <tr><td class="due">Due</td><td class="num due">${fmt(sale.balance)}</td></tr>
     </table>
     <div class="line"></div>
-    <div class="center" style="font-size:10px;margin-top:6px">
+    <div class="center" style="font-size:10px;margin-top:6px; position: relative; z-index: 1;">
       Thank you for shopping!<br>
       Visit Again<br><br>
       <b>Software Made by MS Tech</b><br>
@@ -539,12 +625,11 @@ $('btnNewPurchase').onclick = async () => {
     const paid = Number($('puPaid').value) || 0;
     if (!prodId) throw new Error('Select product');
 
-    // Generate Invoice Number Manually to fix NOT NULL constraint
     const invNo = 'PUR-' + Date.now().toString().slice(-6);
 
     const { data: supsData } = await supabase.from('suppliers').select('name').eq('id', $('puSup').value).maybeSingle();
     const { error } = await supabase.rpc('create_purchase', {
-      p_invoice_no: invNo, // 🔴 FIX: Passing invoice number
+      p_invoice_no: invNo,
       p_supplier_id: $('puSup').value || null,
       p_supplier_name: supsData?.name || null,
       p_subtotal: total, p_discount: 0, p_total: total, p_paid: paid,
