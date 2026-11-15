@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v5.0 Premium)
+// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v6.0 Premium)
 // =====================================================
 import { supabase } from './config.js';
 import { getActiveProfile } from './auth-guard.js';
@@ -25,7 +25,7 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => 'PKR ' + Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-// Sound Beep for POS
+// Sound Beep for POS (Premium Touch)
 const playBeep = () => {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -48,50 +48,81 @@ function toast(msg, type = 'info') {
 }
 
 // =====================================================
-// THEME SWITCHER (20+ Themes)
+// PREMIUM THEME SWITCHER & DAY/NIGHT TOGGLE
 // =====================================================
-const THEMES = [
-  "Default", "Glassmorphism", "Neumorphism", "Claymorphism", "Skeuomorphism", 
-  "Minimalism", "Bento Grid", "Brutalism", "Aurora UI", "Dark UI", 
-  "3D Immersive UI", "Bauhaus", "Cyberpunk UI", "Flat Design", "Material Design", 
-  "Fluent Design", "Motion UI", "Organic UI", "Retro-Futurism", "Swiss Style", 
-  "Gradient Mesh UI", "Editorial UI", "Parallax Design", "Isometric UI", 
-  "Hyperrealism UI", "Liquid Glass UI"
-];
-
 function initThemeSwitcher() {
-  const topbar = document.querySelector('.topbar .user-info');
-  if (!topbar) return;
+  const topbarUserInfo = document.querySelector('.topbar .user-info');
+  if (!topbarUserInfo) return;
   
+  // Create Container
+  const controls = document.createElement('div');
+  controls.className = 'theme-controls';
+
+  // 1. Theme Dropdown (5 Premium Themes)
   const select = document.createElement('select');
-  select.id = 'themeSelector';
-  select.style.cssText = "margin-right:15px; padding:5px; border-radius:5px; border:1px solid #ccc; font-size:12px;";
-  
-  THEMES.forEach(t => {
+  select.className = 'theme-select';
+  const themes = [
+    { val: 'glass', name: 'Glassmorphism' },
+    { val: 'neo', name: 'Neumorphism' },
+    { val: 'clay', name: 'Claymorphism' },
+    { val: 'bento', name: 'Bento Grid' },
+    { val: 'minimal', name: 'Minimalism' }
+  ];
+  themes.forEach(t => {
     const opt = document.createElement('option');
-    opt.value = t.toLowerCase().replace(/\s+/g, '-');
-    opt.textContent = t;
+    opt.value = t.val;
+    opt.textContent = t.name;
     select.appendChild(opt);
   });
 
-  // Load saved theme
-  const savedTheme = localStorage.getItem('bm_theme') || 'default';
-  select.value = savedTheme;
-  applyTheme(savedTheme);
+  // 2. Day/Night Switch (Sun/Moon)
+  const switchLabel = document.createElement('label');
+  switchLabel.className = 'switch';
+  switchLabel.innerHTML = `
+    <input type="checkbox" id="dayNightToggle">
+    <span class="slider">
+      <span class="sun">☀️</span>
+      <span class="moon">🌙</span>
+    </span>
+  `;
 
+  controls.appendChild(select);
+  controls.appendChild(switchLabel);
+  topbarUserInfo.insertBefore(controls, topbarUserInfo.firstChild);
+
+  // --- Logic to Apply Themes ---
+  const applyTheme = () => {
+    const savedTheme = localStorage.getItem('bm_theme') || 'clay';
+    const isDark = localStorage.getItem('bm_dark') === 'true';
+
+    // Apply Theme Class
+    document.body.className = `theme-${savedTheme}`;
+    select.value = savedTheme;
+
+    // Apply Dark Mode Class
+    if (isDark) {
+      document.body.classList.add('dark-mode');
+      document.getElementById('dayNightToggle').checked = true;
+    } else {
+      document.getElementById('dayNightToggle').checked = false;
+    }
+  };
+
+  // Initial Load
+  applyTheme();
+
+  // Event Listeners
   select.addEventListener('change', (e) => {
-    applyTheme(e.target.value);
-    localStorage.setItem('bm_theme', e.target.value);
+    const newTheme = e.target.value;
+    localStorage.setItem('bm_theme', newTheme);
+    applyTheme();
   });
 
-  topbar.insertBefore(select, topbar.firstChild);
-}
-
-function applyTheme(theme) {
-  document.body.className = ''; // Clear existing
-  if (theme !== 'default') {
-    document.body.classList.add(`theme-${theme}`);
-  }
+  document.getElementById('dayNightToggle').addEventListener('change', (e) => {
+    const isDark = e.target.checked;
+    localStorage.setItem('bm_dark', isDark);
+    applyTheme();
+  });
 }
 initThemeSwitcher();
 
@@ -180,7 +211,7 @@ async function loadModule(mod) {
 }
 
 // =====================================================
-// OVERVIEW
+// OVERVIEW (With Low Stock Alerts)
 // =====================================================
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
@@ -207,9 +238,9 @@ async function loadOverview() {
   const lowStockItems = (prods.data || []).filter(p => p.quantity <= p.min_stock);
   let alertHTML = '';
   if (lowStockItems.length > 0) {
-    alertHTML = `<div class="clay" style="padding:20px; margin-bottom:20px; border-left:4px solid #ef4444; background:#fef2f2">
-      <h3 style="font-size:14px; font-weight:800; color:#991b1b; margin-bottom:10px">⚠️ Inventory Alerts (${lowStockItems.length} items)</h3>
-      <ul style="font-size:12px; color:#7f1d1d; padding-left:20px; line-height:1.8">
+    alertHTML = `<div class="clay" style="padding:20px; margin-bottom:20px; border-left:4px solid #ef4444; background:rgba(239,68,68,0.05)">
+      <h3 style="font-size:14px; font-weight:800; color:#ef4444; margin-bottom:10px">⚠️ Inventory Alerts (${lowStockItems.length} items)</h3>
+      <ul style="font-size:12px; color:var(--text); padding-left:20px; line-height:1.8">
         ${lowStockItems.map(p => `<li><strong>${esc(p.name)}</strong> - ${p.quantity === 0 ? '<span style="color:red;font-weight:bold">Out of Stock</span>' : `Only ${p.quantity} left (Min: ${p.min_stock})`}</li>`).join('')}
       </ul>
     </div>`;
@@ -491,7 +522,7 @@ $('btnSaveSale').onclick = async () => {
 };
 
 // =====================================================
-// 80mm THERMAL RECEIPT (With Logo Background)
+// 80mm THERMAL RECEIPT (With Watermark Logo)
 // =====================================================
 function printThermal80mm(sale) {
   const w = window.open('', '_blank', 'width=340,height=600');
@@ -505,22 +536,19 @@ function printThermal80mm(sale) {
       padding: 2mm; 
       position: relative;
       background-color: #fff;
+      color: #000;
     }
-    /* Background Watermark Logo */
     body::before {
       content: "";
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
-      width: 50mm;
-      height: 50mm;
-      /* Yahan apni BM logo ka direct URL dalein */
-      background-image: url('https://i.ibb.co/6PZ9Z9x/bm-logo.png'); 
+      width: 50mm; height: 50mm;
+      background-image: url('https://i.ibb.co/6PZ9Z9x/bm-logo.png'); /* Apna Logo URL yahan lagayen */
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
-      opacity: 0.1; /* Black & white low brightness effect */
+      opacity: 0.08;
       z-index: -1;
     }
     .center { text-align: center; }
