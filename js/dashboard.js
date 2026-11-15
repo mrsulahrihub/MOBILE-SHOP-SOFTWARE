@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v7.0 Premium)
+// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v8.0 Premium)
 // =====================================================
 import { supabase } from './config.js';
 import { getActiveProfile } from './auth-guard.js';
@@ -44,7 +44,7 @@ $('modalConfirm').onclick = async () => {
   if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
 
-// 3. THEME SWITCHER
+// 3. THEME & DAY/NIGHT SWITCHER
 function initThemeSwitcher() {
   const topbarUserInfo = document.querySelector('.topbar .user-info');
   if (!topbarUserInfo) return;
@@ -52,6 +52,7 @@ function initThemeSwitcher() {
   const select = document.createElement('select'); select.className = 'theme-select';
   const themes = [{ val: 'clay', name: 'Claymorphism' }, { val: 'glass', name: 'Glassmorphism' }, { val: 'neo', name: 'Neumorphism' }, { val: 'bento', name: 'Bento Grid' }, { val: 'minimal', name: 'Minimalism' }];
   themes.forEach(t => { const opt = document.createElement('option'); opt.value = t.val; opt.textContent = t.name; select.appendChild(opt); });
+  
   const switchLabel = document.createElement('label'); switchLabel.className = 'switch';
   switchLabel.innerHTML = `<input type="checkbox" id="dayNightToggle"><span class="slider"><span class="sun">☀️</span><span class="moon">🌙</span></span>`;
   controls.appendChild(select); controls.appendChild(switchLabel); topbarUserInfo.insertBefore(controls, topbarUserInfo.firstChild);
@@ -69,16 +70,27 @@ function initThemeSwitcher() {
 }
 initThemeSwitcher();
 
-// 4. Shortcuts
+// 4. Keyboard Shortcuts
 document.addEventListener('keydown', (e) => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
   if (e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); $('btnSaveSale')?.click(); }
   if (e.altKey && e.key.toLowerCase() === 'p') { e.preventDefault(); document.querySelector('[data-module="products"]')?.click(); }
   if (e.altKey && e.key.toLowerCase() === 'l') { e.preventDefault(); document.querySelector('[data-module="sales"]')?.click(); }
+  if (e.key === 'F1') { e.preventDefault(); showShortcutHelp(); }
 });
 
-// 5. Navigation
+function showShortcutHelp() {
+  const body = `<div style="font-size:13px;line-height:1.8">
+    <b>Navigation:</b><br><code>Alt+P</code> Products · <code>Alt+L</code> POS<br><br>
+    <b>POS Actions:</b><br><code>Alt+S</code> Save Sale<br><br>
+    <b>Others:</b><br><code>F1</code> Help
+  </div>`;
+  openModal('⌨️ Keyboard Shortcuts', body, () => closeModal(), 'Close');
+}
+
+// 5. Navigation Logic
 const MODULE_TITLES = { overview: 'Dashboard', products: 'Products', inventory: 'Inventory', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers', suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses', transactions: 'Transactions', reports: 'Reports', settings: 'Settings' };
+
 document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
   btn.addEventListener('click', () => {
     const mod = btn.dataset.module;
@@ -90,17 +102,25 @@ document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
     loadModule(mod);
   });
 });
+
 async function loadModule(mod) {
   switch (mod) {
-    case 'overview': return loadOverview(); case 'products': return loadProducts(); case 'inventory': return loadInventory();
-    case 'sales': return loadSaleProducts(); case 'purchases': return loadPurchases(); case 'customers': return loadCustomers();
-    case 'suppliers': return loadSuppliers(); case 'credit': return loadCredit(); case 'expenses': return loadExpenses();
-    case 'transactions': return loadTransactions(); case 'settings': return loadSettings();
+    case 'overview': return loadOverview();
+    case 'products': return loadProducts();
+    case 'inventory': return loadInventory();
+    case 'sales': return loadSaleProducts();
+    case 'purchases': return loadPurchases();
+    case 'customers': return loadCustomers();
+    case 'suppliers': return loadSuppliers();
+    case 'credit': return loadCredit();
+    case 'expenses': return loadExpenses();
+    case 'transactions': return loadTransactions();
+    case 'settings': return loadSettings();
   }
 }
 
 // =====================================================
-// 6. OVERVIEW
+// OVERVIEW
 // =====================================================
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
@@ -135,7 +155,7 @@ async function loadOverview() {
 }
 
 // =====================================================
-// 7. PRODUCTS (With Categories)
+// PRODUCTS
 // =====================================================
 let ALL_PRODUCTS = [];
 async function loadProducts(filter = '') {
@@ -185,7 +205,7 @@ window.toggleProductFields = () => {
 };
 
 // =====================================================
-// 8. INVENTORY
+// INVENTORY
 // =====================================================
 async function loadInventory() {
   const { data: low } = await supabase.from('products').select('*').order('quantity', { ascending: true }).limit(20);
@@ -207,12 +227,11 @@ async function loadInventory() {
 }
 
 // =====================================================
-// 9. SALES / POS
+// SALES / POS
 // =====================================================
 let CART = [];
 async function loadSaleProducts() {
   const { data } = await supabase.from('products').select('*').gt('quantity', 0).order('name');
-  // Dropdown mein Category / Subcategory show karwayi hai
   $('saleProductSelect').innerHTML = '<option value="">— Choose product —</option>' + (data || []).map(p => {
     const catDisplay = p.category ? `[${p.category}${p.sub_category ? ' - ' + p.sub_category : ''}]` : '';
     return `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei_1||'')}" data-stock="${p.quantity}">${esc(p.name)} ${catDisplay} — ${fmt(p.sale_price)} (${p.quantity} stock)</option>`;
@@ -263,7 +282,7 @@ $('btnSaveSale').onclick = async () => {
 };
 
 // =====================================================
-// 10. PURCHASES (With Stock Display)
+// PURCHASES
 // =====================================================
 async function loadPurchases() {
   const { data } = await supabase.from('purchases').select('*').order('created_at', { ascending: false }).limit(50);
@@ -315,7 +334,7 @@ $('btnNewPurchase').onclick = async () => {
 };
 
 // =====================================================
-// 11. CUSTOMERS
+// CUSTOMERS
 // =====================================================
 let ALL_CUST = [];
 async function loadCustomers(filter = '') {
@@ -352,7 +371,7 @@ function openCustomerModal(c = null) {
 }
 
 // =====================================================
-// 12. SUPPLIERS
+// SUPPLIERS
 // =====================================================
 let ALL_SUP = [];
 async function loadSuppliers() {
@@ -386,7 +405,7 @@ function openSupplierModal(s = null) {
 }
 
 // =====================================================
-// 13. CREDIT / UDHAR
+// CREDIT / UDHAR
 // =====================================================
 async function loadCredit() {
   const { data: sales } = await supabase.from('sales').select('id,invoice_no,customer_name,customer_phone,total,paid,balance,created_at').gt('balance', 0).order('created_at', { ascending: false });
@@ -430,7 +449,7 @@ window.openRecovery = (saleId, custName, balance) => {
 };
 
 // =====================================================
-// 14. EXPENSES
+// EXPENSES
 // =====================================================
 async function loadExpenses() {
   const { data } = await supabase.from('expenses').select('*').order('expense_date', { ascending: false }).limit(50);
@@ -459,7 +478,7 @@ $('btnAddExpense').onclick = () => {
 };
 
 // =====================================================
-// 15. TRANSACTIONS
+// TRANSACTIONS
 // =====================================================
 async function loadTransactions() {
   const { data } = await supabase.from('transactions').select('*').order('created_at', { ascending: false }).limit(100);
@@ -471,7 +490,7 @@ async function loadTransactions() {
 }
 
 // =====================================================
-// 16. REPORTS
+// REPORTS
 // =====================================================
 $('btnRunReport').onclick = async () => {
   const type = $('reportType').value;
@@ -504,7 +523,7 @@ $('btnRunReport').onclick = async () => {
 $('btnPrintReport').onclick = () => window.print();
 
 // =====================================================
-// 17. SETTINGS
+// SETTINGS
 // =====================================================
 async function loadSettings() {
   const { data } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
@@ -523,7 +542,7 @@ $('btnSaveSettings').onclick = async () => {
 };
 
 // =====================================================
-// 18. 80mm THERMAL RECEIPT (Full Watermark Center)
+// 80mm THERMAL RECEIPT (CSS Custom Watermark)
 // =====================================================
 function printThermal80mm(sale) {
   const w = window.open('', '_blank', 'width=340,height=600');
@@ -531,50 +550,63 @@ function printThermal80mm(sale) {
     @page { size: 80mm auto; margin: 0; }
     body { font-family: 'Courier New', monospace; font-size: 11px; width: 76mm; margin: 0 auto; padding: 2mm; position: relative; background: #fff; color: #000; }
     
-    /* 🔥 CENTER WATERMARK LOGO 🔥 */
+    /* 🔥 CROWN & BM WATERMARK (Low Opacity, Center) 🔥 */
     body::before {
-      content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      width: 65mm; height: 65mm;
-      background-image: url('https://i.ibb.co/6PZ9Z9x/bm-logo.png'); /* YAHAN APNI IMAGE KA URL DALEIN */
-      background-size: contain; background-repeat: no-repeat; background-position: center;
-      opacity: 0.08; z-index: -1; /* Low Brightness / Opacity */
+      content: "♛\\A BM"; white-space: pre;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-family: 'Times New Roman', Times, serif; font-size: 65px; font-weight: 900; font-style: italic;
+      text-align: center; line-height: 0.8; color: #000; opacity: 0.08; z-index: -1; pointer-events: none;
     }
-    
+
     .center { text-align: center; }
     .line { border-top: 1px dashed #000; margin: 4px 0; }
     table { width: 100%; border-collapse: collapse; font-size: 10px; position: relative; z-index: 1; }
     td, th { padding: 1px 0; text-align: left; }
     .num { text-align: right; }
-    .big { font-size: 14px; font-weight: 900; letter-spacing: 1px; }
+    .big { font-size: 13px; font-weight: bold; letter-spacing: 0.5px; }
     .b { font-weight: bold; }
     .due { color: red; font-weight: bold; }
   </style></head><body>
+    
     <div class="center">
       <div class="big">BM MOBILE ZONE</div>
       <div>Chohan Mobile Market, Zafarwal</div>
       <div>03099100546</div>
     </div>
+    
     <div class="line"></div>
+    
     <div>Invoice: <span class="b">${esc(sale.invoice || 'N/A')}</span></div>
     <div>Date: ${sale.date.toLocaleString('en-PK')}</div>
     <div>Customer: ${esc(sale.customer)}</div>
     ${sale.phone ? `<div>Phone: ${esc(sale.phone)}</div>` : ''}
+    
     <div class="line"></div>
-    <table><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th></tr></thead>
-    <tbody>
-      ${sale.items.map(i => `<tr><td>${esc(i.product_name)}${i.imei ? '<br><small>'+esc(i.imei)+'</small>' : ''}</td><td class="num">${i.quantity}</td><td class="num">${fmt(i.line_total)}</td></tr>`).join('')}
-    </tbody></table>
+    
+    <table>
+      <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th></tr></thead>
+      <tbody>
+        ${sale.items.map(i => `<tr><td>${esc(i.product_name)}${i.imei ? '<br><small>'+esc(i.imei)+'</small>' : ''}</td><td class="num">${i.quantity}</td><td class="num">${fmt(i.line_total)}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    
     <div class="line"></div>
+    
     <table>
       <tr><td>Total</td><td class="num b">${fmt(sale.total)}</td></tr>
       <tr><td>Paid</td><td class="num">${fmt(sale.paid)}</td></tr>
       <tr><td class="due">Due</td><td class="num due">${fmt(sale.balance)}</td></tr>
     </table>
+    
     <div class="line"></div>
+    
     <div class="center" style="font-size:10px;margin-top:6px; position: relative; z-index: 1;">
-      Thank you for shopping!<br>Visit Again<br><br>
-      <b>Software Made by MS Tech</b><br>📞 03099100546
+      Thank you for shopping!<br>
+      Visit Again<br><br>
+      <b>Software Made by MS Tech</b><br>
+      📞 03099100546
     </div>
+    
     <script>window.onload=function(){window.print();setTimeout(()=>window.close(),800);}<\/script>
   </body></html>`);
   w.document.close();
