@@ -1,12 +1,10 @@
 // =====================================================
-// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v9.0 Ultimate)
+// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v9.5 Premium)
 // =====================================================
 import { supabase } from './config.js';
 import { getActiveProfile } from './auth-guard.js';
 
-// -----------------------------------------------------
-// 1. AUTH GUARD
-// -----------------------------------------------------
+// 1. Auth Guard
 const result = await getActiveProfile();
 if (!result) { location.replace('./login.html'); throw new Error('Unauthorized'); }
 const { profile } = result;
@@ -22,9 +20,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   location.replace('./login.html');
 });
 
-// -----------------------------------------------------
-// 2. HELPERS
-// -----------------------------------------------------
+// 2. Helpers
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => 'PKR ' + Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -66,9 +62,7 @@ $('modalConfirm').onclick = async () => {
   if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
 
-// -----------------------------------------------------
 // 3. THEME SWITCHER
-// -----------------------------------------------------
 function initThemeSwitcher() {
   const topbarUserInfo = document.querySelector('.topbar .user-info');
   if (!topbarUserInfo) return;
@@ -101,9 +95,7 @@ function initThemeSwitcher() {
 }
 initThemeSwitcher();
 
-// -----------------------------------------------------
 // 4. SMART SIDEBAR
-// -----------------------------------------------------
 const sidebar = document.getElementById('mainSidebar');
 const handle = document.getElementById('sidebarHandle');
 let sidebarTimeout;
@@ -129,9 +121,7 @@ function resetSidebarTimer() {
   }, 15000);
 }
 
-// -----------------------------------------------------
 // 5. SHORTCUTS
-// -----------------------------------------------------
 document.addEventListener('keydown', (e) => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
   if (e.altKey && e.key.toLowerCase() === 's') { e.preventDefault(); $('btnSaveSale')?.click(); }
@@ -148,9 +138,7 @@ function showShortcutHelp() {
   openModal('⌨️ Keyboard Shortcuts', body, () => closeModal(), 'Close');
 }
 
-// -----------------------------------------------------
 // 6. NAVIGATION
-// -----------------------------------------------------
 const MODULE_TITLES = {
   overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Rack Management',
   repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers',
@@ -248,7 +236,6 @@ $('btnAddProduct')?.addEventListener('click', () => openProductModal());
 
 window.editProduct = (id) => { const p = ALL_PRODUCTS.find(x => x.id === id); if (p) openProductModal(p); };
 
-// PRODUCT DELETE — FIXED (soft-delete fallback)
 window.deleteProduct = async (id) => {
   const p = ALL_PRODUCTS.find(x => x.id === id);
   if (!p) return toast('Product not found', 'error');
@@ -436,7 +423,7 @@ $('btnSaveSale').onclick = async () => {
 };
 
 // -----------------------------------------------------
-// SALES HISTORY (FIXED)
+// SALES HISTORY
 // -----------------------------------------------------
 const salesHistoryBox = document.getElementById('salesHistoryBox');
 const btnSalesHistory = document.getElementById('btnSalesHistory');
@@ -620,7 +607,7 @@ function openSupplierModal(s = null) {
 }
 
 // =====================================================
-// CREDIT / UDHAR (NAME-WISE)
+// CREDIT / UDHAR
 // =====================================================
 async function loadCredit() {
   const { data: sales } = await supabase.from('sales')
@@ -629,15 +616,12 @@ async function loadCredit() {
     .order('created_at', { ascending: false });
 
   const rows = sales || [];
-
-  // Name-wise grouping
   const grouped = new Map();
   rows.forEach(s => {
     const key = (s.customer_phone || s.customer_name || 'Walk-in').trim().toLowerCase();
     if (!grouped.has(key)) {
       grouped.set(key, {
-        name: s.customer_name || 'Walk-in',
-        phone: s.customer_phone || '—',
+        name: s.customer_name || 'Walk-in', phone: s.customer_phone || '—',
         invoices: [], total: 0, paid: 0, balance: 0,
         firstDate: s.created_at, lastDate: s.created_at
       });
@@ -681,7 +665,6 @@ async function loadCredit() {
           </tr>
         </tbody>
       </table>`;
-    // attach listeners
     st.querySelectorAll('button[data-action]').forEach(btn => {
       btn.addEventListener('click', () => {
         const idx = Number(btn.dataset.idx);
@@ -692,7 +675,6 @@ async function loadCredit() {
     });
   }
 
-  // Detailed invoices
   const t = $('creditTable');
   if (!rows.length) {
     t.innerHTML = '<div class="empty">No outstanding credit invoices.</div>';
@@ -713,7 +695,6 @@ async function loadCredit() {
     });
   }
 
-  // Recoveries
   const { data: rec } = await supabase.from('customer_payments').select('*, customers(name)').order('created_at', { ascending: false }).limit(20);
   const tr = $('recoveriesTable');
   if (!rec || !rec.length) tr.innerHTML = '<div class="empty">No recoveries yet.</div>';
@@ -740,20 +721,48 @@ function showCustomerLedger(g) {
 document.getElementById('btnPrintCreditAll')?.addEventListener('click', () => {
   const summaries = window.__CREDIT_SUMMARIES || [];
   if (!summaries.length) return toast('No udhar to print', 'error');
+  
   const content = `
-    ${printHeader()}
-    <div class="center"><b>ALL OUTSTANDING UDHAR</b></div>
-    <div class="center">${new Date().toLocaleString('en-PK')}</div>
-    <div class="line"></div>
+    <div class="header-row">
+      <div><h1 class="title">ALL OUTSTANDING UDHAR</h1></div>
+      <div class="company-info">
+        <div class="company-name">${SHOP.name}</div>
+        <div class="company-details">${SHOP.address}<br>📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+      </div>
+    </div>
+    
+    <div class="meta-row">
+      <div><strong>REPORT DATE:</strong> ${new Date().toLocaleDateString('en-PK')}</div>
+      <div><strong>TIME:</strong> ${new Date().toLocaleTimeString('en-PK')}</div>
+    </div>
+
     <table>
-      <thead><tr><th>Customer</th><th class="num">Bills</th><th class="num">Outstanding</th></tr></thead>
+      <thead><tr><th>Customer Name</th><th>Phone</th><th class="num">Total Bills</th><th class="num">Total Paid</th><th class="num">Outstanding Balance</th></tr></thead>
       <tbody>
-        ${summaries.map(g => `<tr><td>${esc(g.name)}<br><small>${esc(g.phone)}</small></td><td class="num">${g.invoices.length}</td><td class="num">${fmt(g.balance)}</td></tr>`).join('')}
-        <tr><th colspan="2">GRAND TOTAL</th><th class="num">${fmt(summaries.reduce((s, x) => s + x.balance, 0))}</th></tr>
+        ${summaries.map(g => `<tr>
+          <td><strong>${esc(g.name)}</strong></td>
+          <td>${esc(g.phone)}</td>
+          <td class="num">${g.invoices.length}</td>
+          <td class="num">${fmt(g.paid)}</td>
+          <td class="num"><strong>${fmt(g.balance)}</strong></td>
+        </tr>`).join('')}
       </tbody>
     </table>
-    ${printFooter()}`;
-  printWrapper('All Udhar', content);
+
+    <div class="totals-box">
+      <div class="totals-row grand"><span>TOTAL OUTSTANDING</span><span class="val">${fmt(summaries.reduce((s, x) => s + x.balance, 0))}</span></div>
+    </div>
+
+    <div class="footer-content">
+      <div class="terms">
+        <b>Note:</b> This is a computer generated outstanding summary.
+      </div>
+      <div class="made-by">
+        Made by MS.Tech<br>📞 ${SHOP.phoneMain}<br>
+        <div class="urdu">ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں</div>
+      </div>
+    </div>`;
+  printA4Wrapper('All Udhar Summary', content);
 });
 
 window.openRecovery = (saleId, custName, balance) => {
@@ -776,7 +785,7 @@ window.openRecovery = (saleId, custName, balance) => {
 };
 
 // =====================================================
-// EXPENSES (PREMIUM)
+// EXPENSES
 // =====================================================
 const EXPENSE_CATEGORIES = [
   'Electricity', 'Internet Bill', 'Food Expense', 'Staff Salary',
@@ -883,6 +892,7 @@ $('btnAddExpense').onclick = () => {
     </div>`;
   openModal('Add Expense', body, async () => {
     const payload = {
+      title: $('eCat').value, // FIX: Added title for DB constraint
       category: $('eCat').value,
       description: $('eDesc').value.trim() || null,
       amount: Number($('eAmt').value) || 0,
@@ -957,11 +967,8 @@ async function runProfitLossReport() {
   }).sort((a, b) => b.profit - a.profit);
 
   const totals = rows.reduce((a, r) => ({
-    revenue: a.revenue + r.sell_revenue,
-    cogs: a.cogs + r.cogs,
-    profit: a.profit + r.profit,
-    qty_bought: a.qty_bought + r.qty_bought,
-    qty_sold: a.qty_sold + r.qty_sold
+    revenue: a.revenue + r.sell_revenue, cogs: a.cogs + r.cogs,
+    profit: a.profit + r.profit, qty_bought: a.qty_bought + r.qty_bought, qty_sold: a.qty_sold + r.qty_sold
   }), { revenue: 0, cogs: 0, profit: 0, qty_bought: 0, qty_sold: 0 });
 
   window.__PL_ROWS = rows; window.__PL_TOTALS = totals;
@@ -1138,8 +1145,39 @@ $('btnRunReport').onclick = async () => {
 };
 
 $('btnPrintReport').onclick = () => {
-  const content = $('reportOutput').innerHTML;
-  printWrapper('Report', content);
+  const type = $('reportType').value.toUpperCase();
+  const periodLabel = $('reportPeriod').options[$('reportPeriod').selectedIndex].text;
+  const reportHTML = $('reportOutput').innerHTML;
+  
+  const content = `
+    <div class="header-row">
+      <div><h1 class="title">${type} REPORT</h1></div>
+      <div class="company-info">
+        <div class="company-name">${SHOP.name}</div>
+        <div class="company-details">${SHOP.address}<br>📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+      </div>
+    </div>
+    
+    <div class="meta-row">
+      <div><strong>PERIOD:</strong> ${periodLabel}</div>
+      <div><strong>PRINTED ON:</strong> ${new Date().toLocaleString('en-PK')}</div>
+    </div>
+
+    <div style="flex-grow: 1;">
+      ${reportHTML}
+    </div>
+
+    <div class="footer-content">
+      <div class="terms">
+        <b>Note:</b> This is a computer generated report.
+      </div>
+      <div class="made-by">
+        Made by MS.Tech<br>📞 ${SHOP.phoneMain}<br>
+        <div class="urdu">ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں</div>
+      </div>
+    </div>`;
+    
+  printA4Wrapper(type + ' Report', content);
 };
 
 // =====================================================
@@ -1246,21 +1284,21 @@ window.printRepairSlip = async id => {
 
 function printRepairSlipData(r) {
   const content = `
-    ${printHeader()}
-    <div class="center"><b>Repairing Receipt / مرمت رسید</b></div>
-    <div class="line"></div>
+    ${printThermalHeader()}
+    <div class="center" style="margin-bottom: 6px;"><b>Repairing Receipt / مرمت رسید</b></div>
+    <div class="dashed-line"></div>
     <div class="row"><span>Slip: ${esc(r.slip_no)}</span><span>${esc(r.repair_date || '')}</span></div>
     <div>Customer: ${esc(r.customer_name)} | ${esc(r.customer_mobile || '')}</div>
     <div>Model: ${esc(r.mobile_model || '')}<br>IMEI: ${esc(r.imei || '')}</div>
     <div>Dead Warranty: ${r.dead_warranty ? 'Yes' : 'No'}<br>Battery: ${esc(r.battery_status || '—')}<br>Fault: ${esc(r.fault || '—')}</div>
-    <div class="line"></div>
+    <div class="dashed-line"></div>
     <div class="row"><b>Total</b><b>${fmt(r.total_payment)}</b></div>
     <div class="row"><span>Advance</span><span>${fmt(r.advance_payment)}</span></div>
     <div class="row"><b>Due</b><b>${fmt(r.due_payment)}</b></div>
-    <div class="line"></div>
-    <div class="urdu">
+    <div class="dashed-line"></div>
+    <div class="urdu" style="text-align: left;">
       <b>موبائل مرمت کے بعد وصول کرنے کے لیے یہ رسید لازمی ساتھ لائیں۔</b>
-      <ol>
+      <ol style="padding-right: 15px;">
         <li>براہِ کرم مال کاؤنٹر پر چیک کریں۔</li>
         <li>پھولی ہوئی بیٹری کی کوئی وارنٹی نہیں ہے۔</li>
         <li>بیٹری کی وارنٹی صرف 2 دن ہوگی۔</li>
@@ -1268,8 +1306,8 @@ function printRepairSlipData(r) {
         <li>استعمال شدہ Accessories واپس یا تبدیل نہیں ہوں گی۔</li>
       </ol>
     </div>
-    ${printFooter()}`;
-  printWrapper('Repair Slip', content);
+    ${printThermalFooter()}`;
+  printThermalWrapper('Repair Slip', content);
 }
 
 // =====================================================
@@ -1300,68 +1338,142 @@ $('btnSaveSettings').onclick = async () => {
 };
 
 // =====================================================
-// PRINT HELPERS (Watermark + Branding)
+// PREMIUM PRINT SYSTEM (A4 & Thermal)
 // =====================================================
-function printHeader() {
+
+// 1. PREMIUM THERMAL HEADER (No Watermark)
+function printThermalHeader() {
   return `
     <div class="center">
-      <div class="big">${SHOP.name}</div>
-      <div>${SHOP.address}</div>
-      <div>📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+      <div class="big" style="font-size: 16px; letter-spacing: 1px;">${SHOP.name}</div>
+      <div style="font-size: 11px;">${SHOP.address}</div>
+      <div style="font-size: 11px;">📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
     </div>
-    <div class="line"></div>`;
+    <div class="dashed-line"></div>`;
 }
-function printFooter() {
+
+// 2. PREMIUM THERMAL FOOTER (Urdu Duplication Fixed)
+function printThermalFooter() {
   return `
-    <div class="line"></div>
-    <div class="center" style="font-size:10px;margin-top:6px;position:relative;z-index:1">
+    <div class="dashed-line"></div>
+    <div class="center" style="font-size:11px; margin-top:8px;">
       Thank you for shopping!<br>Visit Again<br><br>
       <b>Made by MS.Tech</b><br>
       📞 ${SHOP.phoneMain}<br>
-      <div class="urdu" style="font-size:10px;margin-top:6px">
-        ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں<br>
-        03099100546
+      <div class="urdu" style="font-size:11px; margin-top:6px; font-weight:bold;">
+        ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں
       </div>
     </div>`;
 }
-function printWrapper(title, contentHTML) {
+
+// 3. THERMAL PRINT WRAPPER (80mm - No Watermark)
+function printThermalWrapper(title, contentHTML) {
   const w = window.open('', '_blank', 'width=380,height=720');
   if (!w) { toast('Please allow pop-ups', 'error'); return; }
   w.document.write(`<html><head><meta charset="UTF-8"><title>${title}</title><style>
     @page { size: 80mm auto; margin: 2mm; }
-    body { font-family: 'Courier New', monospace; font-size: 11px; width: 76mm; margin: 0 auto; padding: 2mm; position: relative; background: #fff; color: #000; }
-    body::before {
-      content: "♛\\A BM"; white-space: pre;
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      font-family: 'Times New Roman', serif; font-size: 90px; font-weight: 900; font-style: italic;
-      text-align: center; line-height: 0.8; color: #000; opacity: 0.07; z-index: 0; pointer-events: none;
-    }
+    body { font-family: 'Courier New', monospace; font-size: 11px; width: 76mm; margin: 0 auto; padding: 2mm; background: #fff; color: #000; }
     .center { text-align: center; }
-    .line { border-top: 1px dashed #000; margin: 5px 0; }
-    .urdu { direction: rtl; text-align: right; font-family: 'Jameel Noori Nastaleeq', Arial, sans-serif; line-height: 1.9; font-size: 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 10px; position: relative; z-index: 1; }
-    td, th { padding: 2px 0; text-align: left; }
+    .dashed-line { border-top: 1px dashed #000; margin: 6px 0; }
+    .urdu { direction: rtl; text-align: center; font-family: 'Jameel Noori Nastaleeq', Arial, sans-serif; line-height: 1.8; }
+    table { width: 100%; border-collapse: collapse; font-size: 10px; margin: 4px 0; }
+    th, td { padding: 2px 0; text-align: left; }
     .num { text-align: right; }
-    .big { font-size: 14px; font-weight: bold; letter-spacing: 0.5px; }
+    .big { font-size: 14px; font-weight: bold; }
     .b { font-weight: bold; }
-    .due { color: red; font-weight: bold; }
-    .row { display: flex; justify-content: space-between; gap: 8px; margin: 4px 0; position: relative; z-index: 1; }
-    * { position: relative; z-index: 1; }
-    body::before { z-index: 0; }
+    .due { color: #000; font-weight: bold; }
+    .row { display: flex; justify-content: space-between; gap: 8px; margin: 3px 0; }
   </style></head><body>${contentHTML}
     <script>window.onload=function(){window.print();setTimeout(()=>window.close(),800)}<\/script>
   </body></html>`);
   w.document.close();
 }
 
+// 4. PREMIUM A4 PRINT WRAPPER (For Reports & Udhar) with Crown BM Watermark
+function printA4Wrapper(title, contentHTML) {
+  const w = window.open('', '_blank', 'width=900,height=900');
+  if (!w) { toast('Please allow pop-ups', 'error'); return; }
+  
+  w.document.write(`<html><head><meta charset="UTF-8"><title>${title}</title><style>
+    @page { size: A4 landscape; margin: 0; }
+    body { 
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+      margin: 0; padding: 0; background: #fff; color: #333; 
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+      position: relative; overflow: hidden; height: 100vh;
+    }
+    
+    body::before {
+      content: "♛\\A BM"; white-space: pre;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-family: 'Times New Roman', Times, serif; font-size: 250px; font-weight: 900; font-style: italic;
+      text-align: center; line-height: 0.8; color: #000; opacity: 0.04; z-index: 0; pointer-events: none;
+    }
+
+    .wave-header {
+      position: absolute; top: 0; left: 0; width: 100%; height: 120px;
+      background: linear-gradient(90deg, #1e1b4b 0%, #3b82f6 50%, #8b5cf6 100%);
+      clip-path: ellipse(150% 100% at 50% 0%);
+      z-index: 1;
+    }
+    .wave-footer {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 100px;
+      background: linear-gradient(90deg, #1e1b4b 0%, #3b82f6 50%, #8b5cf6 100%);
+      clip-path: ellipse(150% 100% at 50% 100%);
+      z-index: 1;
+    }
+
+    .content-container {
+      position: relative; z-index: 2; padding: 40px 60px; display: flex; flex-direction: column; height: 100%; box-sizing: border-box;
+    }
+
+    .header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
+    .title { font-size: 36px; font-weight: 900; color: #1e1b4b; margin: 0; letter-spacing: 1px; }
+    .company-info { text-align: right; color: #fff; margin-top: 10px;}
+    .company-name { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;}
+    .company-details { font-size: 12px; margin-top: 4px; opacity: 0.9;}
+
+    .meta-row { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 30px; }
+    .meta-row strong { color: #333; }
+
+    table { width: 100%; border-collapse: collapse; z-index: 2; position: relative; margin-bottom: 20px; }
+    th { text-align: left; padding: 12px; font-size: 14px; color: #3b82f6; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; font-weight: 800; }
+    td { padding: 12px; font-size: 13px; border-bottom: 1px solid #e2e8f0; }
+    .num { text-align: right; }
+    
+    .totals-box { margin-left: auto; width: 300px; margin-top: 20px; }
+    .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-bottom: 1px solid #e2e8f0; }
+    .totals-row.grand { border-top: 2px solid #3b82f6; border-bottom: none; font-size: 18px; font-weight: 900; color: #1e1b4b; margin-top: 8px; padding-top: 12px; }
+    .totals-row.grand .val { color: #3b82f6; }
+
+    .footer-content { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; }
+    .terms { width: 50%; font-size: 11px; color: #888; line-height: 1.5; }
+    .made-by { text-align: right; font-size: 11px; color: #888; }
+    .urdu { direction: rtl; font-family: 'Jameel Noori Nastaleeq', Arial, sans-serif; font-size: 14px; color: #1e1b4b; margin-top: 4px;}
+    
+    .content-container * { position: relative; z-index: 3; }
+  </style></head><body>
+    <div class="wave-header"></div>
+    <div class="wave-footer"></div>
+    <div class="content-container">
+      ${contentHTML}
+    </div>
+    <script>window.onload=function(){window.print();setTimeout(()=>window.close(),800)}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+// =====================================================
+// 5. GENERATE POS RECEIPT (Thermal)
+// =====================================================
 function printThermal80mm(sale) {
   const content = `
-    ${printHeader()}
+    ${printThermalHeader()}
     <div>Invoice: <b>${esc(sale.invoice || 'N/A')}</b></div>
     <div>Date: ${sale.date.toLocaleString('en-PK')}</div>
     <div>Customer: ${esc(sale.customer)}</div>
     ${sale.phone ? `<div>Phone: ${esc(sale.phone)}</div>` : ''}
-    <div class="line"></div>
+    <div class="dashed-line"></div>
     <table>
       <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th></tr></thead>
       <tbody>
@@ -1372,7 +1484,7 @@ function printThermal80mm(sale) {
         </tr>`).join('')}
       </tbody>
     </table>
-    <div class="line"></div>
+    <div class="dashed-line"></div>
     <table>
       <tr><td>Subtotal</td><td class="num">${fmt(sale.subtotal ?? sale.total)}</td></tr>
       <tr><td>Discount</td><td class="num">-${fmt(sale.discount || 0)}</td></tr>
@@ -1381,21 +1493,36 @@ function printThermal80mm(sale) {
       <tr><td>Paid</td><td class="num">${fmt(sale.paid)}</td></tr>
       <tr><td class="due">Due</td><td class="num due">${fmt(sale.balance)}</td></tr>
     </table>
-    ${printFooter()}`;
-  printWrapper('Receipt', content);
+    ${printThermalFooter()}`;
+  printThermalWrapper('Receipt', content);
 }
 
+// =====================================================
+// 6. GENERATE CREDIT RECEIPT (A4 Premium)
+// =====================================================
 function printCreditReceipt(g) {
   const content = `
-    ${printHeader()}
-    <div class="center"><b>Udhar / Credit Statement</b></div>
-    <div class="line"></div>
-    <div>Customer: <b>${esc(g.name)}</b></div>
-    <div>Phone: ${esc(g.phone)}</div>
-    <div>Period: ${new Date(g.firstDate).toLocaleDateString('en-PK')} — ${new Date(g.lastDate).toLocaleDateString('en-PK')}</div>
-    <div class="line"></div>
+    <div class="header-row">
+      <div><h1 class="title">UDHAR STATEMENT</h1></div>
+      <div class="company-info">
+        <div class="company-name">${SHOP.name}</div>
+        <div class="company-details">${SHOP.address}<br>📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+      </div>
+    </div>
+    
+    <div class="meta-row">
+      <div>
+        <strong>CUSTOMER:</strong> ${esc(g.name)}<br>
+        <strong>PHONE:</strong> ${esc(g.phone)}
+      </div>
+      <div style="text-align: right;">
+        <strong>DATE:</strong> ${new Date().toLocaleDateString('en-PK')}<br>
+        <strong>PERIOD:</strong> ${new Date(g.firstDate).toLocaleDateString('en-PK')} - ${new Date(g.lastDate).toLocaleDateString('en-PK')}
+      </div>
+    </div>
+
     <table>
-      <thead><tr><th>Invoice</th><th>Date</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Due</th></tr></thead>
+      <thead><tr><th>Invoice No</th><th>Date</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th></tr></thead>
       <tbody>
         ${g.invoices.map(i => `<tr>
           <td>${esc(i.invoice_no)}</td>
@@ -1404,41 +1531,76 @@ function printCreditReceipt(g) {
           <td class="num">${fmt(i.paid)}</td>
           <td class="num">${fmt(i.balance)}</td>
         </tr>`).join('')}
-        <tr><th colspan="2">TOTAL</th><th class="num">${fmt(g.total)}</th><th class="num">${fmt(g.paid)}</th><th class="num due">${fmt(g.balance)}</th></tr>
       </tbody>
     </table>
-    ${printFooter()}`;
-  printWrapper('Udhar Statement', content);
+
+    <div class="totals-box">
+      <div class="totals-row"><span>Total Amount</span><span>${fmt(g.total)}</span></div>
+      <div class="totals-row"><span>Total Paid</span><span>${fmt(g.paid)}</span></div>
+      <div class="totals-row grand"><span>OUTSTANDING</span><span class="val">${fmt(g.balance)}</span></div>
+    </div>
+
+    <div class="footer-content">
+      <div class="terms">
+        <b>Note:</b> This is a computer generated statement. Please bring this receipt for payment recovery.
+      </div>
+      <div class="made-by">
+        Made by MS.Tech<br>📞 ${SHOP.phoneMain}<br>
+        <div class="urdu">ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں</div>
+      </div>
+    </div>`;
+  printA4Wrapper('Udhar Statement', content);
 }
 
+// =====================================================
+// 7. GENERATE PROFIT & LOSS REPORT (A4 Premium)
+// =====================================================
 function printPLReport(rows, totals) {
   const content = `
-    ${printHeader()}
-    <div class="center"><b>PROFIT & LOSS REPORT</b></div>
-    <div class="center">${new Date().toLocaleString('en-PK')}</div>
-    <div class="line"></div>
+    <div class="header-row">
+      <div><h1 class="title">PROFIT & LOSS REPORT</h1></div>
+      <div class="company-info">
+        <div class="company-name">${SHOP.name}</div>
+        <div class="company-details">${SHOP.address}<br>📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+      </div>
+    </div>
+    
+    <div class="meta-row">
+      <div><strong>PRINT DATE:</strong> ${new Date().toLocaleString('en-PK')}</div>
+    </div>
+
     <table>
-      <thead><tr><th>Product</th><th class="num">Bought</th><th class="num">Sold</th><th class="num">Profit</th></tr></thead>
+      <thead><tr><th>Product</th><th class="num">Bought</th><th class="num">Sold</th><th class="num">Revenue</th><th class="num">COGS</th><th class="num">Profit</th></tr></thead>
       <tbody>
         ${rows.map(r => `<tr>
           <td>${esc(r.product_name)}</td>
           <td class="num">${r.qty_bought}</td>
           <td class="num">${r.qty_sold}</td>
-          <td class="num" style="color:${r.profit >= 0 ? '#0a0' : '#c00'}">${fmt(r.profit)}</td>
+          <td class="num">${fmt(r.sell_revenue)}</td>
+          <td class="num">${fmt(r.cogs)}</td>
+          <td class="num" style="color:${r.profit >= 0 ? '#10b981' : '#ef4444'}; font-weight:bold;">${fmt(r.profit)}</td>
         </tr>`).join('')}
-        <tr><th colspan="3">NET PROFIT</th><th class="num" style="color:${totals.profit >= 0 ? '#0a0' : '#c00'}">${fmt(totals.profit)}</th></tr>
       </tbody>
     </table>
-    <div class="line"></div>
-    <div class="row"><span>Total Revenue</span><span>${fmt(totals.revenue)}</span></div>
-    <div class="row"><span>Total COGS</span><span>${fmt(totals.cogs)}</span></div>
-    <div class="row"><b>Net Profit</b><b>${fmt(totals.profit)}</b></div>
-    ${printFooter()}`;
-  printWrapper('Profit & Loss', content);
+
+    <div class="totals-box">
+      <div class="totals-row"><span>Total Revenue</span><span>${fmt(totals.revenue)}</span></div>
+      <div class="totals-row"><span>Total COGS</span><span>${fmt(totals.cogs)}</span></div>
+      <div class="totals-row grand"><span>NET PROFIT</span><span class="val" style="color:${totals.profit >= 0 ? '#10b981' : '#ef4444'}">${fmt(totals.profit)}</span></div>
+    </div>
+
+    <div class="footer-content">
+      <div class="terms">
+        <b>Note:</b> This is a computer generated profit & loss report.
+      </div>
+      <div class="made-by">
+        Made by MS.Tech<br>📞 ${SHOP.phoneMain}<br>
+        <div class="urdu">ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں</div>
+      </div>
+    </div>`;
+  printA4Wrapper('Profit & Loss Report', content);
 }
 
-// =====================================================
 // INITIAL LOAD
-// =====================================================
 renderCart();
 loadOverview();
