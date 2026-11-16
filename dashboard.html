@@ -24,7 +24,9 @@
     <button class="nav-item active" data-module="overview">▦ Overview</button>
     <button class="nav-item" data-module="products">▣ Products</button>
     <button class="nav-item" data-module="inventory">▤ Inventory</button>
+    <button class="nav-item" data-module="racks">▦ Rack Management</button>
     <button class="nav-item" data-module="sales">↗ Sales / POS</button>
+    <button class="nav-item" data-module="repairing">🔧 Repairing</button>
     <button class="nav-item" data-module="purchases">↙ Purchases</button>
 
     <p class="nav-label">PEOPLE</p>
@@ -106,12 +108,20 @@
         <div class="module-head"><div><h2>Inventory</h2><p>Stock levels & movement history</p></div></div>
         <div class="clay" style="padding:20px">
           <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Low Stock Alerts</h3>
+          <div class="form-grid" style="margin-bottom:14px"><div class="field"><label>Rack Filter</label><select id="inventoryRackFilter"><option value="">All Racks</option></select></div></div>
           <div class="table-wrap" id="lowStockTable"><div class="empty">Loading…</div></div>
         </div>
         <div class="clay" style="padding:20px">
           <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Stock Movements</h3>
           <div class="table-wrap" id="movementsTable"><div class="empty">Loading…</div></div>
         </div>
+      </section>
+
+      <!-- RACK MANAGEMENT -->
+      <section class="module" id="module-racks">
+        <div class="module-head"><div><h2>Rack Management</h2><p>Create racks and see rack-wise stock</p></div><button class="btn btn-primary" id="btnAddRack">+ Add Rack</button></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="racksTable"><div class="empty">Loading…</div></div></div>
+        <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Rack-wise Inventory</h3><div class="table-wrap" id="rackStockTable"><div class="empty">Loading…</div></div></div>
       </section>
 
       <!-- SALES / POS -->
@@ -124,8 +134,9 @@
         <div class="pos-grid">
           <div class="clay" style="padding:22px">
             <div class="form-grid">
-              <div class="field"><label>Customer Name</label><input id="saleCustName" placeholder="Walk-in Customer"></div>
+              <div class="field"><label>Customer Name</label><input id="saleCustName" list="posCustomerOptions" placeholder="Search / add customer"><datalist id="posCustomerOptions"></datalist></div>
               <div class="field"><label>Customer Phone</label><input id="saleCustPhone" placeholder="03xx-xxxxxxx"></div>
+              <div class="field full" id="previousDueBox" style="display:none;padding:10px;background:rgba(245,158,66,.12);border-radius:8px"><b>Previous Pending Payment:</b> <span id="previousDueAmount">PKR 0</span></div>
               <div class="field full"><label>Select Product</label><select id="saleProductSelect"><option value="">— Choose product —</option></select></div>
             </div>
             <button class="btn btn-primary" style="margin-top:14px" id="btnAddToCart">+ Add to Cart (F2)</button>
@@ -148,6 +159,12 @@
           <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Sales History</h3>
           <div class="table-wrap" id="salesHistoryTable"><div class="empty">Loading…</div></div>
         </div>
+      </section>
+
+      <!-- REPAIRING -->
+      <section class="module" id="module-repairing">
+        <div class="module-head"><div><h2>Repairing</h2><p>Repair jobs, advance / due payments and Urdu receipts</p></div><button class="btn btn-primary" id="btnAddRepair">+ New Repair Slip</button></div>
+        <div class="clay" style="padding:20px"><div class="form-grid" style="margin-bottom:14px"><div class="field"><label>Search Customer / Mobile / IMEI</label><input id="repairSearch" placeholder="Search repairing jobs..."></div><div class="field"><label>Status</label><select id="repairStatusFilter"><option value="">All</option><option>Received</option><option>In Progress</option><option>Ready</option><option>Delivered</option></select></div></div><div class="table-wrap" id="repairsTable"><div class="empty">Loading…</div></div></div>
       </section>
 
       <!-- PURCHASES -->
@@ -198,7 +215,8 @@
         <div class="module-head"><div><h2>Reports</h2><p>Business performance insights</p></div></div>
         <div class="clay" style="padding:22px">
           <div class="form-grid">
-            <div class="field"><label>Report Type</label><select id="reportType"><option value="sales">Sales Report</option><option value="purchases">Purchase Report</option><option value="credit">Credit Report</option><option value="expenses">Expense Report</option></select></div>
+            <div class="field"><label>Report Type</label><select id="reportType"><option value="customer">Customer-wise Report</option><option value="repairing">Repairing Report</option><option value="sales">Sales Report</option><option value="purchases">Purchase Report</option><option value="credit">Credit Report</option><option value="expenses">Expense Report</option></select></div>
+            <div class="field"><label>Period</label><select id="reportPeriod"><option value="custom">Custom Date Range</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
             <div class="field"><label>From Date</label><input type="date" id="reportFrom"></div>
             <div class="field"><label>To Date</label><input type="date" id="reportTo"></div>
             <div class="field" style="display:flex;align-items:flex-end;gap:10px">
