@@ -196,6 +196,7 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     <button class="btn btn-primary" id="loginBtn" onclick="loginSA()" style="width: 100%; justify-content: center; margin-top: 10px; font-size: 16px;">
       Login Securely <i class="fa-solid fa-arrow-right"></i>
     </button>
+    <p style="font-size: 12px; color: var(--muted); margin-top: 15px;">Press <strong>Alt + L</strong> to Login</p>
   </div>
 </div>
 
@@ -212,7 +213,7 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     <div class="nav-item" onclick="alert('Global Settings coming soon!')"><i class="fa-solid fa-gear"></i> Global Settings</div>
     
     <div class="nav-item" style="margin-top: auto; color: var(--danger); background: var(--danger-light); box-shadow: none;" onclick="logoutSA()">
-      <i class="fa-solid fa-right-from-bracket"></i> Logout
+      <i class="fa-solid fa-right-from-bracket"></i> Logout (Alt + X)
     </div>
   </aside>
 
@@ -223,7 +224,7 @@ tr:hover td { background: rgba(255,255,255,0.8); }
         <h1>Overview Dashboard</h1>
         <p>System statistics and shop management</p>
       </div>
-      <button class="btn btn-primary" onclick="openShopModal()"><i class="fa-solid fa-plus"></i> Create New Shop</button>
+      <button class="btn btn-primary" onclick="openShopModal()"><i class="fa-solid fa-plus"></i> Create New Shop (Alt + N)</button>
     </div>
 
     <!-- STATS -->
@@ -304,7 +305,7 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     </div>
     
     <div class="modal-actions">
-      <button class="btn" onclick="closeShopModal()">Cancel</button>
+      <button class="btn" onclick="closeShopModal()">Cancel (Esc)</button>
       <button class="btn btn-primary" onclick="createShop()"><i class="fa-solid fa-check"></i> Create Shop</button>
     </div>
   </div>
@@ -314,11 +315,13 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // ==========================================
-  // SUPABASE CONFIGURATION (APNI DETAILS DAALEIN)
+  // SUPABASE CONFIGURATION
   // ==========================================
   const SUPABASE_URL = 'https://lateoozrnyzjkcyftyp.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_5V9LTrlkpe5Sv-AlosM0ng_hfXYNKLE';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  
+  // FIX: Variable name changed from 'supabase' to 'sb' to prevent global clash
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   // ==========================================
   // AUTHENTICATION
@@ -340,7 +343,8 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     btn.disabled = true;
 
     try {
-      const { data, error } = await supabase.from('shops').select('*').eq('username', u).eq('password', p).maybeSingle();
+      // FIX: Changed 'supabase' to 'sb'
+      const { data, error } = await sb.from('shops').select('*').eq('username', u).eq('password', p).maybeSingle();
       
       if (error) throw error;
       if (!data) throw new Error('Invalid Credentials');
@@ -384,7 +388,8 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 
     if (!shopName || !username || !password) return alert('Shop Name, Username and Password are required!');
 
-    const { error } = await supabase.from('shops').insert([{
+    // FIX: Changed 'supabase' to 'sb'
+    const { error } = await sb.from('shops').insert([{
       shop_name: shopName, 
       owner_name: ownerName || null, 
       phone: phone || null, 
@@ -411,7 +416,8 @@ tr:hover td { background: rgba(255,255,255,0.8); }
   }
 
   async function loadShops() {
-    const { data, error } = await supabase.from('shops').select('*').order('created_at', { ascending: false });
+    // FIX: Changed 'supabase' to 'sb'
+    const { data, error } = await sb.from('shops').select('*').order('created_at', { ascending: false });
     if (error) return console.error(error);
     
     const shops = data || [];
@@ -459,10 +465,48 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     const action = currentStatus ? 'block' : 'unblock';
     if (!confirm(`Are you sure you want to ${action} this shop?`)) return;
     
-    const { error } = await supabase.from('shops').update({ is_active: !currentStatus }).eq('id', id);
+    // FIX: Changed 'supabase' to 'sb'
+    const { error } = await sb.from('shops').update({ is_active: !currentStatus }).eq('id', id);
     if (error) return alert(error.message);
     loadShops();
   }
+
+  // ==========================================
+  // SHORTKEYS (KEYBOARD SHORTCUTS)
+  // ==========================================
+  document.addEventListener('keydown', function(event) {
+    // Alt + L (Login)
+    if (event.altKey && event.key.toLowerCase() === 'l') {
+      const loginScreen = document.getElementById('loginScreen');
+      if (loginScreen && loginScreen.style.display !== 'none') {
+        event.preventDefault();
+        loginSA();
+      }
+    }
+    
+    // Alt + N (New Shop Modal)
+    if (event.altKey && event.key.toLowerCase() === 'n') {
+      const app = document.getElementById('app');
+      if (app && app.style.display === 'flex') {
+        event.preventDefault();
+        openShopModal();
+      }
+    }
+
+    // Alt + X (Logout)
+    if (event.altKey && event.key.toLowerCase() === 'x') {
+      const app = document.getElementById('app');
+      if (app && app.style.display === 'flex') {
+        event.preventDefault();
+        logoutSA();
+      }
+    }
+
+    // Esc (Close Modal)
+    if (event.key === 'Escape') {
+      closeShopModal();
+    }
+  });
 </script>
 </body>
 </html>
