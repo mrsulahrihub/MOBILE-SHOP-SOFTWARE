@@ -8,7 +8,7 @@
 </head>
 <body class="theme-clay">
 
-<div id="sidebarHandle" class="sidebar-handle">
+<div id="sidebarHandle" class="sidebar-handle" onclick="document.getElementById('mainSidebar').classList.toggle('show')">
   <span class="arrow-icon">›</span>
 </div>
 
@@ -17,13 +17,13 @@
     <div class="side-logo">BM <span>MOBILE ZONE</span></div>
 
     <p class="nav-label">WORKSPACE</p>
-    <button class="nav-item active" data-module="overview" accesskey="o">▦ Overview</button>
-    <button class="nav-item" data-module="products" accesskey="p">▣ Products</button>
-    <button class="nav-item" data-module="inventory" accesskey="i">▤ Inventory</button>
+    <button class="nav-item active" data-module="overview">▦ Overview</button>
+    <button class="nav-item" data-module="products">▣ Products</button>
+    <button class="nav-item" data-module="inventory">▤ Inventory</button>
     <button class="nav-item" data-module="racks">▦ Rack Management</button>
-    <button class="nav-item" data-module="sales" accesskey="l">↗ Sales / POS</button>
+    <button class="nav-item" data-module="sales">↗ Sales / POS</button>
     <button class="nav-item" data-module="repairing">🔧 Repairing</button>
-    <button class="nav-item" data-module="purchases" accesskey="u">↙ Purchases</button>
+    <button class="nav-item" data-module="purchases">↙ Purchases</button>
 
     <p class="nav-label">PEOPLE</p>
     <button class="nav-item" data-module="customers">♙ Customers</button>
@@ -31,15 +31,15 @@
     <button class="nav-item" data-module="credit">₹ Credit / Udhar</button>
 
     <p class="nav-label">FINANCE</p>
-    <button class="nav-item" data-module="expenses" accesskey="e">▥ Expenses</button>
+    <button class="nav-item" data-module="expenses">▥ Expenses</button>
     <button class="nav-item" data-module="profitloss">📈 Profit & Loss</button>
     <button class="nav-item" data-module="transactions">⇄ Transactions</button>
-    <button class="nav-item" data-module="reports" accesskey="r">▨ Reports</button>
+    <button class="nav-item" data-module="reports">▨ Reports</button>
 
     <p class="nav-label">SYSTEM</p>
     <button class="nav-item" data-module="settings">⚙ Settings</button>
 
-    <div class="sidebar-foot">v9.7 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
+    <div class="sidebar-foot">v9.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
   </aside>
 
   <main class="main">
@@ -49,12 +49,12 @@
         <p class="sub" id="todayDate"></p>
       </div>
       <div class="user-info">
-        <div class="avatar" id="userAvatar">U</div>
+        <div class="avatar" id="userAvatar">B</div>
         <div class="user-text">
-          <strong id="userName">Loading...</strong>
-          <small id="userRole">Checking...</small>
+          <strong id="userName">BM MOBILE ZONE</strong>
+          <small id="userRole">ADMIN</small>
         </div>
-        <button class="logout" id="logoutBtn" accesskey="x">Logout (Alt+X)</button>
+        <button class="logout" id="logoutBtn">Logout</button>
       </div>
     </header>
 
@@ -62,11 +62,14 @@
       <!-- OVERVIEW -->
       <section class="module active" id="module-overview">
         <div class="welcome clay">
-          <h2>Welcome, <span id="welcomeName">User</span> 👋</h2>
-          <p>BM MOBILE ZONE — Chohan Mobile Market Zafarwal · 03099100546</p>
+          <h2>Welcome, <span id="welcomeName">Admin</span> 👋</h2>
+          <p>BM MOBILE ZONE — Chohan Mobile Market Zafarwal · 0345-6613232</p>
         </div>
         <div class="stats-row" id="dashStats">
-          <!-- ... Stats cards ... -->
+          <div class="stat clay"><div class="stat-icon blue">▣</div><div><strong id="stProducts">—</strong><small>Total Products</small></div></div>
+          <div class="stat clay"><div class="stat-icon green">▤</div><div><strong id="stStock">—</strong><small>Stock Units</small></div></div>
+          <div class="stat clay"><div class="stat-icon orange">↗</div><div><strong id="stTodaySales">—</strong><small>Today's Sales</small></div></div>
+          <div class="stat clay"><div class="stat-icon purple">▨</div><div><strong id="stMonthSales">—</strong><small>Monthly Sales</small></div></div>
         </div>
         <div class="clay" style="padding:24px">
           <div class="module-head"><div><h2>Recent Sales</h2><p>Last 5 sale transactions</p></div></div>
@@ -76,15 +79,54 @@
 
       <!-- PRODUCTS -->
       <section class="module" id="module-products">
-        <!-- ... Products module HTML ... -->
+        <div class="module-head">
+          <div><h2>Products</h2><p>Manage all products & inventory items</p></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="search-bar"><input id="productSearch" placeholder="Search products…"></div>
+            <button class="btn btn-primary" id="btnAddProduct">+ Add Product</button>
+          </div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="table-wrap" id="productsTable"><div class="empty">Loading…</div></div>
+        </div>
       </section>
 
       <!-- SALES / POS -->
       <section class="module" id="module-sales">
-        <!-- ... POS module HTML ... -->
+        <div class="module-head">
+          <div><h2>New Sale</h2><p>Point of sale billing</p></div>
+          <button class="btn btn-ghost" id="btnSalesHistory">📋 Sales History</button>
+        </div>
+        <div class="pos-grid">
+          <div class="clay" style="padding:22px">
+            <div class="form-grid">
+              <div class="field"><label>Customer Name</label><input id="saleCustName" list="posCustomerOptions" placeholder="Search / add customer"><datalist id="posCustomerOptions"></datalist></div>
+              <div class="field"><label>Customer Phone</label><input id="saleCustPhone" placeholder="03xx-xxxxxxx"></div>
+              <div class="field full"><label>Select Product</label><select id="saleProductSelect"><option value="">— Choose product —</option></select></div>
+            </div>
+            <button class="btn btn-primary" style="margin-top:14px" id="btnAddToCart">+ Add to Cart</button>
+          </div>
+          <div class="clay" style="padding:22px">
+            <h3 style="font-size:14px;font-weight:800;margin-bottom:12px">Cart</h3>
+            <div id="cartItems" style="max-height:260px;overflow-y:auto"><div class="empty">Cart is empty</div></div>
+            <div class="cart-total"><span>Subtotal</span><strong id="cartSubtotal">0</strong></div>
+            <div class="field" style="margin-top:8px"><label>Discount</label><input id="saleDiscount" type="number" value="0" min="0"></div>
+            <div class="cart-total grand"><span>Total</span><span id="cartTotal">0</span></div>
+            <div class="field" style="margin-top:8px"><label>Paid Amount</label><input id="salePaid" type="number" value="0" min="0"></div>
+            <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" id="btnSaveSale">💾 Save Sale</button>
+          </div>
+        </div>
+        <div class="clay" style="padding:22px;margin-top:20px" id="salesHistoryBox" hidden>
+          <div class="module-head" style="margin-bottom:14px">
+            <div><h2>Sales History</h2><p>All past sale transactions</p></div>
+            <button class="btn btn-ghost" id="btnRefreshSales">↻ Refresh</button>
+          </div>
+          <div class="table-wrap" id="salesHistoryTable"><div class="empty">Loading…</div></div>
+        </div>
       </section>
 
-      <!-- BAQI MODULES (Inventory, Racks, etc.) waisay hi rahenge -->
+      <!-- BAQI MODULES (Inventory, Racks, Repair, Purchases, Customers, Udhar, Expenses, Reports, Settings) -->
+      <!-- Inke HTML aap wapas apne purane code se le lein, unka design same rahega -->
     </div>
   </main>
 </div>
@@ -94,7 +136,7 @@
     <h3 id="modalTitle">Modal</h3>
     <div id="modalBody"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" id="modalCancel">Cancel (Esc)</button>
+      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
       <button class="btn btn-primary" id="modalConfirm">Save</button>
     </div>
   </div>
