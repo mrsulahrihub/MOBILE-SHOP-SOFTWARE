@@ -1,6 +1,9 @@
+// =====================================================
+// BM MOBILE ZONE - DASHBOARD CONTROLLER (v9.7 Multi-Tenant)
+// =====================================================
 import { supabase } from './config.js';
 
-// --- MULTI-TENANT AUTH GUARD (Super Admin Rule 1) ---
+// --- 1. MULTI-TENANT AUTH GUARD (Super Admin Rule) ---
 const SHOP_ID = localStorage.getItem('shop_id');
 const SHOP_NAME = localStorage.getItem('shop_name') || 'BM MOBILE ZONE';
 
@@ -9,21 +12,21 @@ if (!SHOP_ID) {
   throw new Error('Unauthorized: No shop_id found.');
 }
 
-// Update Topbar Info
+// UI Update
 document.getElementById('userName').textContent = SHOP_NAME;
 document.getElementById('userRole').textContent = 'ADMIN';
 document.getElementById('welcomeName').textContent = SHOP_NAME;
 document.getElementById('userAvatar').textContent = SHOP_NAME.charAt(0).toUpperCase();
 document.getElementById('todayDate').textContent = new Intl.DateTimeFormat('en-PK', { dateStyle: 'full' }).format(new Date());
 
-document.getElementById('logoutBtn').addEventListener('click', async () => {
+document.getElementById('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem('shop_id');
   localStorage.removeItem('shop_name');
   localStorage.removeItem('owner_name');
   location.replace('./login.html');
 });
 
-// Helpers
+// --- 2. HELPERS ---
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => 'PKR ' + Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -36,11 +39,81 @@ const SHOP_INFO = {
   phoneMain: '03099100546'
 };
 
-// ... (playBeep, toast, openModal, closeModal, theme switcher, sidebar, shortcuts waise hi rahenge) ...
+// --- 3. SHORTCUTS (Keyboard Mastery) ---
+document.addEventListener('keydown', (e) => {
+  // Ignore if user is typing in an input
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+    if (e.key === 'Escape') closeModal(); // Esc to close modal
+    return;
+  }
 
-// =====================================================
-// OVERVIEW (Super Admin Rule 2: Data Isolation)
-// =====================================================
+  // Navigation Shortcuts (Alt + Key)
+  if (e.altKey) {
+    const key = e.key.toLowerCase();
+    const shortcuts = {
+      'o': 'overview', 'p': 'products', 'i': 'inventory', 'l': 'sales',
+      'u': 'purchases', 'e': 'expenses', 'r': 'reports', 'x': 'logout'
+    };
+    
+    if (shortcuts[key]) {
+      e.preventDefault();
+      if (key === 'x') $('logoutBtn').click();
+      else document.querySelector(`[data-module="${shortcuts[key]}"]`)?.click();
+    }
+    
+    // Action Shortcuts
+    if (key === 's') { e.preventDefault(); $('btnSaveSale')?.click(); }
+  }
+
+  // Modal Close
+  if (e.key === 'Escape') closeModal();
+});
+
+// --- 4. THEME & SIDEBAR (Waise hi rahega) ---
+// ... (Aapka theme switcher aur sidebar logic yahan aayega) ...
+
+// --- 5. NAVIGATION (Super Admin Rule: Load Module with Shop_ID) ---
+const MODULE_TITLES = {
+  overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Rack Management',
+  repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers',
+  suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses',
+  profitloss: 'Profit & Loss', transactions: 'Transactions', reports: 'Reports', settings: 'Settings'
+};
+
+document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mod = btn.dataset.module;
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+    $('module-' + mod).classList.add('active');
+    $('pageTitle').textContent = MODULE_TITLES[mod] || mod;
+    loadModule(mod);
+    document.getElementById('mainSidebar').classList.remove('show');
+    document.getElementById('sidebarHandle').classList.remove('open');
+  });
+});
+
+async function loadModule(mod) {
+  switch (mod) {
+    case 'overview': return loadOverview();
+    case 'products': return loadProducts();
+    case 'inventory': return loadInventory();
+    case 'racks': return loadRacks();
+    case 'repairing': return loadRepairs();
+    case 'sales': return loadSaleProducts();
+    case 'purchases': return loadPurchases();
+    case 'customers': return loadCustomers();
+    case 'suppliers': return loadSuppliers();
+    case 'credit': return loadCredit();
+    case 'expenses': return loadExpenses();
+    case 'profitloss': return; // Handled by button
+    case 'transactions': return loadTransactions();
+    case 'settings': return loadSettings();
+  }
+}
+
+// --- 6. OVERVIEW (Data Isolation) ---
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
     supabase.from('sales').select('balance').eq('shop_id', SHOP_ID),
@@ -62,12 +135,31 @@ async function loadOverview() {
   $('stOutstanding').textContent = fmt(sum(sales, 'balance'));
   $('stExpenses').textContent = fmt(sum(exp, 'amount'));
 
-  // Low stock alert logic...
+  // ... (Low stock alert logic) ...
 }
 
-// =====================================================
-// POS / SALES (Super Admin Rule 3: RPC with p_shop_id)
-// =====================================================
+// --- 7. SALES / POS (RPC + Shop ID) ---
+let CART = [];
+let POS_CUSTOMERS = [];
+let POS_PREVIOUS_DUE = 0;
+
+async function loadPosCustomers() {
+  const { data } = await supabase.from('customers').select('id,name,phone').eq('shop_id', SHOP_ID).order('name');
+  POS_CUSTOMERS = data || [];
+  $('posCustomerOptions').innerHTML = POS_CUSTOMERS.map(c => `<option value="${esc(c.name)}">${esc(c.phone || '')}</option>`).join('');
+}
+
+async function loadSaleProducts() {
+  await loadPosCustomers();
+  const { data } = await supabase.from('products').select('*').eq('shop_id', SHOP_ID).gt('quantity', 0).order('name');
+  $('saleProductSelect').innerHTML = '<option value="">— Choose product —</option>' + (data || []).map(p => {
+    const catDisplay = p.category ? `[${p.category}${p.sub_category ? ' - ' + p.sub_category : ''}]` : '';
+    return `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei_1 || '')}" data-stock="${p.quantity}">${esc(p.name)} ${catDisplay} — ${fmt(p.sale_price)} (${p.quantity} stock)</option>`;
+  }).join('');
+}
+
+// ... (Cart logic: Add, Render, Remove) ...
+
 $('btnSaveSale').onclick = async () => {
   if (!CART.length) return toast('Cart empty', 'error');
   const total = Math.max(0, CART.reduce((s, c) => s + c.line_total, 0) - (Number($('saleDiscount').value) || 0));
@@ -80,10 +172,8 @@ $('btnSaveSale').onclick = async () => {
     let customerId = null;
     if (custName !== 'Walk-in Customer') {
       let { data: found } = await supabase.from('customers')
-        .select('id')
-        .eq('shop_id', SHOP_ID)
-        .or(`phone.eq.${custPhone},name.ilike.${custName}`)
-        .maybeSingle();
+        .select('id').eq('shop_id', SHOP_ID)
+        .or(`phone.eq.${custPhone},name.ilike.${custName}`).maybeSingle();
 
       if (!found) {
         const { data: created, error: ce } = await supabase.from('customers')
@@ -95,17 +185,12 @@ $('btnSaveSale').onclick = async () => {
       customerId = found.id;
     }
     
+    // Super Admin Rule: p_shop_id is mandatory in RPC
     const { data, error } = await supabase.rpc('create_sale', {
       p_shop_id: SHOP_ID,
-      p_customer_id: customerId, 
-      p_customer_name: custName, 
-      p_customer_phone: custPhone || null,
-      p_subtotal: CART.reduce((s, c) => s + c.line_total, 0), 
-      p_discount: Number($('saleDiscount').value) || 0, 
-      p_total: total, 
-      p_paid: paid,
-      p_payment_method: $('salePaymentMethod').value, 
-      p_notes: null,
+      p_customer_id: customerId, p_customer_name: custName, p_customer_phone: custPhone || null,
+      p_subtotal: CART.reduce((s, c) => s + c.line_total, 0), p_discount: Number($('saleDiscount').value) || 0, p_total: total, p_paid: paid,
+      p_payment_method: $('salePaymentMethod').value, p_notes: null,
       p_items: CART.map(c => ({ product_id: c.product_id, product_name: c.product_name, imei: c.imei, quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total }))
     });
     
@@ -114,17 +199,13 @@ $('btnSaveSale').onclick = async () => {
     const inv = data.invoice_no || 'INV-' + Date.now().toString().slice(-6);
     if (confirm('Print receipt?')) printThermal80mm({ invoice: inv, customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, previousDue: POS_PREVIOUS_DUE, date: new Date(), items: [...CART] });
     
-    toast('Sale Saved!', 'success'); 
-    CART = []; 
-    renderCart(); 
-    loadSaleProducts(); 
-    loadOverview();
+    toast('Sale Saved!', 'success'); CART = []; renderCart(); loadSaleProducts(); loadOverview();
     $('saleCustName').value = ''; $('saleCustPhone').value = ''; $('salePaid').value = 0; $('saleDiscount').value = 0; POS_PREVIOUS_DUE = 0; $('previousDueBox').style.display = 'none';
-  } catch (e) { 
-    toast(e.message, 'error'); 
-  } finally { 
-    $('btnSaveSale').disabled = false; 
-  }
+  } catch (e) { toast(e.message, 'error'); } finally { $('btnSaveSale').disabled = false; }
 };
 
-// ... (Baaki saara code: Racks, Repairs, Expenses, Customers, Suppliers, Reports waise hi rahega, bas har jagah .eq('shop_id', SHOP_ID) check kar lein) ...
+// ... (Baaki saara code: Products, Inventory, Racks, Repairs, Purchases, Customers, Suppliers, Credit, Expenses, P&L, Transactions, Reports, Settings waise hi rahega, bas har jagah .eq('shop_id', SHOP_ID) lazmi check karein) ...
+
+// INITIAL LOAD
+renderCart();
+loadOverview();
