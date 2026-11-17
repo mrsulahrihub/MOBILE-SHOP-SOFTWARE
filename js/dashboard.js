@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - FULL WORKING SYSTEM (v20.0 - PREMIUM FIXED)
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v22.0 - FINAL)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -29,8 +29,8 @@ const SHOP_INFO = { name: 'BM MOBILE ZONE', address: 'Chohan Mobile Market, Zafa
 function checkPermission(action) {
   if (!SESSION.staff_id) return true;
   if (IS_ADMIN) return true;
-  if (action === 'edit' && !SESSION.can_edit) { toast('Aapko edit ki ijazat nahi hai!', 'error'); return false; }
-  if (action === 'delete' && !SESSION.can_delete) { toast('Aapko delete ki ijazat nahi hai!', 'error'); return false; }
+  if (action === 'edit' && !SESSION.can_edit) { toast('You do not have permission to edit!', 'error'); return false; }
+  if (action === 'delete' && !SESSION.can_delete) { toast('You do not have permission to delete!', 'error'); return false; }
   return true;
 }
 
@@ -55,30 +55,17 @@ $('modalConfirm').onclick = async () => {
 // --- 3. KEYBOARD SHORTCUTS ---
 document.addEventListener('keydown', (e) => {
   const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
-  
-  if (e.key === 'Escape') {
-    closeModal();
-    return;
-  }
-
+  if (e.key === 'Escape') { closeModal(); return; }
   if (!isTyping) {
     if (e.key === 'F2') { e.preventDefault(); $('btnAddToCart')?.click(); }
     if (e.key === 'F4') { e.preventDefault(); $('btnSaveSale')?.click(); }
     if (e.key === 'F8') { e.preventDefault(); $('btnNewPurchase')?.click(); }
     if (e.key === 'F9') { e.preventDefault(); $('btnAddExpense')?.click(); }
-    
     if (e.altKey) {
       const key = e.key.toLowerCase();
-      const shortcutMap = {
-        'o': 'overview', 'p': 'products', 'i': 'inventory', 'l': 'sales',
-        'r': 'repairing', 'u': 'purchases', 'c': 'customers', 's': 'suppliers',
-        'e': 'expenses', 'k': 'reports', 't': 'settings'
-      };
-      if (e.shiftKey && key === 's') {
-        e.preventDefault(); document.querySelector(`[data-module="settings"]`)?.click(); 
-      } else if (shortcutMap[key]) {
-        e.preventDefault(); document.querySelector(`[data-module="${shortcutMap[key]}"]`)?.click();
-      }
+      const shortcutMap = { 'o': 'overview', 'p': 'products', 'i': 'inventory', 'l': 'sales', 'r': 'repairing', 'u': 'purchases', 'c': 'customers', 's': 'suppliers', 'e': 'expenses', 'k': 'reports', 't': 'settings' };
+      if (e.shiftKey && key === 's') { e.preventDefault(); document.querySelector(`[data-module="settings"]`)?.click(); } 
+      else if (shortcutMap[key]) { e.preventDefault(); document.querySelector(`[data-module="${shortcutMap[key]}"]`)?.click(); }
     }
   }
 });
@@ -87,6 +74,12 @@ document.addEventListener('keydown', (e) => {
 function printThermal80mm(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=340,height=640');
   if (!w) { toast('Popup blocked — allow popups to print', 'error'); return; }
+  
+  let calcSubtotal = Number(data.subtotal || 0);
+  let calcTotal = Number(data.total || 0);
+  const itemsSum = (data.items || []).reduce((s, it) => s + Number(it.line_total || it.total || it.amount || 0), 0);
+  if (calcSubtotal === 0) calcSubtotal = itemsSum;
+  if (calcTotal === 0) calcTotal = calcSubtotal - Number(data.discount || 0);
   
   const items = (data.items || []).map(it => `
     <tr>
@@ -98,7 +91,7 @@ function printThermal80mm(data, type = 'sale') {
   let showTopLine = false;
   if (type === 'repair' || type === 'sale') {
     const urduLine = "ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔";
-    if (confirm(`Kya aap yeh line print karna chahte hain?\n\n"${urduLine}"\n\n(OK = Haan, Cancel = Nahi)`)) showTopLine = true;
+    if (confirm(`Do you want to print this line?\n\n"${urduLine}"\n\n(OK = Yes, Cancel = No)`)) showTopLine = true;
   }
 
   let urduTerms = '';
@@ -141,9 +134,9 @@ function printThermal80mm(data, type = 'sale') {
     <table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Total</th></tr></thead>
     <tbody>${items}</tbody></table>
     <hr>
-    <div class="row"><span>Subtotal</span><span>PKR ${Number(data.subtotal||0).toLocaleString()}</span></div>
+    <div class="row"><span>Subtotal</span><span>PKR ${calcSubtotal.toLocaleString()}</span></div>
     <div class="row"><span>Discount</span><span>-PKR ${Number(data.discount||0).toLocaleString()}</span></div>
-    <div class="row bold"><span>Total</span><span>PKR ${Number(data.total||0).toLocaleString()}</span></div>
+    <div class="row bold"><span>Total</span><span>PKR ${calcTotal.toLocaleString()}</span></div>
     <div class="row"><span>Paid</span><span>PKR ${Number(data.paid||0).toLocaleString()}</span></div>
     ${data.balance > 0 ? `<div class="row bold"><span>Due</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}
     ${urduTerms}
@@ -165,6 +158,12 @@ function printA4Premium(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=900,height=1000');
   if (!w) { toast('Popup blocked', 'error'); return; }
   
+  let calcSubtotal = Number(data.subtotal || 0);
+  let calcTotal = Number(data.total || 0);
+  const itemsSum = (data.items || []).reduce((s, it) => s + Number(it.total || it.line_total || it.amount || 0), 0);
+  if (calcSubtotal === 0) calcSubtotal = itemsSum;
+  if (calcTotal === 0) calcTotal = calcSubtotal - Number(data.discount || 0);
+
   const rows = (data.items || []).map((it, idx) => `
     <tr>
       <td style="padding: 15px 10px; border-bottom: 1.5px solid #5b8def; color: #333; font-size: 14px;">
@@ -242,9 +241,9 @@ function printA4Premium(data, type = 'sale') {
           <p>${isReport ? 'This is a system generated report. All data is verified from the sales and purchase records.' : 'Goods once sold will not be taken back or exchanged. Warranty claims are subject to manufacturer terms.'}</p>
         </div>
         <div class="totals">
-          <div class="totals-row"><span>SUBTOTAL</span><span>PKR ${Number(data.subtotal||0).toLocaleString()}</span></div>
+          <div class="totals-row"><span>SUBTOTAL</span><span>PKR ${calcSubtotal.toLocaleString()}</span></div>
           <div class="totals-row"><span>DISCOUNT</span><span>PKR ${Number(data.discount||0).toLocaleString()}</span></div>
-          <div class="totals-row grand"><span>GRAND TOTAL</span><span>PKR ${Number(data.total||0).toLocaleString()}</span></div>
+          <div class="totals-row grand"><span>GRAND TOTAL</span><span>PKR ${calcTotal.toLocaleString()}</span></div>
           <div class="totals-row" style="border:none; padding-top:5px;"><span>PAID</span><span>PKR ${Number(data.paid||0).toLocaleString()}</span></div>
           ${data.balance > 0 ? `<div class="totals-row" style="color:#dc2626; border:none; padding-top:5px;"><span>BALANCE</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}
         </div>
@@ -529,7 +528,7 @@ $('btnSaveSale').onclick = async () => {
       if (prod) await supabase.from('products').update({ quantity: Math.max(0, prod.quantity - item.quantity) }).eq('id', item.product_id);
     }
 
-    const printOpt = confirm('Sale Saved Successfully! \n\nPrint Thermal Receipt (OK) ya A4 Premium Invoice (Cancel)?');
+    const printOpt = confirm('Sale Saved Successfully! \n\nPrint Thermal Receipt (OK) or A4 Premium Invoice (Cancel)?');
     const payload = { invoice: invNo, customer: custName, phone: custPhone, subtotal, discount, total, paid, balance: total - paid, date: new Date(), items: [...CART] };
     if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'sale');
 
@@ -604,7 +603,7 @@ window.reprintSale = async (id) => {
   const { data: s } = await supabase.from('sales').select('*').eq('id', id).single();
   if (!s) return toast('Sale not found', 'error');
   const { data: items } = await supabase.from('sale_items').select('*').eq('sale_id', id);
-  const printOpt = confirm('Print Thermal Receipt (OK) ya A4 Premium Invoice (Cancel)?');
+  const printOpt = confirm('Print Thermal Receipt (OK) or A4 Premium Invoice (Cancel)?');
   const payload = { invoice: s.invoice_no, customer: s.customer_name, phone: s.customer_phone, subtotal: s.subtotal, discount: s.discount, total: s.total, paid: s.paid, balance: s.balance, date: s.created_at, items: items || [] };
   if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'sale');
 };
@@ -633,7 +632,7 @@ window.deleteRepair = async (id) => { if(!checkPermission('delete')) return; if 
 window.viewRepair = async (id) => {
   const { data: r } = await supabase.from('repairs').select('*').eq('id', id).single();
   if (!r) return toast('Not found', 'error');
-  const printOpt = confirm('Print Thermal Slip (OK) ya A4 Invoice (Cancel)?');
+  const printOpt = confirm('Print Thermal Slip (OK) or A4 Invoice (Cancel)?');
   const payload = { invoice: r.slip_no, customer: r.customer_name, phone: r.phone, subtotal: r.charge, discount: 0, total: r.charge, paid: r.advance, balance: (r.charge - r.advance), date: r.created_at, items: [{ name: r.mobile + ' - ' + (r.issue || 'Repair'), qty: 1, total: r.charge }] };
   if (printOpt) printThermal80mm(payload, 'repair'); else printA4Premium(payload, 'repair');
 };
@@ -735,10 +734,21 @@ window.recoverCredit = async (invoice) => {
   toast('Recovery recorded', 'success'); loadCredit(); loadOverview();
 };
 $('btnPrintCreditAll').onclick = () => {
-  const rows = $('creditSummaryTable').querySelectorAll('tbody tr'); if (!rows.length) return toast('Nothing to print', 'error');
-  const printOpt = confirm('Print Thermal Report (OK) ya A4 Premium (Cancel)?');
-  const payload = { invoice: 'UDHAR-ALL', customer: 'All Customers', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from(rows).map(r => { const cols = r.querySelectorAll('td'); return { description: cols[0].innerText, price: 0, qty: 1, total: Number(cols[3].innerText.replace(/[^0-9]/g, '')) }; }) };
-  if (printOpt) { printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); }
+  const rows = $('creditSummaryTable').querySelectorAll('tbody tr'); 
+  if (!rows.length) return toast('Nothing to print', 'error');
+  const printOpt = confirm('Print Thermal Report (OK) or A4 Premium (Cancel)?');
+  
+  let totalOutstanding = 0;
+  const items = Array.from(rows).map(r => { 
+    const cols = r.querySelectorAll('td'); 
+    const amt = Number(cols[3].innerText.replace(/[^0-9]/g, '')) || 0;
+    totalOutstanding += amt;
+    return { name: cols[0].innerText, description: cols[0].innerText, qty: 1, quantity: 1, price: amt, total: amt }; 
+  });
+
+  const payload = { invoice: 'UDHAR-ALL', customer: 'All Customers', subtotal: totalOutstanding, discount: 0, total: totalOutstanding, paid: 0, balance: 0, date: new Date(), items };
+  
+  if (printOpt) printThermal80mm(payload, 'sale'); 
   else printA4Premium(payload, 'report');
 };
 
@@ -766,7 +776,7 @@ $('btnFilterExpenses').onclick = () => loadExpenses();
 // --- 15. COMBINED REPORTS & P&L ---
 $('btnRunReport').onclick = runReport;
 $('btnPrintReport').onclick = () => {
-  const printOpt = confirm('Print Thermal (OK) ya A4 Premium (Cancel)?');
+  const printOpt = confirm('Print Thermal (OK) or A4 Premium (Cancel)?');
   const payload = { invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0]?.innerText + ' ' + (c[1]?.innerText||''), price: 0, qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) };
   if (printOpt) printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); else printA4Premium(payload, 'report');
 };
