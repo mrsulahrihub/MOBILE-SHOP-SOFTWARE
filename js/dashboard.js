@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - FULL WORKING SYSTEM (v18.0 - FINAL)
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v19.0 - PREMIUM)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -27,7 +27,7 @@ const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;'
 const SHOP_INFO = { name: 'BM MOBILE ZONE', address: 'Chohan Mobile Market, Zafarwal', phone1: '0345-6613232', phone2: '0307-6613232' };
 
 function checkPermission(action) {
-  if (!SESSION.staff_id) return true; // No login means old mode, allow all
+  if (!SESSION.staff_id) return true;
   if (IS_ADMIN) return true;
   if (action === 'edit' && !SESSION.can_edit) { toast('Aapko edit ki ijazat nahi hai!', 'error'); return false; }
   if (action === 'delete' && !SESSION.can_delete) { toast('Aapko delete ki ijazat nahi hai!', 'error'); return false; }
@@ -52,7 +52,39 @@ $('modalConfirm').onclick = async () => {
   if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
 
-// --- 3. PREMIUM PRINTING FUNCTIONS ---
+// --- 3. KEYBOARD SHORTCUTS ---
+document.addEventListener('keydown', (e) => {
+  // Agar user input/textarea mein type kar raha hai, to shortcuts ignore karein (except Esc & F-keys)
+  const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
+  
+  if (e.key === 'Escape') {
+    closeModal();
+    return;
+  }
+
+  if (!isTyping) {
+    if (e.key === 'F2') { e.preventDefault(); $('btnAddToCart')?.click(); }
+    if (e.key === 'F4') { e.preventDefault(); $('btnSaveSale')?.click(); }
+    if (e.key === 'F8') { e.preventDefault(); $('btnNewPurchase')?.click(); }
+    if (e.key === 'F9') { e.preventDefault(); $('btnAddExpense')?.click(); }
+    
+    if (e.altKey) {
+      const key = e.key.toLowerCase();
+      const shortcutMap = {
+        'o': 'overview', 'p': 'products', 'i': 'inventory', 'l': 'sales',
+        'r': 'repairing', 'u': 'purchases', 'c': 'customers', 's': 'suppliers',
+        'e': 'expenses', 'k': 'reports', 't': 'settings'
+      };
+      if (e.shiftKey && key === 's') {
+        e.preventDefault(); document.querySelector(`[data-module="settings"]`)?.click(); // Alt+Shift+S for Settings
+      } else if (shortcutMap[key]) {
+        e.preventDefault(); document.querySelector(`[data-module="${shortcutMap[key]}"]`)?.click();
+      }
+    }
+  }
+});
+
+// --- 4. PREMIUM PRINTING FUNCTIONS ---
 function printThermal80mm(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=340,height=640');
   if (!w) { toast('Popup blocked — allow popups to print', 'error'); return; }
@@ -131,92 +163,96 @@ function printThermal80mm(data, type = 'sale') {
 window.printThermal80mm = printThermal80mm;
 
 function printA4Premium(data, type = 'sale') {
-  const w = window.open('', '_blank', 'width=800,height=900');
+  const w = window.open('', '_blank', 'width=900,height=1000');
   if (!w) { toast('Popup blocked', 'error'); return; }
   
   const rows = (data.items || []).map((it, idx) => `
     <tr>
-      <td>${idx + 1}. ${esc(it.description || it.product_name || it.name)}</td>
-      <td style="text-align:right">PKR ${Number(it.price || it.unit_price || 0).toLocaleString()}</td>
-      <td style="text-align:center">${it.qty || it.quantity || 1}</td>
-      <td style="text-align:right">PKR ${Number(it.total || it.line_total || it.amount || 0).toLocaleString()}</td>
+      <td style="padding: 15px 10px; border-bottom: 1.5px solid #5b8def; color: #333; font-size: 14px;">
+        ${idx + 1}. ${esc(it.description || it.product_name || it.name)}
+      </td>
+      <td style="padding: 15px 10px; border-bottom: 1.5px solid #5b8def; text-align: right; color: #333; font-size: 14px;">
+        PKR ${Number(it.price || it.unit_price || 0).toLocaleString()}
+      </td>
+      <td style="padding: 15px 10px; border-bottom: 1.5px solid #5b8def; text-align: center; color: #333; font-size: 14px;">
+        ${it.qty || it.quantity || 1}
+      </td>
+      <td style="padding: 15px 10px; border-bottom: 1.5px solid #5b8def; text-align: right; color: #333; font-size: 14px;">
+        PKR ${Number(it.total || it.line_total || it.amount || 0).toLocaleString()}
+      </td>
     </tr>`).join('');
 
-  let showTopLine = false;
-  if (type === 'repair' || type === 'sale') {
-    const urduLine = "ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔";
-    if (confirm(`Kya aap yeh line print karna chahte hain?\n\n"${urduLine}"\n\n(OK = Haan, Cancel = Nahi)`)) showTopLine = true;
-  }
+  const isReport = type === 'report';
+  const docTitle = isReport ? 'REPORT' : 'INVOICE';
 
-  let urduTerms = '';
-  if (type === 'repair' || type === 'sale') {
-    urduTerms = `
-    <div style="margin-top: 30px; padding: 15px; background: #f8fafc; border-left: 4px solid #5b8def; text-align:right; font-family:'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', Arial, sans-serif; direction: rtl; font-size: 14px; color: #333; line-height: 1.8;">
-      ${showTopLine ? `<div style="font-weight:bold; margin-bottom:5px;">ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔</div>` : ''}
-      <div>• ﺑراه ِ ﮐرم ﻣﺎل ﮐﺎؤﻧﭨر ﭘر ﭼﯾﮏ ﮐرﯾں۔</div>
-      <div>• ﭘﮭوﻟﯽ ﮨوﺋﯽ ﺑﯾﭨری ﮐﯽ ﮐوﺋﯽ وارﻧﭨﯽ ﻧﮩﯾں ﮨﮯ۔</div>
-      <div>• ﺑﯾﭨری ﮐﯽ وارﻧﭨﯽ ﺻرف 2 دن ﮨوﮔﯽ۔</div>
-      <div>• اﺳﭨرپ واﻟﯽ ﺑﯾﭨری ﮐﯽ ﮐوﺋﯽ وارﻧﭨﯽ ﻧﮩﯾں ﮨﮯ۔</div>
-      <div>• اﺳﺗﻌﻣﺎل ﺷده Accessories واﭘس ﯾﺎ ﺗﺑدﯾل ﻧﮩﯾں ﮨوں ﮔﯽ۔</div>
-    </div>`;
-  }
-
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice</title>
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${docTitle}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-    body { font-family: 'Inter', sans-serif; background: #fff; color: #333; margin: 0; padding: 40px; position: relative; min-height: 100vh; }
-    .header-bg { position: absolute; top: 0; left: 0; width: 100%; height: 150px; background: linear-gradient(135deg, #0f172a 0%, #5b8def 50%, #7c5cff 100%); clip-path: ellipse(150% 100% at 50% 0%); z-index: -1; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; margin-top: 60px; }
-    .title { font-size: 42px; font-weight: 800; color: #1b2436; margin: 0; border-left: 5px solid #5b8def; padding-left: 15px; line-height: 1; }
-    .company { text-align: right; color: #fff; }
-    .company h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
-    .company p { margin: 2px 0 0; font-size: 12px; color: #cbd5e1; }
-    .info { display: flex; justify-content: space-between; margin-bottom: 40px; font-size: 13px; }
-    .info-col p { margin: 4px 0; }
-    .info-col b { color: #5b8def; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-    th { text-align: left; color: #5b8def; font-size: 14px; padding: 10px; border-bottom: 2px solid #5b8def; text-transform: uppercase; letter-spacing: 1px; }
-    td { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
-    .totals { width: 300px; float: right; }
-    .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; color: #5b8def; font-weight: 600; }
-    .totals-row.grand { font-size: 18px; color: #1b2436; font-weight: 800; border-top: 2px solid #5b8def; margin-top: 5px; padding-top: 10px; }
-    .footer-bg { position: fixed; bottom: 0; left: 0; width: 100%; height: 120px; background: linear-gradient(135deg, #0f172a 0%, #5b8def 50%, #7c5cff 100%); clip-path: ellipse(150% 100% at 50% 100%); z-index: -1; }
-    .clearfix::after { content: ""; clear: both; display: table; }
-    .footer-text { position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #fff; line-height: 1.4; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #fff; color: #333; -webkit-print-color-adjust: exact; print-color-adjust: exact; position: relative; min-height: 100vh; padding-bottom: 150px; }
+    .top-curve { position: absolute; top: 0; left: 0; width: 100%; height: 160px; background: linear-gradient(135deg, #0f172a 0%, #5b8def 50%, #7c5cff 100%); clip-path: ellipse(150% 100% at 50% 0%); z-index: 1; }
+    .content { position: relative; z-index: 2; padding: 40px 60px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 60px; margin-bottom: 50px; }
+    .title { font-size: 48px; font-weight: 800; color: #111; margin: 0; line-height: 1; letter-spacing: -1px; }
+    .title span { color: #5b8def; font-size: 60px; line-height: 0; vertical-align: bottom; margin-right: 5px; }
+    .company { text-align: right; color: #fff; margin-top: -30px; }
+    .company h2 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: 1px; color: #111; }
+    .company p { margin: 3px 0 0; font-size: 12px; color: #5b8def; font-weight: 600; letter-spacing: 0.5px; }
+    .info { display: flex; justify-content: space-between; margin-bottom: 40px; font-size: 13px; color: #555; }
+    .info-col p { margin: 6px 0; }
+    .info-col b { color: #333; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+    th { text-align: left; color: #5b8def; font-size: 16px; font-weight: 700; padding: 10px; text-transform: uppercase; border-bottom: 2px solid #5b8def; letter-spacing: 0.5px; }
+    .bottom-section { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 40px; page-break-inside: avoid; }
+    .terms { width: 45%; }
+    .terms h4 { color: #5b8def; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+    .terms p { font-size: 12px; color: #666; line-height: 1.6; }
+    .totals { width: 40%; }
+    .totals-row { display: flex; justify-content: space-between; padding: 12px 0; font-size: 15px; color: #333; font-weight: 600; border-bottom: 1px solid #eee; }
+    .totals-row.grand { font-size: 20px; color: #5b8def; font-weight: 800; border-bottom: none; margin-top: 5px; padding-top: 15px; border-top: 2px solid #5b8def; }
+    .bottom-curve { position: fixed; bottom: 0; left: 0; width: 100%; height: 100px; background: linear-gradient(135deg, #0f172a 0%, #5b8def 50%, #7c5cff 100%); clip-path: ellipse(150% 100% at 50% 100%); z-index: 1; }
+    .footer { position: fixed; bottom: 15px; left: 0; width: 100%; text-align: center; z-index: 2; color: #fff; font-size: 11px; line-height: 1.4; }
+    @media print { body { padding-bottom: 120px; } .top-curve, .bottom-curve { display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
   </style></head><body>
-    <div class="header-bg"></div>
-    <div class="header">
-      <h1 class="title">INVOICE</h1>
-      <div class="company">
-        <h2>BM MOBILE ZONE</h2>
-        <p>Chohan Mobile Market, Zafarwal</p>
-        <p>0345-6613232</p>
+    <div class="top-curve"></div>
+    <div class="content">
+      <div class="header">
+        <h1 class="title"><span>|</span>${docTitle}</h1>
+        <div class="company">
+          <h2>BM MOBILE ZONE</h2>
+          <p>YOUR TAG SLOGAN</p>
+        </div>
+      </div>
+      <div class="info">
+        <div class="info-col">
+          <p><b>${docTitle} NO:</b> ${esc(data.invoice)}</p>
+          <p><b>DATE:</b> ${new Date(data.date).toLocaleDateString('en-GB')}</p>
+        </div>
+        <div class="info-col" style="text-align:right">
+          <p><b>${isReport ? 'REPORT TYPE:' : 'INVOICE TO:'}</b> ${esc(data.customer || 'All Customers')}</p>
+          <p>${data.phone ? '<b>PHONE:</b> ' + esc(data.phone) : 'Chohan Mobile Market, Zafarwal'}</p>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>DESCRIPTION</th><th style="text-align:right">PRICE</th><th style="text-align:center">QTY.</th><th style="text-align:right">TOTAL</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="bottom-section">
+        <div class="terms">
+          <h4>Terms and conditions</h4>
+          <p>${isReport ? 'This is a system generated report. All data is verified from the sales and purchase records.' : 'Goods once sold will not be taken back or exchanged. Warranty claims are subject to manufacturer terms.'}</p>
+        </div>
+        <div class="totals">
+          <div class="totals-row"><span>SUBTOTAL</span><span>PKR ${Number(data.subtotal||0).toLocaleString()}</span></div>
+          <div class="totals-row"><span>DISCOUNT</span><span>PKR ${Number(data.discount||0).toLocaleString()}</span></div>
+          <div class="totals-row grand"><span>GRAND TOTAL</span><span>PKR ${Number(data.total||0).toLocaleString()}</span></div>
+          <div class="totals-row" style="border:none; padding-top:5px;"><span>PAID</span><span>PKR ${Number(data.paid||0).toLocaleString()}</span></div>
+          ${data.balance > 0 ? `<div class="totals-row" style="color:#dc2626; border:none; padding-top:5px;"><span>BALANCE</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}
+        </div>
       </div>
     </div>
-    <div class="info">
-      <div class="info-col">
-        <p><b>INVOICE NO:</b> ${esc(data.invoice)}</p>
-        <p><b>DATE:</b> ${new Date(data.date).toLocaleDateString()}</p>
-      </div>
-      <div class="info-col" style="text-align:right">
-        <p><b>CUSTOMER:</b> ${esc(data.customer)}</p>
-        <p><b>PHONE:</b> ${esc(data.phone || '—')}</p>
-      </div>
-    </div>
-    <table><thead><tr><th>Description</th><th style="text-align:right">Price</th><th style="text-align:center">Qty</th><th style="text-align:right">Total</th></tr></thead>
-    <tbody>${rows}</tbody></table>
-    <div class="clearfix">
-      <div class="totals">
-        <div class="totals-row"><span>SUBTOTAL</span><span>PKR ${Number(data.subtotal||0).toLocaleString()}</span></div>
-        <div class="totals-row"><span>DISCOUNT</span><span>PKR ${Number(data.discount||0).toLocaleString()}</span></div>
-        <div class="totals-row grand"><span>GRAND TOTAL</span><span>PKR ${Number(data.total||0).toLocaleString()}</span></div>
-        <div class="totals-row"><span>PAID</span><span>PKR ${Number(data.paid||0).toLocaleString()}</span></div>
-        ${data.balance > 0 ? `<div class="totals-row" style="color:#dc2626"><span>BALANCE</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}
-      </div>
-    </div>
-    ${urduTerms}
-    <div class="footer-bg"></div>
-    <div class="footer-text">
+    <div class="bottom-curve"></div>
+    <div class="footer">
       <div style="font-weight:bold; font-size:12px;">Powered by MS.TECH</div>
       <div>Smart Business Solutions | Software Developed by MS.TECH</div>
       <div>☎ 03099100546</div>
@@ -227,7 +263,7 @@ function printA4Premium(data, type = 'sale') {
 }
 window.printA4Premium = printA4Premium;
 
-// --- 4. SIDEBAR & NAVIGATION ---
+// --- 5. SIDEBAR & NAVIGATION ---
 const sidebar = document.getElementById('mainSidebar');
 const handle = document.getElementById('sidebarHandle');
 let sidebarTimeout;
@@ -274,12 +310,12 @@ async function loadModule(mod) {
     case 'suppliers': return loadSuppliers();
     case 'credit': return loadCredit();
     case 'expenses': return loadExpenses();
-    case 'reports': return; // Handled by button click
+    case 'reports': return; 
     case 'settings': return loadStaff();
   }
 }
 
-// --- 5. OVERVIEW ---
+// --- 6. OVERVIEW ---
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
     supabase.from('sales').select('balance'), supabase.from('products').select('quantity,is_active,name,min_stock'),
@@ -302,7 +338,7 @@ async function loadOverview() {
   else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 }
 
-// --- 6. PRODUCTS ---
+// --- 7. PRODUCTS ---
 let ALL_PRODUCTS = [];
 const CATEGORIES = ['Mobile Phones', 'Mobile Accessories', 'Chargers & Cables', 'Handsfree & Audio', 'Batteries', 'Memory & Storage', 'Mobile Parts', 'SIM & Network', 'Repairing Tools', 'Other Gadgets'];
 const CAT_ITEMS = {
@@ -365,7 +401,7 @@ async function openProductModal(p = null) {
 }
 window.updateSubCatOptions = (val = '') => { const cat = $('pCategory').value; const items = CAT_ITEMS[cat] || []; const dl = $('subCatList'); if (dl) dl.innerHTML = items.map(i => `<option value="${esc(i)}">`).join(''); if (val !== undefined && val !== '') $('pSubCategory').value = val; };
 
-// --- 7. INVENTORY & RACKS ---
+// --- 8. INVENTORY & RACKS ---
 async function loadInventory() {
   const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
   const rf = $('inventoryRackFilter'); if (rf && rf.options.length <= 1) rf.innerHTML = '<option value="">All Racks</option>' + (rackRows || []).map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
@@ -397,7 +433,7 @@ $('btnAddRack').onclick = () => openModal('Add Rack', `<div class="form-grid"><d
 });
 window.deleteRack = async id => { if(!checkPermission('delete')) return; if (!confirm('Delete rack?')) return; const { error } = await supabase.from('racks').delete().eq('id', id); if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); } };
 
-// --- 8. SALES / POS ---
+// --- 9. SALES / POS ---
 let CART = []; let POS_CUSTOMERS = []; let POS_PREVIOUS_DUE = 0; let POS_ALL_PRODS = [];
 async function loadPosCustomers() { const { data } = await supabase.from('customers').select('id,name,phone').order('name'); POS_CUSTOMERS = data || []; $('posCustomerOptions').innerHTML = POS_CUSTOMERS.map(c => `<option value="${esc(c.name)}">${esc(c.phone || '')}</option>`).join(''); }
 async function updatePosCustomerDue() {
@@ -505,7 +541,6 @@ $('btnSaveSale').onclick = async () => {
   finally { $('btnSaveSale').disabled = false; $('btnSaveSale').textContent = '💾 Save Sale (F4)'; }
 };
 
-// SALES HISTORY - FIXED
 $('btnSalesHistory').onclick = () => { 
   const box = $('salesHistoryBox'); 
   box.hidden = !box.hidden; 
@@ -575,7 +610,7 @@ window.reprintSale = async (id) => {
   if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'sale');
 };
 
-// --- 9. REPAIRING ---
+// --- 10. REPAIRING ---
 const COMMON_FAULTS = ['Screen Broken', 'Touch Not Working', 'Battery Drain', 'Not Charging', 'No Power', 'No Display', 'Dead', 'Water Damage', 'Camera Not Working', 'Front Camera', 'Back Camera', 'Speaker Not Working', 'Mic Not Working', 'Earpiece Not Working', 'Vibrator Not Working', 'Network Issue', 'No Signal', 'WiFi Issue', 'Bluetooth Issue', 'Face ID Not Working', 'Fingerprint Issue', 'Software Update', 'Hanging Problem', 'Auto Restart', 'Bootloop', 'Fast Charging Issue', 'Slow Charging', 'Heating Issue', 'Headphone Jack', 'Charging Port', 'Data Cable Issue', 'Volume Button', 'Power Button', 'Home Button', 'Silent Switch', 'Back Glass Broken', 'Camera Glass', 'Lens Scratch', 'Bezel Damage', 'Frame Bend', 'Battery Swollen', 'Water Indicator', 'SIM Not Detected', 'Memory Card Slot', 'Speaker Crackling', 'Display Flicker', 'Screen Lines', 'Ghost Touch', 'LCD Burn', 'Backlight Issue', 'No Sound', 'Low Sound', 'Call Drops', 'Echo on Call', 'Proximity Sensor', 'Light Sensor', 'Gyro Sensor', 'Compass Sensor', 'IR Blaster', 'NFC Issue', 'Wireless Charging', 'Reverse Charging', 'Pop-up Camera', 'Slider Phone', 'Flip Phone Hinge', 'Screen Protector', 'Back Cover', 'Lens Protector', 'Board Repair', 'IC Replacement', 'CPU Issue', 'Power IC', 'Charging IC', 'Audio IC', 'Network IC', 'Memory IC', 'Display IC', 'BGA Rework', 'Jumper Wire', 'Track Repair', 'Water Clean', 'Corrosion Clean', 'Antenna Replace', 'Charging Flex', 'LCD Flex', 'Touch Flex', 'Digitizer', 'Glass Replacement', 'Software Flash', 'Firmware Update', 'FRP Lock', 'iCloud Lock', 'Google Lock', 'Pattern Lock', 'Bypass', 'Signal Booster', 'Battery Connector', 'Charging Port Replace', 'Speaker Replace', 'Mic Replace', 'Camera Module', 'Face ID Flex', 'Fingerprint Flex', 'Vibrator Motor', 'Haptic Engine', 'Taptic Engine', 'True Tone', 'Battery Health'];
 
 async function loadRepairs() {
@@ -629,7 +664,7 @@ function openRepairModal(r = null) {
   });
 }
 
-// --- 10. PURCHASES ---
+// --- 11. PURCHASES ---
 async function loadPurchases() {
   const { data, error } = await supabase.from('purchases').select('*, suppliers(name)').order('created_at', { ascending: false });
   const t = $('purchasesTable'); if (error) { t.innerHTML = `<div class="empty">Purchases table not installed: ${esc(error.message)}</div>`; return; }
@@ -649,7 +684,7 @@ async function openPurchaseModal(p = null) {
   });
 }
 
-// --- 11. CUSTOMERS & SUPPLIERS ---
+// --- 12. CUSTOMERS & SUPPLIERS ---
 let ALL_CUST = []; let ALL_SUP = [];
 async function loadCustomers(filter = '') {
   let q = supabase.from('customers').select('*').order('created_at', { ascending: false }); if (filter) q = q.ilike('name', `%${filter}%`);
@@ -678,7 +713,7 @@ function openSupplierModal(s = null) {
   openModal(s ? 'Edit Supplier' : 'Add Supplier', body, async () => { const payload = { name: $('sName').value.trim(), category: $('sCategory').value.trim() || null, phone: $('sPhone').value.trim() || null, address: $('sAddr').value.trim() || null }; if (!payload.name) throw new Error('Name required'); if (s) await supabase.from('suppliers').update(payload).eq('id', s.id); else await supabase.from('suppliers').insert(payload); toast('Saved', 'success'); closeModal(); loadSuppliers(); });
 }
 
-// --- 12. CREDIT / UDHAR (AUTO-SYNCED) ---
+// --- 13. CREDIT / UDHAR (AUTO-SYNCED) ---
 async function loadCredit() {
   const [{ data: sales }, { data: recov }] = await Promise.all([
     supabase.from('sales').select('customer_id,customer_name,customer_phone,balance,invoice_no,created_at').gt('balance', 0).order('created_at', { ascending: false }),
@@ -705,10 +740,10 @@ $('btnPrintCreditAll').onclick = () => {
   const printOpt = confirm('Print Thermal Report (OK) ya A4 Premium (Cancel)?');
   const payload = { invoice: 'UDHAR-ALL', customer: 'All Customers', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from(rows).map(r => { const cols = r.querySelectorAll('td'); return { description: cols[0].innerText, price: 0, qty: 1, total: Number(cols[3].innerText.replace(/[^0-9]/g, '')) }; }) };
   if (printOpt) { printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); }
-  else printA4Premium(payload, 'sale');
+  else printA4Premium(payload, 'report');
 };
 
-// --- 13. EXPENSES ---
+// --- 14. EXPENSES ---
 const EXPENSE_CATEGORIES = ['Rent', 'Utilities', 'Salary', 'Transport', 'Repair Parts', 'Tea/Food', 'Marketing', 'Other'];
 async function loadExpenses() {
   const catSel = $('expFilterCat'); if (catSel && catSel.options.length <= 1) catSel.innerHTML = '<option value="">All</option>' + EXPENSE_CATEGORIES.map(c => `<option>${c}</option>`).join('');
@@ -729,12 +764,12 @@ $('btnAddExpense').onclick = () => {
 window.deleteExpense = async (id) => { if(!checkPermission('delete')) return; if (!confirm('Delete expense?')) return; await supabase.from('expenses').delete().eq('id', id); toast('Deleted'); loadExpenses(); };
 $('btnFilterExpenses').onclick = () => loadExpenses();
 
-// --- 14. COMBINED REPORTS & P&L ---
+// --- 15. COMBINED REPORTS & P&L ---
 $('btnRunReport').onclick = runReport;
 $('btnPrintReport').onclick = () => {
   const printOpt = confirm('Print Thermal (OK) ya A4 Premium (Cancel)?');
   const payload = { invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0]?.innerText + ' ' + (c[1]?.innerText||''), price: 0, qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) };
-  if (printOpt) printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); else printA4Premium(payload, 'sale');
+  if (printOpt) printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); else printA4Premium(payload, 'report');
 };
 
 async function runReport() {
@@ -804,7 +839,7 @@ async function runReport() {
   } catch (e) { out.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
 
-// --- 15. STAFF / SETTINGS ---
+// --- 16. STAFF / SETTINGS ---
 async function loadStaff() {
   const t = $('staffTable'); t.innerHTML = '<div class="empty">Loading staff data…</div>';
   const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: false });
