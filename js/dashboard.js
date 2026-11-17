@@ -1,6 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - FULL WORKING SYSTEM (v13.0 - FIXED)
-// All modules 100% working. No undefined functions.
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v14.0 - FINAL PREMIUM)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -20,28 +19,11 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => 'PKR ' + Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-const SHOP_INFO = {
-  name: 'BM MOBILE ZONE',
-  address: 'Chohan Mobile Market, Zafarwal',
-  phone1: '0345-6613232',
-  phone2: '0307-6613232',
-  phoneMain: '0345-6613232'
-};
-
-const playBeep = () => {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
-    osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
-  } catch (e) {}
-};
+const SHOP_INFO = { name: 'BM MOBILE ZONE', address: 'Chohan Mobile Market, Zafarwal', phone1: '0345-6613232', phone2: '0307-6613232' };
 
 function toast(msg, type = 'info') {
-  const host = $('toastHost');
-  if (!host) return;
-  const el = document.createElement('div');
-  el.className = `toast ${type}`; el.textContent = msg;
+  const host = $('toastHost'); if (!host) return;
+  const el = document.createElement('div'); el.className = `toast ${type}`; el.textContent = msg;
   host.appendChild(el); setTimeout(() => el.remove(), 3500);
 }
 
@@ -57,120 +39,154 @@ $('modalConfirm').onclick = async () => {
   if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
 
-// --- 2b. THERMAL RECEIPT PRINTER (the missing function) ---
+// --- 3. PREMIUM PRINTING FUNCTIONS ---
+
+// Thermal 80mm (Image 1 Style)
 function printThermal80mm(data) {
   const w = window.open('', '_blank', 'width=340,height=640');
-  if (!w) { toast('Popup blocked — allow popups to print receipt', 'error'); return; }
-  const items = (data.items || []).map(it =>
-    `<tr>
-      <td style="text-align:left">${esc(it.product_name)}${it.imei ? `<br><span style="font-size:9px;color:#555">IMEI: ${esc(it.imei)}</span>` : ''}</td>
-      <td style="text-align:center">${it.quantity}</td>
-      <td style="text-align:right">${Number(it.line_total).toLocaleString()}</td>
+  if (!w) { toast('Popup blocked — allow popups to print', 'error'); return; }
+  const items = (data.items || []).map(it => `
+    <tr>
+      <td style="text-align:left;font-size:11px">${esc(it.product_name || it.name)}<br><span style="font-size:9px;color:#444">${esc(it.category || '')} ${it.imei ? 'IMEI: '+esc(it.imei) : ''}</span></td>
+      <td style="text-align:center;font-size:11px">${it.quantity}</td>
+      <td style="text-align:right;font-size:11px">${Number(it.line_total || it.amount).toLocaleString()}</td>
     </tr>`).join('');
-  const d = data.date ? new Date(data.date) : new Date();
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title>
   <style>
     @page { size: 80mm auto; margin: 4mm; }
-    body { font-family: 'Courier New', monospace; font-size: 11px; width: 72mm; margin: 0 auto; color: #000; }
-    h2 { text-align: center; margin: 0; font-size: 16px; }
-    .sub { text-align: center; font-size: 9px; margin: 2px 0; }
-    hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
-    table { width: 100%; border-collapse: collapse; font-size: 10px; }
-    th { text-align: left; border-bottom: 1px solid #000; padding: 3px 0; font-size: 9px; }
-    .total-row { display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0; }
-    .grand { font-weight: bold; font-size: 13px; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 0; }
-    .center { text-align: center; }
-    @media print { body { width: 72mm; } }
+    body { font-family: 'Courier New', monospace; width: 74mm; margin: 0 auto; color: #000; font-weight: bold; }
+    h2 { text-align: center; margin: 0 0 2px 0; font-size: 18px; font-weight: 900; letter-spacing: 1px; }
+    .sub { text-align: center; font-size: 11px; margin: 1px 0; }
+    hr { border: none; border-top: 2px dashed #000; margin: 5px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { border-bottom: 2px dashed #000; padding: 4px 0; font-size: 11px; text-align: left; }
+    .row { display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0; }
+    .bold { font-weight: 900; font-size: 13px; }
+    .center { text-align: center; margin-top: 6px; font-size: 11px; }
   </style></head><body>
-    <h2>${esc(SHOP_INFO.name)}</h2>
-    <div class="sub">${esc(SHOP_INFO.address)}</div>
-    <div class="sub">Ph: ${esc(SHOP_INFO.phone1)} / ${esc(SHOP_INFO.phone2)}</div>
+    <h2>BM MOBILE ZONE</h2>
+    <div class="sub">Chohan Mobile Market, Zafarwal</div>
+    <div class="sub">☎ 0345-6613232 / 0307-6613232</div>
     <hr>
-    <div class="sub" style="text-align:left">Invoice: <b>${esc(data.invoice)}</b></div>
-    <div class="sub" style="text-align:left">Date: ${d.toLocaleString('en-PK')}</div>
-    <div class="sub" style="text-align:left">Customer: ${esc(data.customer || 'Walk-in')}${data.phone ? ` (${esc(data.phone)})` : ''}</div>
+    <div class="row"><span>Invoice: <b>${esc(data.invoice)}</b></span></div>
+    <div class="row"><span>Date: ${new Date(data.date).toLocaleString('en-PK')}</span></div>
+    <div class="row"><span>Customer: ${esc(data.customer || 'Walk-in')}</span></div>
+    ${data.phone ? `<div class="row"><span>Phone: ${esc(data.phone)}</span></div>` : ''}
     <hr>
     <table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Total</th></tr></thead>
     <tbody>${items}</tbody></table>
     <hr>
-    <div class="total-row"><span>Subtotal</span><span>PKR ${Number(data.subtotal).toLocaleString()}</span></div>
-    <div class="total-row"><span>Discount</span><span>PKR ${Number(data.discount || 0).toLocaleString()}</span></div>
-    <div class="total-row grand"><span>TOTAL</span><span>PKR ${Number(data.total).toLocaleString()}</span></div>
-    <div class="total-row"><span>Paid</span><span>PKR ${Number(data.paid).toLocaleString()}</span></div>
-    <div class="total-row"><span>Balance</span><span>PKR ${Number(data.balance || 0).toLocaleString()}</span></div>
-    ${data.previousDue > 0 ? `<div class="total-row" style="color:#b45309"><span>Previous Due</span><span>PKR ${Number(data.previousDue).toLocaleString()}</span></div>` : ''}
+    <div class="row"><span>Subtotal</span><span>PKR ${Number(data.subtotal||0).toLocaleString()}</span></div>
+    <div class="row"><span>Discount</span><span>-PKR ${Number(data.discount||0).toLocaleString()}</span></div>
+    <div class="row bold"><span>Total</span><span>PKR ${Number(data.total||0).toLocaleString()}</span></div>
+    <div class="row"><span>Paid</span><span>PKR ${Number(data.paid||0).toLocaleString()}</span></div>
+    ${data.balance > 0 ? `<div class="row bold"><span>Due</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}
     <hr>
-    <div class="center" style="font-size:10px;margin-top:8px">Shukriya! Dobara Tashreef Layein</div>
-    <div class="center" style="font-size:9px;margin-top:2px">Powered by MS.TECH</div>
-    <script>window.onload=function(){window.print();setTimeout(function(){window.close();},400);}<\/script>
+    <div class="center">Thank you for shopping!</div>
+    <div class="center">Visit Again</div>
+    <div class="center" style="margin-top:10px;font-weight:900">Made by MS.Tech</div>
+    <div class="center">☎ 03099100546</div>
+    <script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script>
   </body></html>`;
   w.document.write(html); w.document.close();
 }
 window.printThermal80mm = printThermal80mm;
 
-// --- 3. SIDEBAR & THEME ---
+// A4 Premium (Image 2 Style)
+function printA4Premium(data) {
+  const w = window.open('', '_blank', 'width=800,height=900');
+  if (!w) { toast('Popup blocked', 'error'); return; }
+  const rows = (data.items || []).map((it, idx) => `
+    <tr>
+      <td>${idx + 1}. ${esc(it.description || it.product_name || it.name)}</td>
+      <td style="text-align:right">PKR ${Number(it.price || it.unit_price || 0).toLocaleString()}</td>
+      <td style="text-align:center">${it.qty || it.quantity || 1}</td>
+      <td style="text-align:right">PKR ${Number(it.total || it.line_total || it.amount || 0).toLocaleString()}</td>
+    </tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; background: #fff; color: #333; margin: 0; padding: 40px; }
+    .header-bg { position: absolute; top: 0; left: 0; width: 100%; height: 150px; background: linear-gradient(135deg, #0f172a 0%, #5b8def 50%, #7c5cff 100%); clip-path: ellipse(150% 100% at 50% 0%); z-index: -1; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; margin-top: 60px; }
+    .title { font-size: 42px; font-weight: 800; color: #1b2436; margin: 0; border-left: 5px solid #5b8def; padding-left: 15px; line-height: 1; }
+    .company { text-align: right; color: #fff; }
+    .company h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; }
+    .company p { margin: 2px 0 0; font-size: 12px; color: #cbd5e1; }
+    .info { display: flex; justify-content: space-between; margin-bottom: 40px; font-size: 13px; }
+    .info-col p { margin: 4px 0; }
+    .info-col b { color: #5b8def; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+    th { text-align: left; color: #5b8def; font-size: 14px; padding: 10px; border-bottom: 2px solid #5b8def; text-transform: uppercase; letter-spacing: 1px; }
+    td { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+    .totals { width: 300px; float: right; }
+    .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; color: #5b8def; font-weight: 600; }
+    .totals-row.grand { font-size: 18px; color: #1b2436; font-weight: 800; border-top: 2px solid #5b8def; margin-top: 5px; padding-top: 10px; }
+    .footer-bg { position: fixed; bottom: 0; left: 0; width: 100%; height: 120px; background: linear-gradient(135deg, #0f172a 0%, #5b8def 50%, #7c5cff 100%); clip-path: ellipse(150% 100% at 50% 100%); z-index: -1; }
+    .clearfix::after { content: ""; clear: both; display: table; }
+  </style></head><body>
+    <div class="header-bg"></div>
+    <div class="header">
+      <h1 class="title">INVOICE</h1>
+      <div class="company">
+        <h2>BM MOBILE ZONE</h2>
+        <p>Chohan Mobile Market, Zafarwal</p>
+        <p>0345-6613232</p>
+      </div>
+    </div>
+    <div class="info">
+      <div class="info-col">
+        <p><b>INVOICE NO:</b> ${esc(data.invoice)}</p>
+        <p><b>DATE:</b> ${new Date(data.date).toLocaleDateString()}</p>
+      </div>
+      <div class="info-col" style="text-align:right">
+        <p><b>CUSTOMER:</b> ${esc(data.customer)}</p>
+        <p><b>PHONE:</b> ${esc(data.phone || '—')}</p>
+      </div>
+    </div>
+    <table><thead><tr><th>Description</th><th style="text-align:right">Price</th><th style="text-align:center">Qty</th><th style="text-align:right">Total</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="clearfix">
+      <div class="totals">
+        <div class="totals-row"><span>SUBTOTAL</span><span>PKR ${Number(data.subtotal||0).toLocaleString()}</span></div>
+        <div class="totals-row"><span>DISCOUNT</span><span>PKR ${Number(data.discount||0).toLocaleString()}</span></div>
+        <div class="totals-row grand"><span>GRAND TOTAL</span><span>PKR ${Number(data.total||0).toLocaleString()}</span></div>
+        <div class="totals-row"><span>PAID</span><span>PKR ${Number(data.paid||0).toLocaleString()}</span></div>
+        ${data.balance > 0 ? `<div class="totals-row" style="color:#dc2626"><span>BALANCE</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}
+      </div>
+    </div>
+    <div class="footer-bg"></div>
+    <script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script>
+  </body></html>`;
+  w.document.write(html); w.document.close();
+}
+window.printA4Premium = printA4Premium;
+
+// --- 4. SIDEBAR & NAVIGATION ---
 const sidebar = document.getElementById('mainSidebar');
 const handle = document.getElementById('sidebarHandle');
 let sidebarTimeout;
-
 if (handle) {
   handle.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isOpen = sidebar.classList.toggle('show');
-    handle.classList.toggle('open', isOpen);
+    e.stopPropagation(); const isOpen = sidebar.classList.toggle('show'); handle.classList.toggle('open', isOpen);
     if (isOpen) resetSidebarTimer(); else clearTimeout(sidebarTimeout);
   });
-  sidebar.addEventListener('mouseenter', () => clearTimeout(sidebarTimeout));
-  sidebar.addEventListener('mouseleave', () => resetSidebarTimer());
   document.addEventListener('click', (e) => {
-    if (!sidebar.contains(e.target) && !handle.contains(e.target)) {
-      sidebar.classList.remove('show'); handle.classList.remove('open');
-      clearTimeout(sidebarTimeout);
-    }
+    if (!sidebar.contains(e.target) && !handle.contains(e.target)) { sidebar.classList.remove('show'); handle.classList.remove('open'); clearTimeout(sidebarTimeout); }
   });
 }
 function resetSidebarTimer() {
   clearTimeout(sidebarTimeout);
-  sidebarTimeout = setTimeout(() => {
-    sidebar.classList.remove('show'); handle.classList.remove('open');
-  }, 15000);
+  sidebarTimeout = setTimeout(() => { sidebar.classList.remove('show'); handle.classList.remove('open'); }, 15000);
 }
 
-// --- 4. SHORTCUTS & NAVIGATION ---
-document.addEventListener('keydown', (e) => {
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
-    if (e.key === 'Escape') closeModal();
-    return;
-  }
-  if (e.key === 'F2') { e.preventDefault(); $('btnAddToCart')?.click(); }
-  if (e.key === 'F4') { e.preventDefault(); $('btnSaveSale')?.click(); }
-  if (e.key === 'F8') { e.preventDefault(); $('btnNewPurchase')?.click(); }
-  if (e.key === 'F9') { e.preventDefault(); $('btnAddExpense')?.click(); }
-  if (e.altKey) {
-    const key = e.key.toLowerCase();
-    const shortcuts = { 'o': 'overview', 'p': 'products', 'i': 'inventory', 'l': 'sales', 'u': 'purchases', 'e': 'expenses', 'r': 'reports' };
-    if (shortcuts[key]) { e.preventDefault(); document.querySelector(`[data-module="${shortcuts[key]}"]`)?.click(); }
-    if (key === 's') { e.preventDefault(); $('btnSaveSale')?.click(); }
-  }
-  if (e.key === 'Escape') closeModal();
-});
-
-const MODULE_TITLES = {
-  overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Rack Management',
-  repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers',
-  suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses',
-  profitloss: 'Profit & Loss', transactions: 'Transactions', reports: 'Reports', settings: 'Settings'
-};
-
+const MODULE_TITLES = { overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Racks', repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers', suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses', profitloss: 'Profit & Loss', transactions: 'Transactions', reports: 'Reports', settings: 'Settings' };
 document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
   btn.addEventListener('click', () => {
     const mod = btn.dataset.module;
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-    $('module-' + mod).classList.add('active');
-    $('pageTitle').textContent = MODULE_TITLES[mod] || mod;
-    loadModule(mod);
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+    document.querySelectorAll('.module').forEach(m => m.classList.remove('active')); $('module-' + mod).classList.add('active');
+    $('pageTitle').textContent = MODULE_TITLES[mod] || mod; loadModule(mod);
     sidebar.classList.remove('show'); handle?.classList.remove('open');
   });
 });
@@ -198,12 +214,9 @@ async function loadModule(mod) {
 // --- 5. OVERVIEW ---
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
-    supabase.from('sales').select('balance'),
-    supabase.from('products').select('quantity,is_active,name,min_stock'),
-    supabase.from('customers').select('id', { count: 'exact', head: true }),
-    supabase.from('purchases').select('total'),
-    supabase.from('expenses').select('amount'),
-    supabase.from('sales').select('total').gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+    supabase.from('sales').select('balance'), supabase.from('products').select('quantity,is_active,name,min_stock'),
+    supabase.from('customers').select('id', { count: 'exact', head: true }), supabase.from('purchases').select('total'),
+    supabase.from('expenses').select('amount'), supabase.from('sales').select('total').gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
     supabase.from('sales').select('total').gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
   ]);
   const sum = (arr, key) => (arr.data || []).reduce((s, r) => s + Number(r[key] || 0), 0);
@@ -221,8 +234,10 @@ async function loadOverview() {
   else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 }
 
-// --- 6. PRODUCTS ---
+// --- 6. PRODUCTS (UPDATED) ---
 let ALL_PRODUCTS = [];
+const CATEGORIES = ['Mobile', 'Glass', 'Cover', 'Accessory', 'Other'];
+
 async function loadProducts(filter = '') {
   let q = supabase.from('products').select('*,racks!fk_products_racks(name)').order('created_at', { ascending: false });
   if (filter) q = q.ilike('name', `%${filter}%`);
@@ -238,37 +253,18 @@ async function loadProducts(filter = '') {
 $('productSearch')?.addEventListener('input', e => loadProducts(e.target.value));
 $('btnAddProduct')?.addEventListener('click', () => openProductModal());
 window.editProduct = (id) => { const p = ALL_PRODUCTS.find(x => x.id === id); if (p) openProductModal(p); };
-window.deleteProduct = async (id) => {
-  if (!confirm('Delete this product?')) return;
-  const { error } = await supabase.from('products').delete().eq('id', id);
-  if (error) return toast(error.message, 'error');
-  toast('Product deleted', 'success'); loadProducts();
-};
+window.deleteProduct = async (id) => { if (!confirm('Delete this product?')) return; const { error } = await supabase.from('products').delete().eq('id', id); if (error) return toast(error.message, 'error'); toast('Product deleted', 'success'); loadProducts(); };
 
 async function openProductModal(p = null) {
   const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
-  const isMobile = (p?.category || 'Mobile') === 'Mobile';
   const body = `<div class="form-grid">
-      <div class="field full"><label>Product Name *</label><input id="pName" value="${esc(p?.name || '')}" placeholder="e.g. OG Glass iPhone 11"></div>
+      <div class="field full"><label>Product Name / Model *</label><input id="pName" value="${esc(p?.name || '')}" placeholder="e.g. iPhone 11 OG Glass"></div>
       <div class="field"><label>Main Category *</label>
-        <select id="pCategory" onchange="toggleProductFields()">
-          <option value="Mobile" ${p?.category === 'Mobile' ? 'selected' : ''}>Mobile Phone</option>
-          <option value="Glass" ${p?.category === 'Glass' ? 'selected' : ''}>Mobile Glass (OG etc)</option>
-          <option value="Cover" ${p?.category === 'Cover' ? 'selected' : ''}>Mobile Cover</option>
-          <option value="Accessory" ${p?.category === 'Accessory' ? 'selected' : ''}>Accessory</option>
-          <option value="Other" ${p?.category === 'Other' ? 'selected' : ''}>Other</option>
-        </select>
+        <select id="pCategory" onchange="toggleProductFields()">${CATEGORIES.map(c => `<option value="${c}" ${p?.category === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
       </div>
-      <div class="field"><label>Sub-Category / Model</label>
-        <input id="pSubCategory" list="subCatList" placeholder="e.g. iPhone 11, Samsung S21" value="${esc(p?.sub_category || '')}">
-        <datalist id="subCatList">
-          <option value="iPhone 11"><option value="iPhone 12"><option value="iPhone 13">
-          <option value="Samsung S21"><option value="Samsung S22"><option value="Infinix Hot 12">
-          <option value="Vivo Y21"><option value="Oppo A16">
-        </datalist>
-      </div>
-      <div class="field" id="imei1Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 1</label><input id="pImei1" value="${esc(p?.imei_1 || '')}"></div>
-      <div class="field" id="imei2Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 2</label><input id="pImei2" value="${esc(p?.imei_2 || '')}"></div>
+      <div class="field"><label>Sub-Category / Type</label><input id="pSubCategory" placeholder="e.g. OG, 3D, Simple" value="${esc(p?.sub_category || '')}"></div>
+      <div class="field" id="imei1Field" style="${p?.category === 'Mobile' ? '' : 'display:none'}"><label>IMEI 1</label><input id="pImei1" value="${esc(p?.imei_1 || '')}"></div>
+      <div class="field" id="imei2Field" style="${p?.category === 'Mobile' ? '' : 'display:none'}"><label>IMEI 2</label><input id="pImei2" value="${esc(p?.imei_2 || '')}"></div>
       <div class="field"><label>Purchase Price</label><input id="pPurchase" type="number" value="${p?.purchase_price || 0}"></div>
       <div class="field"><label>Sale Price</label><input id="pSale" type="number" value="${p?.sale_price || 0}"></div>
       <div class="field"><label>Rack Location</label><select id="pRack"><option value="">Unassigned</option>${(rackRows || []).map(r => `<option value="${r.id}" ${p?.rack_id === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>
@@ -276,36 +272,28 @@ async function openProductModal(p = null) {
       <div class="field"><label>Min Stock Alert</label><input id="pMin" type="number" value="${p?.min_stock || 5}"></div>
     </div>`;
   openModal(p ? 'Edit Product' : 'Add Product', body, async () => {
-    const cat = $('pCategory').value;
     const payload = {
-      name: $('pName').value.trim(), category: cat,
-      sub_category: $('pSubCategory').value.trim() || null,
-      imei_1: cat === 'Mobile' ? ($('pImei1').value.trim() || null) : null,
-      imei_2: cat === 'Mobile' ? ($('pImei2').value.trim() || null) : null,
-      purchase_price: Number($('pPurchase').value) || 0,
-      sale_price: Number($('pSale').value) || 0,
-      quantity: Number($('pQty').value) || 0,
-      rack_id: $('pRack').value || null,
-      min_stock: Number($('pMin').value) || 5
+      name: $('pName').value.trim(), category: $('pCategory').value, sub_category: $('pSubCategory').value.trim() || null,
+      imei_1: $('pCategory').value === 'Mobile' ? ($('pImei1').value.trim() || null) : null,
+      imei_2: $('pCategory').value === 'Mobile' ? ($('pImei2').value.trim() || null) : null,
+      purchase_price: Number($('pPurchase').value) || 0, sale_price: Number($('pSale').value) || 0,
+      quantity: Number($('pQty').value) || 0, rack_id: $('pRack').value || null, min_stock: Number($('pMin').value) || 5
     };
     if (!payload.name) throw new Error('Product Name required');
-    if (p) await supabase.from('products').update(payload).eq('id', p.id);
-    else await supabase.from('products').insert(payload);
+    if (p) await supabase.from('products').update(payload).eq('id', p.id); else await supabase.from('products').insert(payload);
     toast('Saved', 'success'); closeModal(); loadProducts();
   });
 }
 window.toggleProductFields = () => {
-  const cat = $('pCategory').value;
-  $('imei1Field').style.display = cat === 'Mobile' ? '' : 'none';
-  $('imei2Field').style.display = cat === 'Mobile' ? '' : 'none';
+  const isMobile = $('pCategory').value === 'Mobile';
+  $('imei1Field').style.display = isMobile ? '' : 'none';
+  $('imei2Field').style.display = isMobile ? '' : 'none';
 };
 
 // --- 7. INVENTORY ---
 async function loadInventory() {
   const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
-  const rf = $('inventoryRackFilter');
-  if (rf && rf.options.length <= 1) rf.innerHTML = '<option value="">All Racks</option>' + (rackRows || []).map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
-
+  const rf = $('inventoryRackFilter'); if (rf && rf.options.length <= 1) rf.innerHTML = '<option value="">All Racks</option>' + (rackRows || []).map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
   let iq = supabase.from('products').select('*,racks!fk_products_racks(name)').order('quantity', { ascending: true });
   if (rf?.value) iq = iq.eq('rack_id', rf.value);
   const { data: low } = await iq.limit(100);
@@ -313,10 +301,8 @@ async function loadInventory() {
   if (!low || !low.length) t.innerHTML = '<div class="empty">No products.</div>';
   else t.innerHTML = `<table class="data"><thead><tr><th>Product</th><th>Category</th><th>Rack</th><th class="num">Stock</th><th class="num">Min</th><th>Status</th></tr></thead><tbody>
     ${low.map(p => `<tr><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}${p.sub_category ? ' / ' + esc(p.sub_category) : ''}</small></td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td class="num">${p.min_stock}</td>
-    <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}
-  </tbody></table>`;
+    <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}</tbody></table>`;
 
-  // Real movement log: derive from sales + purchases
   const [{ data: saleItems }, { data: purchItems }] = await Promise.all([
     supabase.from('sale_items').select('product_name,quantity,created_at, sales!inner(invoice_no)').order('created_at', { ascending: false }).limit(50),
     supabase.from('purchase_items').select('product_name,quantity,created_at, purchases!inner(invoice_no)').order('created_at', { ascending: false }).limit(50)
@@ -336,32 +322,19 @@ async function loadRacks() {
   const { data: racks, error } = await supabase.from('racks').select('*').order('name');
   if (error) { $('racksTable').innerHTML = '<div class="empty">Rack tables not installed.</div>'; return; }
   const rows = racks || [];
-  $('racksTable').innerHTML = rows.length
-    ? `<table class="data"><thead><tr><th>Rack</th><th>Description</th><th>Actions</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.description || '—')}</td><td><button class="btn btn-danger btn-sm" onclick="deleteRack('${r.id}')">Delete</button></td></tr>`).join('')}</tbody></table>`
-    : '<div class="empty">No racks created.</div>';
-
+  $('racksTable').innerHTML = rows.length ? `<table class="data"><thead><tr><th>Rack</th><th>Description</th><th>Actions</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.description || '—')}</td><td><button class="btn btn-danger btn-sm" onclick="deleteRack('${r.id}')">Delete</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No racks created.</div>';
   const { data: stock } = await supabase.from('products').select('name,quantity,racks!fk_products_racks(name)').order('name');
   $('rackStockTable').innerHTML = `<table class="data"><thead><tr><th>Rack</th><th>Product</th><th class="num">Quantity</th></tr></thead><tbody>${(stock || []).map(p => `<tr><td>${esc(p.racks?.name || 'Unassigned')}</td><td>${esc(p.name)}</td><td class="num">${Number(p.quantity || 0)}</td></tr>`).join('')}</tbody></table>`;
 }
-$('btnAddRack').onclick = () => openModal('Add Rack',
-  `<div class="form-grid"><div class="field"><label>Rack Name *</label><input id="rackName" placeholder="Rack A-01"></div><div class="field full"><label>Description</label><input id="rackDesc"></div></div>`,
-  async () => {
-    const name = $('rackName').value.trim();
-    if (!name) throw new Error('Rack name required');
-    const { error } = await supabase.from('racks').insert({ name, description: $('rackDesc').value.trim() || null });
-    if (error) throw new Error(error.message);
-    closeModal(); toast('Rack added', 'success'); loadRacks();
-  });
-window.deleteRack = async id => {
-  if (!confirm('Delete rack? Products in this rack must be reassigned first.')) return;
-  const { error } = await supabase.from('racks').delete().eq('id', id);
-  if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); }
-};
+$('btnAddRack').onclick = () => openModal('Add Rack', `<div class="form-grid"><div class="field"><label>Rack Name *</label><input id="rackName" placeholder="Rack A-01"></div><div class="field full"><label>Description</label><input id="rackDesc"></div></div>`, async () => {
+  const name = $('rackName').value.trim(); if (!name) throw new Error('Rack name required');
+  const { error } = await supabase.from('racks').insert({ name, description: $('rackDesc').value.trim() || null });
+  if (error) throw new Error(error.message); closeModal(); toast('Rack added', 'success'); loadRacks();
+});
+window.deleteRack = async id => { if (!confirm('Delete rack?')) return; const { error } = await supabase.from('racks').delete().eq('id', id); if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); } };
 
-// --- 9. SALES / POS ---
-let CART = [];
-let POS_CUSTOMERS = [];
-let POS_PREVIOUS_DUE = 0;
+// --- 9. SALES / POS (UPDATED WITH CATEGORY FILTER) ---
+let CART = []; let POS_CUSTOMERS = []; let POS_PREVIOUS_DUE = 0; let POS_ALL_PRODS = [];
 
 async function loadPosCustomers() {
   const { data } = await supabase.from('customers').select('id,name,phone').order('name');
@@ -370,8 +343,7 @@ async function loadPosCustomers() {
 }
 
 async function updatePosCustomerDue() {
-  const name = $('saleCustName').value.trim();
-  const phone = $('saleCustPhone').value.trim();
+  const name = $('saleCustName').value.trim(); const phone = $('saleCustPhone').value.trim();
   const match = POS_CUSTOMERS.find(c => (phone && c.phone === phone) || (name && c.name.toLowerCase() === name.toLowerCase()));
   if (!match) { POS_PREVIOUS_DUE = 0; $('previousDueBox').style.display = 'none'; return; }
   if (match.phone && !$('saleCustPhone').value) $('saleCustPhone').value = match.phone;
@@ -386,25 +358,36 @@ $('saleCustPhone').addEventListener('change', updatePosCustomerDue);
 async function loadSaleProducts() {
   await loadPosCustomers();
   const { data } = await supabase.from('products').select('*').gt('quantity', 0).order('name');
-  $('saleProductSelect').innerHTML = '<option value="">— Choose product —</option>' + (data || []).map(p => {
-    const catDisplay = p.category ? `[${p.category}${p.sub_category ? ' - ' + p.sub_category : ''}]` : '';
-    return `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei_1 || '')}" data-stock="${p.quantity}">${esc(p.name)} ${catDisplay} — ${fmt(p.sale_price)} (${p.quantity} stock)</option>`;
-  }).join('');
+  POS_ALL_PRODS = data || [];
+  
+  // Populate Category Filter
+  const cats = [...new Set(POS_ALL_PRODS.map(p => p.category).filter(Boolean))];
+  $('saleCategoryFilter').innerHTML = '<option value="">— All Categories —</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  filterPosProducts();
 }
+
+window.filterPosProducts = () => {
+  const cat = $('saleCategoryFilter').value;
+  const filtered = cat ? POS_ALL_PRODS.filter(p => p.category === cat) : POS_ALL_PRODS;
+  $('saleProductSelect').innerHTML = '<option value="">— Choose product —</option>' + filtered.map(p => {
+    const catDisplay = p.category ? `[${p.category}${p.sub_category ? ' - ' + p.sub_category : ''}]` : '';
+    return `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei_1 || '')}" data-cat="${esc(p.category)}" data-subcat="${esc(p.sub_category || '')}" data-stock="${p.quantity}">${esc(p.name)} ${catDisplay} — ${fmt(p.sale_price)} (${p.quantity} stock)</option>`;
+  }).join('');
+};
+$('saleCategoryFilter').addEventListener('change', filterPosProducts);
 
 $('btnAddToCart').onclick = () => {
   const sel = $('saleProductSelect'); const opt = sel.options[sel.selectedIndex];
   if (!opt.value) return toast('Select product', 'error');
   const existing = CART.find(c => c.product_id === opt.value);
   if (existing) { existing.quantity++; existing.line_total = existing.quantity * existing.unit_price; }
-  else CART.push({ product_id: opt.value, product_name: opt.dataset.name, imei: opt.dataset.imei, unit_price: Number(opt.dataset.price), quantity: 1, line_total: Number(opt.dataset.price) });
-  playBeep();
+  else CART.push({ product_id: opt.value, product_name: opt.dataset.name, imei: opt.dataset.imei, category: opt.dataset.cat, sub_category: opt.dataset.subcat, unit_price: Number(opt.dataset.price), quantity: 1, line_total: Number(opt.dataset.price) });
   renderCart();
 };
 
 function renderCart() {
   if (!CART.length) $('cartItems').innerHTML = '<div class="empty">Cart is empty</div>';
-  else $('cartItems').innerHTML = `<table class="data cart-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th><th></th></tr></thead><tbody>${CART.map((c, i) => `<tr><td>${esc(c.product_name)}</td><td class="num">${c.quantity}</td><td class="num">${fmt(c.line_total)}</td><td><button class="btn btn-danger btn-sm" onclick="removeCart(${i})">×</button></td></tr>`).join('')}</tbody></table>`;
+  else $('cartItems').innerHTML = `<table class="data cart-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th><th></th></tr></thead><tbody>${CART.map((c, i) => `<tr><td>${esc(c.product_name)}<br><small>${esc(c.category)} ${esc(c.sub_category)}</small></td><td class="num">${c.quantity}</td><td class="num">${fmt(c.line_total)}</td><td><button class="btn btn-danger btn-sm" onclick="removeCart(${i})">×</button></td></tr>`).join('')}</tbody></table>`;
   const sub = CART.reduce((s, c) => s + c.line_total, 0);
   const disc = Number($('saleDiscount').value) || 0;
   const total = Math.max(0, sub - disc);
@@ -430,41 +413,32 @@ $('btnSaveSale').onclick = async () => {
       let found = POS_CUSTOMERS.find(c => (custPhone && c.phone === custPhone) || c.name.toLowerCase() === custName.toLowerCase());
       if (!found) {
         const { data: created, error: ce } = await supabase.from('customers').insert({ name: custName, phone: custPhone || null, opening_balance: 0 }).select('id,name,phone').single();
-        if (ce) throw new Error(ce.message);
-        found = created; POS_CUSTOMERS.push(created);
+        if (ce) throw new Error(ce.message); found = created; POS_CUSTOMERS.push(created);
       }
       customerId = found.id;
     }
-
     const { data, error } = await supabase.rpc('create_sale', {
       p_customer_id: customerId, p_customer_name: custName, p_customer_phone: custPhone || null,
       p_subtotal: CART.reduce((s, c) => s + c.line_total, 0), p_discount: Number($('saleDiscount').value) || 0, p_total: total, p_paid: paid,
       p_payment_method: $('salePaymentMethod').value, p_notes: null,
-      p_items: CART.map(c => ({ product_id: c.product_id, product_name: c.product_name, imei: c.imei, quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total }))
+      p_items: CART.map(c => ({ product_id: c.product_id, product_name: c.product_name, imei: c.imei, quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total, category: c.category, sub_category: c.sub_category }))
     });
-
     if (error) throw new Error(error.message);
-    const inv = data?.invoice_no || 'INV-' + Date.now().toString().slice(-6);
-    if (confirm('Print receipt?')) {
-      printThermal80mm({
-        invoice: inv, customer: custName, phone: custPhone,
-        subtotal: CART.reduce((s, c) => s + c.line_total, 0),
-        discount: Number($('saleDiscount').value) || 0,
-        total, paid, balance: total - paid, previousDue: POS_PREVIOUS_DUE,
-        date: new Date(), items: [...CART]
-      });
+    
+    // User ko choose karne dein kaunsa print karna hai
+    const printOpt = confirm('Print Thermal Receipt (OK) ya A4 Premium Invoice (Cancel)?');
+    if (printOpt) {
+      printThermal80mm({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] });
+    } else {
+      printA4Premium({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] });
     }
+    
     toast('Sale Saved!', 'success'); CART = []; renderCart(); loadSaleProducts(); loadOverview();
     $('saleCustName').value = ''; $('saleCustPhone').value = ''; $('salePaid').value = 0; $('saleDiscount').value = 0; POS_PREVIOUS_DUE = 0; $('previousDueBox').style.display = 'none';
   } catch (e) { toast(e.message, 'error'); } finally { $('btnSaveSale').disabled = false; }
 };
 
-// Sales History
-$('btnSalesHistory').onclick = () => {
-  const box = $('salesHistoryBox');
-  box.hidden = !box.hidden;
-  if (!box.hidden) loadSalesHistory();
-};
+$('btnSalesHistory').onclick = () => { const box = $('salesHistoryBox'); box.hidden = !box.hidden; if (!box.hidden) loadSalesHistory(); };
 $('btnRefreshSales').onclick = () => loadSalesHistory();
 
 async function loadSalesHistory() {
@@ -478,120 +452,39 @@ window.reprintSale = async (id) => {
   const { data: s } = await supabase.from('sales').select('*').eq('id', id).single();
   if (!s) return toast('Sale not found', 'error');
   const { data: items } = await supabase.from('sale_items').select('*').eq('sale_id', id);
-  printThermal80mm({
-    invoice: s.invoice_no, customer: s.customer_name, phone: s.customer_phone,
-    subtotal: s.subtotal, discount: s.discount, total: s.total, paid: s.paid, balance: s.balance,
-    previousDue: 0, date: s.created_at,
-    items: (items || []).map(i => ({ product_name: i.product_name, imei: i.imei, quantity: i.quantity, line_total: i.line_total }))
-  });
+  const printOpt = confirm('Print Thermal Receipt (OK) ya A4 Premium Invoice (Cancel)?');
+  const payload = { invoice: s.invoice_no, customer: s.customer_name, phone: s.customer_phone, subtotal: s.subtotal, discount: s.discount, total: s.total, paid: s.paid, balance: s.balance, date: s.created_at, items: items || [] };
+  if (printOpt) printThermal80mm(payload); else printA4Premium(payload);
 };
 
-// --- 10. REPAIRING (FULL WORKING) ---
+// --- 10. REPAIRING (UPDATED WITH THERMAL) ---
 async function loadRepairs() {
-  const q  = $('repairSearch')?.value?.trim() || '';
-  const st = $('repairStatusFilter')?.value || '';
+  const q = $('repairSearch')?.value?.trim() || ''; const st = $('repairStatusFilter')?.value || '';
   let query = supabase.from('repairs').select('*').order('created_at', { ascending: false });
   if (st) query = query.eq('status', st);
-  if (q)  query = query.or(`customer_name.ilike.%${q}%,phone.ilike.%${q}%,mobile.ilike.%${q}%,imei.ilike.%${q}%,slip_no.ilike.%${q}%`);
+  if (q) query = query.or(`customer_name.ilike.%${q}%,phone.ilike.%${q}%,mobile.ilike.%${q}%,imei.ilike.%${q}%,slip_no.ilike.%${q}%`);
   const { data, error } = await query;
   const t = $('repairsTable');
   if (error) { t.innerHTML = `<div class="empty">Error: ${esc(error.message)}</div>`; return; }
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No repair jobs.</div>'; return; }
-  t.innerHTML = `<table class="data">
-    <thead><tr>
-      <th>Slip#</th><th>Customer</th><th>Mobile / IMEI</th><th>Issue</th>
-      <th class="num">Charge</th><th class="num">Advance</th><th class="num">Due</th>
-      <th>Status</th><th>Date</th><th></th>
-    </tr></thead>
-    <tbody>
-    ${data.map(r => {
-      const due = Number(r.charge || 0) - Number(r.advance || 0);
-      const pillClass = r.status === 'Delivered' ? 'green' : r.status === 'Ready' ? 'orange' : r.status === 'In Progress' ? 'orange' : '';
-      return `<tr>
-        <td><b>${esc(r.slip_no || '—')}</b></td>
-        <td>${esc(r.customer_name)}<br><small>${esc(r.phone || '')}</small></td>
-        <td>${esc(r.mobile || '—')}<br><small>${esc(r.imei || '')}</small></td>
-        <td><small>${esc(r.issue || '—')}</small></td>
-        <td class="num">${fmt(r.charge)}</td>
-        <td class="num">${fmt(r.advance)}</td>
-        <td class="num">${due > 0 ? `<b style="color:#dc2626">${fmt(due)}</b>` : '<span class="pill green">Paid</span>'}</td>
-        <td><span class="pill ${pillClass}">${esc(r.status)}</span></td>
-        <td><small>${new Date(r.created_at).toLocaleDateString()}</small></td>
-        <td class="actions">
-          <button class="btn btn-ghost btn-sm" onclick="viewRepair('${r.id}')">View</button>
-          <button class="btn btn-ghost btn-sm" onclick="editRepair('${r.id}')">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteRepair('${r.id}')">Del</button>
-        </td>
-      </tr>`;
-    }).join('')}
-    </tbody></table>`;
+  t.innerHTML = `<table class="data"><thead><tr><th>Slip#</th><th>Customer</th><th>Mobile / IMEI</th><th>Issue</th><th class="num">Charge</th><th class="num">Advance</th><th class="num">Due</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>${data.map(r => {
+    const due = Number(r.charge || 0) - Number(r.advance || 0);
+    const pillClass = r.status === 'Delivered' ? 'green' : r.status === 'Ready' ? 'orange' : r.status === 'In Progress' ? 'orange' : '';
+    return `<tr><td><b>${esc(r.slip_no || '—')}</b></td><td>${esc(r.customer_name)}<br><small>${esc(r.phone || '')}</small></td><td>${esc(r.mobile || '—')}<br><small>${esc(r.imei || '')}</small></td><td><small>${esc(r.issue || '—')}</small></td><td class="num">${fmt(r.charge)}</td><td class="num">${fmt(r.advance)}</td><td class="num">${due > 0 ? `<b style="color:#dc2626">${fmt(due)}</b>` : '<span class="pill green">Paid</span>'}</td><td><span class="pill ${pillClass}">${esc(r.status)}</span></td><td><small>${new Date(r.created_at).toLocaleDateString()}</small></td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="viewRepair('${r.id}')">View</button><button class="btn btn-ghost btn-sm" onclick="editRepair('${r.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteRepair('${r.id}')">Del</button></td></tr>`;
+  }).join('')}</tbody></table>`;
 }
 $('repairSearch')?.addEventListener('input', () => loadRepairs());
 $('repairStatusFilter')?.addEventListener('change', () => loadRepairs());
-
-// Add new
 $('btnAddRepair').onclick = () => openRepairModal();
-
-// Edit
-window.editRepair = async (id) => {
-  const { data: r } = await supabase.from('repairs').select('*').eq('id', id).single();
-  if (r) openRepairModal(r);
-};
-
-// Delete
-window.deleteRepair = async (id) => {
-  if (!confirm('Delete this repair slip?')) return;
-  const { error } = await supabase.from('repairs').delete().eq('id', id);
-  if (error) return toast(error.message, 'error');
-  toast('Repair slip deleted'); loadRepairs();
-};
-
-// View / Print receipt
+window.editRepair = async (id) => { const { data: r } = await supabase.from('repairs').select('*').eq('id', id).single(); if (r) openRepairModal(r); };
+window.deleteRepair = async (id) => { if (!confirm('Delete this repair slip?')) return; const { error } = await supabase.from('repairs').delete().eq('id', id); if (error) return toast(error.message, 'error'); toast('Repair slip deleted'); loadRepairs(); };
 window.viewRepair = async (id) => {
   const { data: r } = await supabase.from('repairs').select('*').eq('id', id).single();
   if (!r) return toast('Not found', 'error');
-  printRepairReceipt(r);
+  const printOpt = confirm('Print Thermal Slip (OK) ya A4 Invoice (Cancel)?');
+  const payload = { invoice: r.slip_no, customer: r.customer_name, phone: r.phone, subtotal: r.charge, discount: 0, total: r.charge, paid: r.advance, balance: (r.charge - r.advance), date: r.created_at, items: [{ name: r.mobile + ' - ' + (r.issue || 'Repair'), qty: 1, total: r.charge }] };
+  if (printOpt) printThermal80mm(payload); else printA4Premium(payload);
 };
-
-function printRepairReceipt(r) {
-  const due = Number(r.charge || 0) - Number(r.advance || 0);
-  const w = window.open('', '_blank', 'width=340,height=640');
-  if (!w) return toast('Popup blocked', 'error');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Repair Slip</title>
-  <style>
-    @page { size: 80mm auto; margin: 4mm; }
-    body { font-family: 'Courier New', monospace; font-size: 11px; width: 72mm; margin: 0 auto; }
-    h2 { text-align: center; margin: 0; font-size: 15px; }
-    .sub { text-align: center; font-size: 9px; margin: 2px 0; }
-    hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
-    .row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; }
-    .grand { font-weight: bold; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 0; }
-    .center { text-align: center; }
-  </style></head><body>
-    <h2>${esc(SHOP_INFO.name)}</h2>
-    <div class="sub">${esc(SHOP_INFO.address)}</div>
-    <div class="sub">Ph: ${esc(SHOP_INFO.phone1)}</div>
-    <hr>
-    <div class="row"><span>Slip#</span><b>${esc(r.slip_no || '')}</b></div>
-    <div class="row"><span>Date</span><span>${new Date(r.created_at).toLocaleString('en-PK')}</span></div>
-    <div class="row"><span>Customer</span><span>${esc(r.customer_name)}</span></div>
-    <div class="row"><span>Phone</span><span>${esc(r.phone || '—')}</span></div>
-    <hr>
-    <div class="row"><span>Mobile</span><span>${esc(r.mobile || '—')}</span></div>
-    <div class="row"><span>IMEI</span><span>${esc(r.imei || '—')}</span></div>
-    <div class="row"><span>Issue</span><span>${esc(r.issue || '—')}</span></div>
-    <hr>
-    <div class="row"><span>Charge</span><span>PKR ${Number(r.charge||0).toLocaleString()}</span></div>
-    <div class="row"><span>Advance</span><span>PKR ${Number(r.advance||0).toLocaleString()}</span></div>
-    <div class="row grand"><span>Due</span><span>PKR ${due.toLocaleString()}</span></div>
-    <div class="row"><span>Status</span><span>${esc(r.status)}</span></div>
-    <hr>
-    <div class="center" style="font-size:10px;margin-top:8px">Shukriya!</div>
-    <div class="center" style="font-size:9px">Powered by MS.TECH</div>
-    <script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script>
-  </body></html>`);
-  w.document.close();
-}
 
 function openRepairModal(r = null) {
   const body = `<div class="form-grid">
@@ -602,36 +495,19 @@ function openRepairModal(r = null) {
     <div class="field full"><label>Issue / Problem</label><textarea id="rIssue" rows="2">${esc(r?.issue || '')}</textarea></div>
     <div class="field"><label>Charge (PKR)</label><input id="rCharge" type="number" value="${r?.charge || 0}"></div>
     <div class="field"><label>Advance (PKR)</label><input id="rAdvance" type="number" value="${r?.advance || 0}"></div>
-    <div class="field"><label>Status</label>
-      <select id="rStatus">
-        ${['Received','In Progress','Ready','Delivered'].map(s => `<option ${r?.status === s ? 'selected' : ''}>${s}</option>`).join('')}
-      </select>
-    </div>
+    <div class="field"><label>Status</label><select id="rStatus">${['Received','In Progress','Ready','Delivered'].map(s => `<option ${r?.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
     <div class="field full"><label>Notes</label><textarea id="rNotes" rows="2">${esc(r?.notes || '')}</textarea></div>
   </div>`;
   openModal(r ? 'Edit Repair Slip' : 'New Repair Slip', body, async () => {
-    const payload = {
-      customer_name: $('rCust').value.trim(),
-      phone:   $('rPhone').value.trim()   || null,
-      mobile:  $('rMobile').value.trim()  || null,
-      imei:    $('rImei').value.trim()    || null,
-      issue:   $('rIssue').value.trim()   || null,
-      charge:  Number($('rCharge').value)  || 0,
-      advance: Number($('rAdvance').value) || 0,
-      status:  $('rStatus').value,
-      notes:   $('rNotes').value.trim()   || null
-    };
+    const payload = { customer_name: $('rCust').value.trim(), phone: $('rPhone').value.trim() || null, mobile: $('rMobile').value.trim() || null, imei: $('rImei').value.trim() || null, issue: $('rIssue').value.trim() || null, charge: Number($('rCharge').value) || 0, advance: Number($('rAdvance').value) || 0, status: $('rStatus').value, notes: $('rNotes').value.trim() || null };
     if (!payload.customer_name) throw new Error('Customer name required');
-    if (r) {
-      if (payload.status === 'Delivered' && r.status !== 'Delivered') payload.delivered_at = new Date().toISOString();
-      await supabase.from('repairs').update(payload).eq('id', r.id);
-    } else {
-      await supabase.from('repairs').insert(payload);
-    }
+    if (r) { if (payload.status === 'Delivered' && r.status !== 'Delivered') payload.delivered_at = new Date().toISOString(); await supabase.from('repairs').update(payload).eq('id', r.id); }
+    else await supabase.from('repairs').insert(payload);
     closeModal(); toast('Saved', 'success'); loadRepairs(); loadOverview();
   });
 }
-// --- 11. PURCHASES ---
+
+// --- 11. PURCHASES (WITH A4 PRINT) ---
 async function loadPurchases() {
   const { data, error } = await supabase.from('purchases').select('*, suppliers(name)').order('created_at', { ascending: false });
   const t = $('purchasesTable');
@@ -639,15 +515,8 @@ async function loadPurchases() {
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No purchases yet.</div>'; return; }
   t.innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Supplier</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th><th></th></tr></thead><tbody>${data.map(p => `<tr><td><b>${esc(p.invoice_no || p.id.slice(0,6))}</b></td><td>${esc(p.suppliers?.name || '—')}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td class="num">${fmt(p.total - (p.paid||0))}</td><td><small>${new Date(p.created_at).toLocaleDateString()}</small></td><td><button class="btn btn-ghost btn-sm" onclick="editPurchase('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deletePurchase('${p.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
 }
-window.deletePurchase = async (id) => {
-  if (!confirm('Delete purchase?')) return;
-  await supabase.from('purchases').delete().eq('id', id);
-  toast('Deleted'); loadPurchases();
-};
-window.editPurchase = async (id) => {
-  const { data: p } = await supabase.from('purchases').select('*').eq('id', id).single();
-  if (p) openPurchaseModal(p);
-};
+window.deletePurchase = async (id) => { if (!confirm('Delete purchase?')) return; await supabase.from('purchases').delete().eq('id', id); toast('Deleted'); loadPurchases(); };
+window.editPurchase = async (id) => { const { data: p } = await supabase.from('purchases').select('*').eq('id', id).single(); if (p) openPurchaseModal(p); };
 $('btnNewPurchase').onclick = () => openPurchaseModal();
 
 async function openPurchaseModal(p = null) {
@@ -660,13 +529,8 @@ async function openPurchaseModal(p = null) {
     <div class="field full"><label>Notes</label><textarea id="puNotes">${esc(p?.notes || '')}</textarea></div>
   </div>`;
   openModal(p ? 'Edit Purchase' : 'New Purchase', body, async () => {
-    const payload = {
-      supplier_id: $('puSup').value || null, invoice_no: $('puInv').value.trim() || null,
-      total: Number($('puTotal').value) || 0, paid: Number($('puPaid').value) || 0,
-      notes: $('puNotes').value.trim() || null
-    };
-    if (p) await supabase.from('purchases').update(payload).eq('id', p.id);
-    else await supabase.from('purchases').insert(payload);
+    const payload = { supplier_id: $('puSup').value || null, invoice_no: $('puInv').value.trim() || null, total: Number($('puTotal').value) || 0, paid: Number($('puPaid').value) || 0, notes: $('puNotes').value.trim() || null };
+    if (p) await supabase.from('purchases').update(payload).eq('id', p.id); else await supabase.from('purchases').insert(payload);
     closeModal(); toast('Saved', 'success'); loadPurchases();
   });
 }
@@ -676,72 +540,49 @@ let ALL_CUST = [];
 async function loadCustomers(filter = '') {
   let q = supabase.from('customers').select('*').order('created_at', { ascending: false });
   if (filter) q = q.ilike('name', `%${filter}%`);
-  const { data } = await q;
-  ALL_CUST = data || [];
+  const { data } = await q; ALL_CUST = data || [];
   const t = $('customersTable');
   if (!ALL_CUST.length) { t.innerHTML = '<div class="empty">No customers.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="actions">Actions</th></tr></thead><tbody>
-    ${ALL_CUST.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td>
-      <td class="actions"><button class="btn btn-ghost btn-sm" onclick="editCustomer('${c.id}')">Edit</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button></td></tr>`).join('')}
-  </tbody></table>`;
+  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="actions">Actions</th></tr></thead><tbody>${ALL_CUST.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="editCustomer('${c.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
 }
 $('custSearch')?.addEventListener('input', e => loadCustomers(e.target.value));
 $('btnAddCustomer').onclick = () => openCustomerModal();
 window.editCustomer = (id) => openCustomerModal(ALL_CUST.find(c => c.id === id));
 window.deleteCustomer = async (id) => { if (!confirm('Delete?')) return; await supabase.from('customers').delete().eq('id', id); toast('Deleted'); loadCustomers(); };
-
 function openCustomerModal(c = null) {
-  const body = `<div class="form-grid">
-      <div class="field full"><label>Name *</label><input id="cName" value="${esc(c?.name || '')}"></div>
-      <div class="field"><label>Phone</label><input id="cPhone" value="${esc(c?.phone || '')}"></div>
-      <div class="field"><label>Opening Balance</label><input id="cBal" type="number" value="${c?.opening_balance || 0}"></div>
-      <div class="field full"><label>Address</label><textarea id="cAddr">${esc(c?.address || '')}</textarea></div>
-    </div>`;
+  const body = `<div class="form-grid"><div class="field full"><label>Name *</label><input id="cName" value="${esc(c?.name || '')}"></div><div class="field"><label>Phone</label><input id="cPhone" value="${esc(c?.phone || '')}"></div><div class="field"><label>Opening Balance</label><input id="cBal" type="number" value="${c?.opening_balance || 0}"></div><div class="field full"><label>Address</label><textarea id="cAddr">${esc(c?.address || '')}</textarea></div></div>`;
   openModal(c ? 'Edit Customer' : 'Add Customer', body, async () => {
     const payload = { name: $('cName').value.trim(), phone: $('cPhone').value.trim() || null, address: $('cAddr').value.trim() || null, opening_balance: Number($('cBal').value) || 0 };
     if (!payload.name) throw new Error('Name required');
-    if (c) await supabase.from('customers').update(payload).eq('id', c.id);
-    else await supabase.from('customers').insert(payload);
+    if (c) await supabase.from('customers').update(payload).eq('id', c.id); else await supabase.from('customers').insert(payload);
     toast('Saved', 'success'); closeModal(); loadCustomers();
   });
 }
 
-// --- 13. SUPPLIERS ---
+// --- 13. SUPPLIERS (UPDATED WITH CATEGORY) ---
 let ALL_SUP = [];
 async function loadSuppliers() {
   const { data } = await supabase.from('suppliers').select('*').order('name');
   ALL_SUP = data || [];
   const t = $('suppliersTable');
   if (!ALL_SUP.length) { t.innerHTML = '<div class="empty">No suppliers.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="actions">Actions</th></tr></thead><tbody>
-    ${ALL_SUP.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.phone || '—')}</td><td>${esc(s.address || '—')}</td>
-      <td class="actions"><button class="btn btn-ghost btn-sm" onclick="editSupplier('${s.id}')">Edit</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteSupplier('${s.id}')">Del</button></td></tr>`).join('')}
-  </tbody></table>`;
+  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category (Supplies)</th><th>Phone</th><th>Address</th><th class="actions">Actions</th></tr></thead><tbody>${ALL_SUP.map(s => `<tr><td>${esc(s.name)}</td><td><span class="pill blue">${esc(s.category || 'General')}</span></td><td>${esc(s.phone || '—')}</td><td>${esc(s.address || '—')}</td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="editSupplier('${s.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteSupplier('${s.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
 }
 $('btnAddSupplier').onclick = () => openSupplierModal();
 window.editSupplier = (id) => openSupplierModal(ALL_SUP.find(s => s.id === id));
 window.deleteSupplier = async (id) => { if (!confirm('Delete?')) return; await supabase.from('suppliers').delete().eq('id', id); toast('Deleted'); loadSuppliers(); };
-
 function openSupplierModal(s = null) {
-  const body = `<div class="form-grid">
-      <div class="field full"><label>Name *</label><input id="sName" value="${esc(s?.name || '')}"></div>
-      <div class="field"><label>Phone</label><input id="sPhone" value="${esc(s?.phone || '')}"></div>
-      <div class="field full"><label>Address</label><textarea id="sAddr">${esc(s?.address || '')}</textarea></div>
-    </div>`;
+  const body = `<div class="form-grid"><div class="field full"><label>Name *</label><input id="sName" value="${esc(s?.name || '')}"></div><div class="field"><label>Supplies Category (e.g. Mobile Accessories, Glass)</label><input id="sCategory" value="${esc(s?.category || '')}" placeholder="Mobile Accessories, Glass, Covers"></div><div class="field"><label>Phone</label><input id="sPhone" value="${esc(s?.phone || '')}"></div><div class="field full"><label>Address</label><textarea id="sAddr">${esc(s?.address || '')}</textarea></div></div>`;
   openModal(s ? 'Edit Supplier' : 'Add Supplier', body, async () => {
-    const payload = { name: $('sName').value.trim(), phone: $('sPhone').value.trim() || null, address: $('sAddr').value.trim() || null };
+    const payload = { name: $('sName').value.trim(), category: $('sCategory').value.trim() || null, phone: $('sPhone').value.trim() || null, address: $('sAddr').value.trim() || null };
     if (!payload.name) throw new Error('Name required');
-    if (s) await supabase.from('suppliers').update(payload).eq('id', s.id);
-    else await supabase.from('suppliers').insert(payload);
+    if (s) await supabase.from('suppliers').update(payload).eq('id', s.id); else await supabase.from('suppliers').insert(payload);
     toast('Saved', 'success'); closeModal(); loadSuppliers();
   });
 }
 
-// --- 14. CREDIT / UDHAR ---
+// --- 14. CREDIT / UDHAR (WITH THERMAL PRINT) ---
 async function loadCredit() {
-  // Customer-wise summary
   const [{ data: sales }, { data: recov }] = await Promise.all([
     supabase.from('sales').select('customer_id,customer_name,customer_phone,balance,invoice_no,created_at').gt('balance', 0).order('created_at', { ascending: false }),
     supabase.from('credit_recoveries').select('*, customers(name,phone)').order('created_at', { ascending: false }).limit(100)
@@ -750,127 +591,75 @@ async function loadCredit() {
   (sales || []).forEach(s => {
     const key = s.customer_id || s.customer_name || 'walkin';
     if (!map[key]) map[key] = { name: s.customer_name || 'Walk-in', phone: s.customer_phone, total: 0, count: 0 };
-    map[key].total += Number(s.balance || 0);
-    map[key].count++;
+    map[key].total += Number(s.balance || 0); map[key].count++;
   });
   const summary = Object.values(map).sort((a, b) => b.total - a.total);
-  $('creditSummaryTable').innerHTML = summary.length
-    ? `<table class="data"><thead><tr><th>Customer</th><th>Phone</th><th class="num">Invoices</th><th class="num">Outstanding</th></tr></thead><tbody>${summary.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.phone || '—')}</td><td class="num">${s.count}</td><td class="num"><b>${fmt(s.total)}</b></td></tr>`).join('')}</tbody></table>`
-    : '<div class="empty">No outstanding credit. 🎉</div>';
-
-  // Outstanding invoices
-  $('creditTable').innerHTML = (sales || []).length
-    ? `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Balance</th><th>Date</th><th></th></tr></thead><tbody>${sales.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}<br><small>${esc(s.customer_phone || '')}</small></td><td class="num">${fmt(s.balance)}</td><td><small>${new Date(s.created_at).toLocaleDateString()}</small></td><td><button class="btn btn-primary btn-sm" onclick="recoverCredit('${s.invoice_no}')">Recover</button></td></tr>`).join('')}</tbody></table>`
-    : '<div class="empty">No outstanding invoices.</div>';
-
-  // Recoveries
-  $('recoveriesTable').innerHTML = (recov || []).length
-    ? `<table class="data"><thead><tr><th>Customer</th><th class="num">Amount</th><th>Method</th><th>Date</th></tr></thead><tbody>${recov.map(r => `<tr><td>${esc(r.customers?.name || '—')}</td><td class="num">${fmt(r.amount)}</td><td>${esc(r.method || 'cash')}</td><td><small>${new Date(r.created_at).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>`
-    : '<div class="empty">No recoveries yet.</div>';
+  $('creditSummaryTable').innerHTML = summary.length ? `<table class="data"><thead><tr><th>Customer</th><th>Phone</th><th class="num">Invoices</th><th class="num">Outstanding</th></tr></thead><tbody>${summary.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.phone || '—')}</td><td class="num">${s.count}</td><td class="num"><b>${fmt(s.total)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding credit. 🎉</div>';
+  $('creditTable').innerHTML = (sales || []).length ? `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Balance</th><th>Date</th><th></th></tr></thead><tbody>${sales.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}<br><small>${esc(s.customer_phone || '')}</small></td><td class="num">${fmt(s.balance)}</td><td><small>${new Date(s.created_at).toLocaleDateString()}</small></td><td><button class="btn btn-primary btn-sm" onclick="recoverCredit('${s.invoice_no}')">Recover</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding invoices.</div>';
+  $('recoveriesTable').innerHTML = (recov || []).length ? `<table class="data"><thead><tr><th>Customer</th><th class="num">Amount</th><th>Method</th><th>Date</th></tr></thead><tbody>${recov.map(r => `<tr><td>${esc(r.customers?.name || '—')}</td><td class="num">${fmt(r.amount)}</td><td>${esc(r.method || 'cash')}</td><td><small>${new Date(r.created_at).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No recoveries yet.</div>';
 }
 window.recoverCredit = async (invoice) => {
   const amountStr = prompt(`Recovery amount for invoice ${invoice}:`, '');
-  if (!amountStr) return;
-  const amount = Number(amountStr);
-  if (!amount || amount <= 0) return toast('Invalid amount', 'error');
+  if (!amountStr) return; const amount = Number(amountStr); if (!amount || amount <= 0) return toast('Invalid amount', 'error');
   const { data: s } = await supabase.from('sales').select('*').eq('invoice_no', invoice).single();
   if (!s) return toast('Invoice not found', 'error');
-  const newPaid = Number(s.paid || 0) + amount;
-  const newBal = Math.max(0, Number(s.total || 0) - newPaid);
+  const newPaid = Number(s.paid || 0) + amount; const newBal = Math.max(0, Number(s.total || 0) - newPaid);
   const { error: ue } = await supabase.from('sales').update({ paid: newPaid, balance: newBal }).eq('id', s.id);
   if (ue) return toast(ue.message, 'error');
   await supabase.from('credit_recoveries').insert({ customer_id: s.customer_id, sale_id: s.id, invoice_no: invoice, amount, method: 'cash' });
   toast('Recovery recorded', 'success'); loadCredit();
 };
 $('btnPrintCreditAll').onclick = () => {
-  const rows = $('creditSummaryTable').querySelectorAll('tbody tr');
-  if (!rows.length) return toast('Nothing to print', 'error');
-  const w = window.open('', '_blank');
-  w.document.write(`<html><head><title>Udhar Report</title><style>body{font-family:Arial;padding:20px}h1{font-size:18px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:6px;text-align:left}th{background:#f0f0f0}</style></head><body><h1>${SHOP_INFO.name} — Udhar Report</h1><p>${SHOP_INFO.address} · ${SHOP_INFO.phone1}</p>${$('creditSummaryTable').innerHTML}</body></html>`);
-  w.document.close(); w.print();
+  const rows = $('creditSummaryTable').querySelectorAll('tbody tr'); if (!rows.length) return toast('Nothing to print', 'error');
+  const printOpt = confirm('Print Thermal Report (OK) ya A4 Premium (Cancel)?');
+  if (printOpt) {
+    let html = '<h2>BM MOBILE ZONE</h2><div class="sub">Udhar Report</div><hr><table><thead><tr><th>Customer</th><th style="text-align:right">Amount</th></tr></thead><tbody>';
+    rows.forEach(r => { const cols = r.querySelectorAll('td'); html += `<tr><td>${cols[0].innerText}</td><td style="text-align:right">${cols[3].innerText}</td></tr>`; });
+    html += '</tbody></table><hr><div class="center">Made by MS.Tech</div>';
+    const w = window.open('', '_blank'); w.document.write(`<html><head><style>body{font-family:'Courier New',monospace;font-weight:bold;padding:10px;font-size:12px}table{width:100%}th{text-align:left;border-bottom:2px dashed #000}td{padding:2px 0;border-bottom:1px dashed #ccc}.center{text-align:center;margin-top:10px}</style></head><body>${html}<script>window.print();setTimeout(()=>window.close(),500);<\/script></body></html>`); w.document.close();
+  } else {
+    printA4Premium({ invoice: 'UDHAR-ALL', customer: 'All Customers', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from(rows).map(r => { const cols = r.querySelectorAll('td'); return { description: cols[0].innerText, price: 0, qty: 1, total: Number(cols[3].innerText.replace(/[^0-9]/g, '')) }; }) });
+  }
 };
 
 // --- 15. EXPENSES ---
 const EXPENSE_CATEGORIES = ['Rent', 'Utilities', 'Salary', 'Transport', 'Repair Parts', 'Tea/Food', 'Marketing', 'Other'];
 async function loadExpenses() {
-  // Filter selects
-  const catSel = $('expFilterCat');
-  if (catSel && catSel.options.length <= 1) catSel.innerHTML = '<option value="">All</option>' + EXPENSE_CATEGORIES.map(c => `<option>${c}</option>`).join('');
-
-  const from = $('expFilterFrom')?.value || '';
-  const to = $('expFilterTo')?.value || '';
-  const cat = $('expFilterCat')?.value || '';
+  const catSel = $('expFilterCat'); if (catSel && catSel.options.length <= 1) catSel.innerHTML = '<option value="">All</option>' + EXPENSE_CATEGORIES.map(c => `<option>${c}</option>`).join('');
+  const from = $('expFilterFrom')?.value || ''; const to = $('expFilterTo')?.value || ''; const cat = $('expFilterCat')?.value || '';
   let q = supabase.from('expenses').select('*').order('expense_date', { ascending: false }).order('created_at', { ascending: false });
-  if (from) q = q.gte('expense_date', from);
-  if (to) q = q.lte('expense_date', to);
-  if (cat) q = q.eq('category', cat);
-  const { data, error } = await q;
-  const t = $('expensesTable');
+  if (from) q = q.gte('expense_date', from); if (to) q = q.lte('expense_date', to); if (cat) q = q.eq('category', cat);
+  const { data, error } = await q; const t = $('expensesTable');
   if (error) { t.innerHTML = `<div class="empty">Expenses table not installed: ${esc(error.message)}</div>`; return; }
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No expenses.</div>'; }
   else t.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th><th></th></tr></thead><tbody>${data.map(e => `<tr><td>${esc(e.expense_date)}</td><td><span class="pill orange">${esc(e.category || 'Other')}</span></td><td>${esc(e.description || '—')}</td><td class="num">${fmt(e.amount)}</td><td><button class="btn btn-danger btn-sm" onclick="deleteExpense('${e.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
-
-  // Stats
-  const all = data || [];
-  const today = new Date().toISOString().slice(0, 10);
-  const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
-  const sum = arr => arr.reduce((s, x) => s + Number(x.amount || 0), 0);
-  $('expToday').textContent = fmt(sum(all.filter(x => x.expense_date === today)));
-  $('expWeek').textContent = fmt(sum(all.filter(x => x.expense_date >= weekStart.toISOString().slice(0, 10))));
-  $('expMonth').textContent = fmt(sum(all.filter(x => x.expense_date >= monthStart)));
-  $('expTotal').textContent = fmt(sum(all));
+  const all = data || []; const today = new Date().toISOString().slice(0, 10); const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - weekStart.getDay()); const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10); const sum = arr => arr.reduce((s, x) => s + Number(x.amount || 0), 0);
+  $('expToday').textContent = fmt(sum(all.filter(x => x.expense_date === today))); $('expWeek').textContent = fmt(sum(all.filter(x => x.expense_date >= weekStart.toISOString().slice(0, 10)))); $('expMonth').textContent = fmt(sum(all.filter(x => x.expense_date >= monthStart))); $('expTotal').textContent = fmt(sum(all));
 }
 $('btnAddExpense').onclick = () => {
-  const body = `<div class="form-grid">
-    <div class="field"><label>Date *</label><input type="date" id="exDate" value="${new Date().toISOString().slice(0,10)}"></div>
-    <div class="field"><label>Category</label><select id="exCat">${EXPENSE_CATEGORIES.map(c => `<option>${c}</option>`).join('')}</select></div>
-    <div class="field"><label>Amount (PKR) *</label><input type="number" id="exAmount" value="0"></div>
-    <div class="field full"><label>Description</label><input id="exDesc"></div>
-  </div>`;
-  openModal('Add Expense', body, async () => {
-    const amount = Number($('exAmount').value) || 0;
-    if (amount <= 0) throw new Error('Amount must be > 0');
-    await supabase.from('expenses').insert({ expense_date: $('exDate').value, category: $('exCat').value, amount, description: $('exDesc').value.trim() || null });
-    closeModal(); toast('Expense added', 'success'); loadExpenses(); loadOverview();
-  });
+  const body = `<div class="form-grid"><div class="field"><label>Date *</label><input type="date" id="exDate" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>Category</label><select id="exCat">${EXPENSE_CATEGORIES.map(c => `<option>${c}</option>`).join('')}</select></div><div class="field"><label>Amount (PKR) *</label><input type="number" id="exAmount" value="0"></div><div class="field full"><label>Description</label><input id="exDesc"></div></div>`;
+  openModal('Add Expense', body, async () => { const amount = Number($('exAmount').value) || 0; if (amount <= 0) throw new Error('Amount must be > 0'); await supabase.from('expenses').insert({ expense_date: $('exDate').value, category: $('exCat').value, amount, description: $('exDesc').value.trim() || null }); closeModal(); toast('Expense added', 'success'); loadExpenses(); loadOverview(); });
 };
 window.deleteExpense = async (id) => { if (!confirm('Delete expense?')) return; await supabase.from('expenses').delete().eq('id', id); toast('Deleted'); loadExpenses(); };
 $('btnFilterExpenses').onclick = () => loadExpenses();
 
-// --- 16. PROFIT & LOSS ---
+// --- 16. PROFIT & LOSS (WITH A4 PRINT) ---
 $('btnRunPL').onclick = runPL;
-$('btnPrintPL').onclick = () => { const w = window.open('', '_blank'); w.document.write(`<html><head><title>P&L</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:6px}th{background:#eee}</style></head><body><h1>${SHOP_INFO.name} — Profit & Loss (Item-wise)</h1>${$('plTable').innerHTML}</body></html>`); w.document.close(); w.print(); };
+$('btnPrintPL').onclick = () => { const printOpt = confirm('Print Thermal Report (OK) ya A4 Premium (Cancel)?'); if (printOpt) { printThermal80mm({ invoice: 'P&L', customer: 'Item-wise Report', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('plTable').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { name: c[0].innerText, qty: c[1].innerText, total: c[4].innerText }; }) }); } else { printA4Premium({ invoice: 'P&L', customer: 'Profit & Loss Report', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('plTable').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0].innerText, price: 0, qty: c[1].innerText, total: c[4].innerText }; }) }); } };
 
 async function runPL() {
-  const from = $('plFrom').value;
-  const to = $('plTo').value;
+  const from = $('plFrom').value; const to = $('plTo').value;
   let q = supabase.from('sale_items').select('product_id,product_name,quantity,unit_price,line_total,created_at');
-  if (from) q = q.gte('created_at', from);
-  if (to) q = q.lte('created_at', to + 'T23:59:59');
-  const { data: items, error } = await q;
-  if (error) { $('plTable').innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
+  const { data: items, error } = await q; if (error) { $('plTable').innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
   const { data: prods } = await supabase.from('products').select('id,purchase_price');
   const costMap = Object.fromEntries((prods || []).map(p => [p.id, Number(p.purchase_price || 0)]));
   const map = {};
-  (items || []).forEach(it => {
-    const key = it.product_id || it.product_name;
-    if (!map[key]) map[key] = { name: it.product_name, qty: 0, revenue: 0, cost: 0 };
-    map[key].qty += Number(it.quantity || 0);
-    map[key].revenue += Number(it.line_total || 0);
-    map[key].cost += Number(it.quantity || 0) * (costMap[it.product_id] || 0);
-  });
+  (items || []).forEach(it => { const key = it.product_id || it.product_name; if (!map[key]) map[key] = { name: it.product_name, qty: 0, revenue: 0, cost: 0 }; map[key].qty += Number(it.quantity || 0); map[key].revenue += Number(it.line_total || 0); map[key].cost += Number(it.quantity || 0) * (costMap[it.product_id] || 0); });
   const rows = Object.values(map).map(r => ({ ...r, profit: r.revenue - r.cost }));
-  const totalRev = rows.reduce((s, r) => s + r.revenue, 0);
-  const totalCost = rows.reduce((s, r) => s + r.cost, 0);
-  const totalProfit = totalRev - totalCost;
-  $('plSummary').innerHTML = `
-    <div class="stat clay"><div class="stat-icon green">↗</div><div><strong>${fmt(totalRev)}</strong><small>Total Revenue</small></div></div>
-    <div class="stat clay"><div class="stat-icon orange">↙</div><div><strong>${fmt(totalCost)}</strong><small>Total Cost</small></div></div>
-    <div class="stat clay"><div class="stat-icon purple">▨</div><div><strong>${fmt(totalProfit)}</strong><small>Gross Profit</small></div></div>`;
-  $('plTable').innerHTML = rows.length
-    ? `<table class="data"><thead><tr><th>Product</th><th class="num">Qty Sold</th><th class="num">Revenue</th><th class="num">Cost</th><th class="num">Profit</th></tr></thead><tbody>${rows.sort((a,b)=>b.profit-a.profit).map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.qty}</td><td class="num">${fmt(r.revenue)}</td><td class="num">${fmt(r.cost)}</td><td class="num" style="color:${r.profit>=0?'#22a06b':'#dc2626'}"><b>${fmt(r.profit)}</b></td></tr>`).join('')}</tbody></table>`
-    : '<div class="empty">No sales in this period.</div>';
+  const totalRev = rows.reduce((s, r) => s + r.revenue, 0); const totalCost = rows.reduce((s, r) => s + r.cost, 0); const totalProfit = totalRev - totalCost;
+  $('plSummary').innerHTML = `<div class="stat clay"><div class="stat-icon green">↗</div><div><strong>${fmt(totalRev)}</strong><small>Total Revenue</small></div></div><div class="stat clay"><div class="stat-icon orange">↙</div><div><strong>${fmt(totalCost)}</strong><small>Total Cost</small></div></div><div class="stat clay"><div class="stat-icon purple">▨</div><div><strong>${fmt(totalProfit)}</strong><small>Gross Profit</small></div></div>`;
+  $('plTable').innerHTML = rows.length ? `<table class="data"><thead><tr><th>Product</th><th class="num">Qty Sold</th><th class="num">Revenue</th><th class="num">Cost</th><th class="num">Profit</th></tr></thead><tbody>${rows.sort((a,b)=>b.profit-a.profit).map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.qty}</td><td class="num">${fmt(r.revenue)}</td><td class="num">${fmt(r.cost)}</td><td class="num" style="color:${r.profit>=0?'#22a06b':'#dc2626'}"><b>${fmt(r.profit)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No sales in this period.</div>';
 }
 
 // --- 17. TRANSACTIONS ---
@@ -881,88 +670,47 @@ async function loadTransactions() {
     supabase.from('expenses').select('*').order('created_at', { ascending: false }).limit(100),
     supabase.from('credit_recoveries').select('*').order('created_at', { ascending: false }).limit(100)
   ]);
-  const tx = [
-    ...(salesR.data || []).map(s => ({ date: s.created_at, type: 'SALE', desc: `${s.invoice_no} — ${s.customer_name || 'Walk-in'}`, in: Number(s.paid || 0), out: 0 })),
-    ...(purchR.data || []).map(p => ({ date: p.created_at, type: 'PURCHASE', desc: p.invoice_no || 'Purchase', in: 0, out: Number(p.paid || 0) })),
-    ...(expR.data || []).map(e => ({ date: e.created_at, type: 'EXPENSE', desc: `${e.category || 'Expense'} — ${e.description || ''}`, in: 0, out: Number(e.amount || 0) })),
-    ...(recovR.data || []).map(r => ({ date: r.created_at, type: 'RECOVERY', desc: `Recovery — ${r.invoice_no || ''}`, in: Number(r.amount || 0), out: 0 }))
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
-  $('transactionsTable').innerHTML = tx.length
-    ? `<table class="data"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="num">In</th><th class="num">Out</th></tr></thead><tbody>${tx.map(t => `<tr><td><small>${new Date(t.date).toLocaleString()}</small></td><td><span class="pill ${t.type === 'SALE' || t.type === 'RECOVERY' ? 'green' : 'orange'}">${t.type}</span></td><td>${esc(t.desc)}</td><td class="num" style="color:#22a06b">${t.in ? fmt(t.in) : '—'}</td><td class="num" style="color:#dc2626">${t.out ? fmt(t.out) : '—'}</td></tr>`).join('')}</tbody></table>`
-    : '<div class="empty">No transactions.</div>';
+  const tx = [...(salesR.data || []).map(s => ({ date: s.created_at, type: 'SALE', desc: `${s.invoice_no} — ${s.customer_name || 'Walk-in'}`, in: Number(s.paid || 0), out: 0 })), ...(purchR.data || []).map(p => ({ date: p.created_at, type: 'PURCHASE', desc: p.invoice_no || 'Purchase', in: 0, out: Number(p.paid || 0) })), ...(expR.data || []).map(e => ({ date: e.created_at, type: 'EXPENSE', desc: `${e.category || 'Expense'} — ${e.description || ''}`, in: 0, out: Number(e.amount || 0) })), ...(recovR.data || []).map(r => ({ date: r.created_at, type: 'RECOVERY', desc: `Recovery — ${r.invoice_no || ''}`, in: Number(r.amount || 0), out: 0 }))].sort((a, b) => new Date(b.date) - new Date(a.date));
+  $('transactionsTable').innerHTML = tx.length ? `<table class="data"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="num">In</th><th class="num">Out</th></tr></thead><tbody>${tx.map(t => `<tr><td><small>${new Date(t.date).toLocaleString()}</small></td><td><span class="pill ${t.type === 'SALE' || t.type === 'RECOVERY' ? 'green' : 'orange'}">${t.type}</span></td><td>${esc(t.desc)}</td><td class="num" style="color:#22a06b">${t.in ? fmt(t.in) : '—'}</td><td class="num" style="color:#dc2626">${t.out ? fmt(t.out) : '—'}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">No transactions.</div>';
 }
 
-// --- 18. REPORTS ---
+// --- 18. REPORTS (WITH A4 PRINT) ---
 $('btnRunReport').onclick = runReport;
-$('btnPrintReport').onclick = () => { const w = window.open('', '_blank'); w.document.write(`<html><head><title>Report</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #ccc;padding:6px}th{background:#eee}</style></head><body><h1>${SHOP_INFO.name} — Report</h1>${$('reportOutput').innerHTML}</body></html>`); w.document.close(); w.print(); };
+$('btnPrintReport').onclick = () => { const printOpt = confirm('Print Thermal (OK) ya A4 Premium (Cancel)?'); if (printOpt) { printThermal80mm({ invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { name: c[0]?.innerText + ' ' + (c[1]?.innerText||''), qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) }); } else { printA4Premium({ invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0]?.innerText + ' ' + (c[1]?.innerText||''), price: 0, qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) }); } };
 
 async function runReport() {
-  const type = $('reportType').value;
-  let from = $('reportFrom').value;
-  let to = $('reportTo').value;
-  if (!from || !to) {
-    const now = new Date();
-    if ($('reportPeriod').value === 'daily') { from = to = now.toISOString().slice(0, 10); }
-    else if ($('reportPeriod').value === 'weekly') { const w = new Date(); w.setDate(w.getDate() - 7); from = w.toISOString().slice(0, 10); to = now.toISOString().slice(0, 10); }
-    else if ($('reportPeriod').value === 'monthly') { from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10); to = now.toISOString().slice(0, 10); }
-  }
-  const out = $('reportOutput');
-  out.innerHTML = '<div class="empty">Loading…</div>';
+  const type = $('reportType').value; let from = $('reportFrom').value; let to = $('reportTo').value;
+  if (!from || !to) { const now = new Date(); if ($('reportPeriod').value === 'daily') { from = to = now.toISOString().slice(0, 10); } else if ($('reportPeriod').value === 'weekly') { const w = new Date(); w.setDate(w.getDate() - 7); from = w.toISOString().slice(0, 10); to = now.toISOString().slice(0, 10); } else if ($('reportPeriod').value === 'monthly') { from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10); to = now.toISOString().slice(0, 10); } }
+  const out = $('reportOutput'); out.innerHTML = '<div class="empty">Loading…</div>';
   try {
     if (type === 'sales') {
-      let q = supabase.from('sales').select('*').order('created_at', { ascending: false });
-      if (from) q = q.gte('created_at', from);
-      if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      const total = (data || []).reduce((s, r) => s + Number(r.total || 0), 0);
+      let q = supabase.from('sales').select('*').order('created_at', { ascending: false }); if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
+      const { data } = await q; const total = (data || []).reduce((s, r) => s + Number(r.total || 0), 0);
       out.innerHTML = `<h3 style="margin-bottom:12px">Sales Report — ${esc(from)} to ${esc(to)} (Total: ${fmt(total)})</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>${(data || []).map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
     } else if (type === 'purchases') {
-      let q = supabase.from('purchases').select('*').order('created_at', { ascending: false });
-      if (from) q = q.gte('created_at', from);
-      if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      out.innerHTML = `<h3 style="margin-bottom:12px">Purchase Report</h3><table class="data"><thead><tr><th>Invoice</th><th class="num">Total</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${(data || []).map(p => `<tr><td>${esc(p.invoice_no || '—')}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
+      let q = supabase.from('purchases').select('*').order('created_at', { ascending: false }); if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
+      const { data } = await q; out.innerHTML = `<h3 style="margin-bottom:12px">Purchase Report</h3><table class="data"><thead><tr><th>Invoice</th><th class="num">Total</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${(data || []).map(p => `<tr><td>${esc(p.invoice_no || '—')}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
     } else if (type === 'credit') {
-      const { data } = await supabase.from('sales').select('*').gt('balance', 0);
-      out.innerHTML = `<h3 style="margin-bottom:12px">Credit Report</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Balance</th></tr></thead><tbody>${(data || []).map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || '—')}</td><td class="num">${fmt(s.balance)}</td></tr>`).join('')}</tbody></table>`;
+      const { data } = await supabase.from('sales').select('*').gt('balance', 0); out.innerHTML = `<h3 style="margin-bottom:12px">Credit Report</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Balance</th></tr></thead><tbody>${(data || []).map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || '—')}</td><td class="num">${fmt(s.balance)}</td></tr>`).join('')}</tbody></table>`;
     } else if (type === 'expenses') {
-      let q = supabase.from('expenses').select('*').order('expense_date', { ascending: false });
-      if (from) q = q.gte('expense_date', from);
-      if (to) q = q.lte('expense_date', to);
-      const { data } = await q;
-      out.innerHTML = `<h3 style="margin-bottom:12px">Expense Report</h3><table class="data"><thead><tr><th>Date</th><th>Category</th><th class="num">Amount</th></tr></thead><tbody>${(data || []).map(e => `<tr><td>${esc(e.expense_date)}</td><td>${esc(e.category || '')}</td><td class="num">${fmt(e.amount)}</td></tr>`).join('')}</tbody></table>`;
+      let q = supabase.from('expenses').select('*').order('expense_date', { ascending: false }); if (from) q = q.gte('expense_date', from); if (to) q = q.lte('expense_date', to);
+      const { data } = await q; out.innerHTML = `<h3 style="margin-bottom:12px">Expense Report</h3><table class="data"><thead><tr><th>Date</th><th>Category</th><th class="num">Amount</th></tr></thead><tbody>${(data || []).map(e => `<tr><td>${esc(e.expense_date)}</td><td>${esc(e.category || '')}</td><td class="num">${fmt(e.amount)}</td></tr>`).join('')}</tbody></table>`;
     } else if (type === 'customer') {
-      const { data } = await supabase.from('customers').select('*');
-      out.innerHTML = `<h3 style="margin-bottom:12px">Customer Report</h3><table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th></tr></thead><tbody>${(data || []).map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td></tr>`).join('')}</tbody></table>`;
+      const { data } = await supabase.from('customers').select('*'); out.innerHTML = `<h3 style="margin-bottom:12px">Customer Report</h3><table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th></tr></thead><tbody>${(data || []).map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td></tr>`).join('')}</tbody></table>`;
     } else if (type === 'repairing') {
-      const { data } = await supabase.from('repairs').select('*');
-      out.innerHTML = `<h3 style="margin-bottom:12px">Repairing Report</h3><table class="data"><thead><tr><th>Slip</th><th>Customer</th><th class="num">Charge</th><th class="num">Advance</th><th>Status</th></tr></thead><tbody>${(data || []).map(r => `<tr><td>${esc(r.slip_no || '')}</td><td>${esc(r.customer_name)}</td><td class="num">${fmt(r.charge)}</td><td class="num">${fmt(r.advance)}</td><td>${esc(r.status)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'pl') {
-      await runPL();
-      out.innerHTML = $('plTable').innerHTML;
-    }
+      const { data } = await supabase.from('repairs').select('*'); out.innerHTML = `<h3 style="margin-bottom:12px">Repairing Report</h3><table class="data"><thead><tr><th>Slip</th><th>Customer</th><th class="num">Charge</th><th class="num">Advance</th><th>Status</th></tr></thead><tbody>${(data || []).map(r => `<tr><td>${esc(r.slip_no || '')}</td><td>${esc(r.customer_name)}</td><td class="num">${fmt(r.charge)}</td><td class="num">${fmt(r.advance)}</td><td>${esc(r.status)}</td></tr>`).join('')}</tbody></table>`;
+    } else if (type === 'pl') { await runPL(); out.innerHTML = $('plTable').innerHTML; }
   } catch (e) { out.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
 
 // --- 19. SETTINGS ---
 async function loadSettings() {
   const { data } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
-  $('setShopName').value = data?.shop_name || SHOP_INFO.name;
-  $('setOwner').value = data?.owner_name || '';
-  $('setAddress').value = data?.address || SHOP_INFO.address;
-  $('setPhone').value = data?.phone || SHOP_INFO.phone1;
-  $('setCurrency').value = data?.currency || 'PKR';
-  $('setFooter').value = data?.footer_text || 'Powered by MS.TECH';
+  $('setShopName').value = data?.shop_name || SHOP_INFO.name; $('setOwner').value = data?.owner_name || ''; $('setAddress').value = data?.address || SHOP_INFO.address; $('setPhone').value = data?.phone || SHOP_INFO.phone1; $('setCurrency').value = data?.currency || 'PKR'; $('setFooter').value = data?.footer_text || 'Powered by MS.TECH';
 }
 $('btnSaveSettings').onclick = async () => {
-  const payload = {
-    id: 1, shop_name: $('setShopName').value.trim(), owner_name: $('setOwner').value.trim(),
-    address: $('setAddress').value.trim(), phone: $('setPhone').value.trim(),
-    currency: $('setCurrency').value.trim() || 'PKR', footer_text: $('setFooter').value.trim()
-  };
-  const { error } = await supabase.from('settings').upsert(payload);
-  if (error) return toast(error.message, 'error');
-  toast('Settings saved', 'success');
+  const payload = { id: 1, shop_name: $('setShopName').value.trim(), owner_name: $('setOwner').value.trim(), address: $('setAddress').value.trim(), phone: $('setPhone').value.trim(), currency: $('setCurrency').value.trim() || 'PKR', footer_text: $('setFooter').value.trim() };
+  const { error } = await supabase.from('settings').upsert(payload); if (error) return toast(error.message, 'error'); toast('Settings saved', 'success');
 };
 
 // INITIAL LOAD
