@@ -486,32 +486,112 @@ window.reprintSale = async (id) => {
   });
 };
 
-// --- 10. REPAIRING ---
+// --- 10. REPAIRING (FULL WORKING) ---
 async function loadRepairs() {
-  const q = $('repairSearch')?.value?.trim() || '';
+  const q  = $('repairSearch')?.value?.trim() || '';
   const st = $('repairStatusFilter')?.value || '';
   let query = supabase.from('repairs').select('*').order('created_at', { ascending: false });
   if (st) query = query.eq('status', st);
-  if (q) query = query.or(`customer_name.ilike.%${q}%,mobile.ilike.%${q}%,imei.ilike.%${q}%`);
+  if (q)  query = query.or(`customer_name.ilike.%${q}%,phone.ilike.%${q}%,mobile.ilike.%${q}%,imei.ilike.%${q}%,slip_no.ilike.%${q}%`);
   const { data, error } = await query;
   const t = $('repairsTable');
-  if (error) { t.innerHTML = `<div class="empty">Repairs table not installed: ${esc(error.message)}</div>`; return; }
+  if (error) { t.innerHTML = `<div class="empty">Error: ${esc(error.message)}</div>`; return; }
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No repair jobs.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Slip#</th><th>Customer</th><th>Mobile</th><th>Issue</th><th class="num">Charge</th><th class="num">Advance</th><th class="num">Due</th><th>Status</th><th></th></tr></thead><tbody>${data.map(r => `<tr><td><b>${esc(r.slip_no || r.id.slice(0,6))}</b></td><td>${esc(r.customer_name)}<br><small>${esc(r.phone || '')}</small></td><td>${esc(r.mobile || '')}<br><small>${esc(r.imei || '')}</small></td><td><small>${esc(r.issue || '')}</small></td><td class="num">${fmt(r.charge)}</td><td class="num">${fmt(r.advance)}</td><td class="num">${fmt((r.charge||0)-(r.advance||0))}</td><td><span class="pill ${r.status === 'Delivered' ? 'green' : r.status === 'Ready' ? 'orange' : ''}">${esc(r.status)}</span></td><td><button class="btn btn-ghost btn-sm" onclick="editRepair('${r.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteRepair('${r.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
+  t.innerHTML = `<table class="data">
+    <thead><tr>
+      <th>Slip#</th><th>Customer</th><th>Mobile / IMEI</th><th>Issue</th>
+      <th class="num">Charge</th><th class="num">Advance</th><th class="num">Due</th>
+      <th>Status</th><th>Date</th><th></th>
+    </tr></thead>
+    <tbody>
+    ${data.map(r => {
+      const due = Number(r.charge || 0) - Number(r.advance || 0);
+      const pillClass = r.status === 'Delivered' ? 'green' : r.status === 'Ready' ? 'orange' : r.status === 'In Progress' ? 'orange' : '';
+      return `<tr>
+        <td><b>${esc(r.slip_no || '—')}</b></td>
+        <td>${esc(r.customer_name)}<br><small>${esc(r.phone || '')}</small></td>
+        <td>${esc(r.mobile || '—')}<br><small>${esc(r.imei || '')}</small></td>
+        <td><small>${esc(r.issue || '—')}</small></td>
+        <td class="num">${fmt(r.charge)}</td>
+        <td class="num">${fmt(r.advance)}</td>
+        <td class="num">${due > 0 ? `<b style="color:#dc2626">${fmt(due)}</b>` : '<span class="pill green">Paid</span>'}</td>
+        <td><span class="pill ${pillClass}">${esc(r.status)}</span></td>
+        <td><small>${new Date(r.created_at).toLocaleDateString()}</small></td>
+        <td class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="viewRepair('${r.id}')">View</button>
+          <button class="btn btn-ghost btn-sm" onclick="editRepair('${r.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteRepair('${r.id}')">Del</button>
+        </td>
+      </tr>`;
+    }).join('')}
+    </tbody></table>`;
 }
 $('repairSearch')?.addEventListener('input', () => loadRepairs());
 $('repairStatusFilter')?.addEventListener('change', () => loadRepairs());
 
+// Add new
 $('btnAddRepair').onclick = () => openRepairModal();
+
+// Edit
 window.editRepair = async (id) => {
   const { data: r } = await supabase.from('repairs').select('*').eq('id', id).single();
   if (r) openRepairModal(r);
 };
+
+// Delete
 window.deleteRepair = async (id) => {
-  if (!confirm('Delete repair slip?')) return;
-  await supabase.from('repairs').delete().eq('id', id);
-  toast('Deleted'); loadRepairs();
+  if (!confirm('Delete this repair slip?')) return;
+  const { error } = await supabase.from('repairs').delete().eq('id', id);
+  if (error) return toast(error.message, 'error');
+  toast('Repair slip deleted'); loadRepairs();
 };
+
+// View / Print receipt
+window.viewRepair = async (id) => {
+  const { data: r } = await supabase.from('repairs').select('*').eq('id', id).single();
+  if (!r) return toast('Not found', 'error');
+  printRepairReceipt(r);
+};
+
+function printRepairReceipt(r) {
+  const due = Number(r.charge || 0) - Number(r.advance || 0);
+  const w = window.open('', '_blank', 'width=340,height=640');
+  if (!w) return toast('Popup blocked', 'error');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Repair Slip</title>
+  <style>
+    @page { size: 80mm auto; margin: 4mm; }
+    body { font-family: 'Courier New', monospace; font-size: 11px; width: 72mm; margin: 0 auto; }
+    h2 { text-align: center; margin: 0; font-size: 15px; }
+    .sub { text-align: center; font-size: 9px; margin: 2px 0; }
+    hr { border: none; border-top: 1px dashed #000; margin: 6px 0; }
+    .row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; }
+    .grand { font-weight: bold; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px 0; }
+    .center { text-align: center; }
+  </style></head><body>
+    <h2>${esc(SHOP_INFO.name)}</h2>
+    <div class="sub">${esc(SHOP_INFO.address)}</div>
+    <div class="sub">Ph: ${esc(SHOP_INFO.phone1)}</div>
+    <hr>
+    <div class="row"><span>Slip#</span><b>${esc(r.slip_no || '')}</b></div>
+    <div class="row"><span>Date</span><span>${new Date(r.created_at).toLocaleString('en-PK')}</span></div>
+    <div class="row"><span>Customer</span><span>${esc(r.customer_name)}</span></div>
+    <div class="row"><span>Phone</span><span>${esc(r.phone || '—')}</span></div>
+    <hr>
+    <div class="row"><span>Mobile</span><span>${esc(r.mobile || '—')}</span></div>
+    <div class="row"><span>IMEI</span><span>${esc(r.imei || '—')}</span></div>
+    <div class="row"><span>Issue</span><span>${esc(r.issue || '—')}</span></div>
+    <hr>
+    <div class="row"><span>Charge</span><span>PKR ${Number(r.charge||0).toLocaleString()}</span></div>
+    <div class="row"><span>Advance</span><span>PKR ${Number(r.advance||0).toLocaleString()}</span></div>
+    <div class="row grand"><span>Due</span><span>PKR ${due.toLocaleString()}</span></div>
+    <div class="row"><span>Status</span><span>${esc(r.status)}</span></div>
+    <hr>
+    <div class="center" style="font-size:10px;margin-top:8px">Shukriya!</div>
+    <div class="center" style="font-size:9px">Powered by MS.TECH</div>
+    <script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script>
+  </body></html>`);
+  w.document.close();
+}
 
 function openRepairModal(r = null) {
   const body = `<div class="form-grid">
@@ -519,25 +599,38 @@ function openRepairModal(r = null) {
     <div class="field"><label>Phone</label><input id="rPhone" value="${esc(r?.phone || '')}"></div>
     <div class="field"><label>Mobile Model</label><input id="rMobile" value="${esc(r?.mobile || '')}"></div>
     <div class="field"><label>IMEI</label><input id="rImei" value="${esc(r?.imei || '')}"></div>
-    <div class="field full"><label>Issue / Problem</label><textarea id="rIssue">${esc(r?.issue || '')}</textarea></div>
+    <div class="field full"><label>Issue / Problem</label><textarea id="rIssue" rows="2">${esc(r?.issue || '')}</textarea></div>
     <div class="field"><label>Charge (PKR)</label><input id="rCharge" type="number" value="${r?.charge || 0}"></div>
     <div class="field"><label>Advance (PKR)</label><input id="rAdvance" type="number" value="${r?.advance || 0}"></div>
-    <div class="field"><label>Status</label><select id="rStatus">${['Received','In Progress','Ready','Delivered'].map(s => `<option ${r?.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
+    <div class="field"><label>Status</label>
+      <select id="rStatus">
+        ${['Received','In Progress','Ready','Delivered'].map(s => `<option ${r?.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="field full"><label>Notes</label><textarea id="rNotes" rows="2">${esc(r?.notes || '')}</textarea></div>
   </div>`;
   openModal(r ? 'Edit Repair Slip' : 'New Repair Slip', body, async () => {
     const payload = {
-      customer_name: $('rCust').value.trim(), phone: $('rPhone').value.trim() || null,
-      mobile: $('rMobile').value.trim() || null, imei: $('rImei').value.trim() || null,
-      issue: $('rIssue').value.trim() || null, charge: Number($('rCharge').value) || 0,
-      advance: Number($('rAdvance').value) || 0, status: $('rStatus').value
+      customer_name: $('rCust').value.trim(),
+      phone:   $('rPhone').value.trim()   || null,
+      mobile:  $('rMobile').value.trim()  || null,
+      imei:    $('rImei').value.trim()    || null,
+      issue:   $('rIssue').value.trim()   || null,
+      charge:  Number($('rCharge').value)  || 0,
+      advance: Number($('rAdvance').value) || 0,
+      status:  $('rStatus').value,
+      notes:   $('rNotes').value.trim()   || null
     };
     if (!payload.customer_name) throw new Error('Customer name required');
-    if (r) await supabase.from('repairs').update(payload).eq('id', r.id);
-    else await supabase.from('repairs').insert({ ...payload, slip_no: 'R-' + Date.now().toString().slice(-6) });
-    closeModal(); toast('Saved', 'success'); loadRepairs();
+    if (r) {
+      if (payload.status === 'Delivered' && r.status !== 'Delivered') payload.delivered_at = new Date().toISOString();
+      await supabase.from('repairs').update(payload).eq('id', r.id);
+    } else {
+      await supabase.from('repairs').insert(payload);
+    }
+    closeModal(); toast('Saved', 'success'); loadRepairs(); loadOverview();
   });
 }
-
 // --- 11. PURCHASES ---
 async function loadPurchases() {
   const { data, error } = await supabase.from('purchases').select('*, suppliers(name)').order('created_at', { ascending: false });
