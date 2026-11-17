@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - SINGLE SYSTEM DASHBOARD (v10.1)
+// BM MOBILE ZONE - COMPLETE SINGLE SYSTEM DASHBOARD (v10.5)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -56,22 +56,20 @@ $('modalConfirm').onclick = async () => {
   if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
 
-// --- 3. SMART SIDEBAR LOGIC (FIXED) ---
+// --- 3. SMART SIDEBAR LOGIC ---
 const sidebar = document.getElementById('mainSidebar');
 const handle = document.getElementById('sidebarHandle');
 let sidebarTimeout;
 
 if (handle) {
   handle.addEventListener('click', (e) => {
-    e.stopPropagation(); // Event ko document tak jane se rokta hai
+    e.stopPropagation();
     const isOpen = sidebar.classList.toggle('show');
     handle.classList.toggle('open', isOpen);
     if (isOpen) resetSidebarTimer(); else clearTimeout(sidebarTimeout);
   });
-  
   sidebar.addEventListener('mouseenter', () => clearTimeout(sidebarTimeout));
   sidebar.addEventListener('mouseleave', () => resetSidebarTimer());
-  
   document.addEventListener('click', (e) => {
     if (!sidebar.contains(e.target) && !handle.contains(e.target)) {
       sidebar.classList.remove('show'); handle.classList.remove('open');
@@ -79,67 +77,29 @@ if (handle) {
     }
   });
 }
-
 function resetSidebarTimer() {
   clearTimeout(sidebarTimeout);
   sidebarTimeout = setTimeout(() => {
     sidebar.classList.remove('show'); handle.classList.remove('open');
-  }, 15000); // 15 seconds baad auto close
+  }, 15000);
 }
 
-// --- 4. THEME SWITCHER (Optional) ---
-const topbarUserInfo = document.querySelector('.topbar .user-info');
-if (topbarUserInfo) {
-  const controls = document.createElement('div'); controls.className = 'theme-controls';
-  const select = document.createElement('select'); select.className = 'theme-select';
-  const themes = [
-    { val: 'clay', name: 'Claymorphism' }, { val: 'glass', name: 'Glassmorphism' },
-    { val: 'neo', name: 'Neumorphism' }, { val: 'minimal', name: 'Minimalism' }
-  ];
-  themes.forEach(t => { const opt = document.createElement('option'); opt.value = t.val; opt.textContent = t.name; select.appendChild(opt); });
-  
-  const switchLabel = document.createElement('label'); switchLabel.className = 'switch';
-  switchLabel.innerHTML = `<input type="checkbox" id="dayNightToggle"><span class="slider"><span class="sun">☀️</span><span class="moon">🌙</span></span>`;
-  controls.appendChild(select); controls.appendChild(switchLabel);
-  topbarUserInfo.insertBefore(controls, topbarUserInfo.firstChild);
-
-  const applyTheme = () => {
-    const savedTheme = localStorage.getItem('bm_theme') || 'clay';
-    const isDark = localStorage.getItem('bm_dark') === 'true';
-    document.body.className = `theme-${savedTheme}`;
-    select.value = savedTheme;
-    const toggle = document.getElementById('dayNightToggle');
-    if (isDark) { document.body.classList.add('dark-mode'); if (toggle) toggle.checked = true; }
-    else { if (toggle) toggle.checked = false; }
-  };
-  applyTheme();
-  select.addEventListener('change', (e) => { localStorage.setItem('bm_theme', e.target.value); applyTheme(); });
-  document.getElementById('dayNightToggle').addEventListener('change', (e) => { localStorage.setItem('bm_dark', e.target.checked); applyTheme(); });
-}
-
-// --- 5. SHORTCUTS (Keyboard Mastery) ---
+// --- 4. SHORTCUTS ---
 document.addEventListener('keydown', (e) => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
     if (e.key === 'Escape') closeModal();
     return;
   }
-
   if (e.altKey) {
     const key = e.key.toLowerCase();
     const shortcuts = { 'o': 'overview', 'p': 'products', 'i': 'inventory', 'l': 'sales', 'u': 'purchases', 'e': 'expenses', 'r': 'reports' };
-    
-    if (shortcuts[key]) {
-      e.preventDefault();
-      document.querySelector(`[data-module="${shortcuts[key]}"]`)?.click();
-    }
-    
+    if (shortcuts[key]) { e.preventDefault(); document.querySelector(`[data-module="${shortcuts[key]}"]`)?.click(); }
     if (key === 's') { e.preventDefault(); $('btnSaveSale')?.click(); }
   }
-
   if (e.key === 'Escape') closeModal();
 });
 
-// --- 6. NAVIGATION ---
+// --- 5. NAVIGATION ---
 const MODULE_TITLES = {
   overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Rack Management',
   repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers',
@@ -156,8 +116,6 @@ document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
     $('module-' + mod).classList.add('active');
     $('pageTitle').textContent = MODULE_TITLES[mod] || mod;
     loadModule(mod);
-    
-    // Close sidebar on mobile after clicking
     sidebar.classList.remove('show'); handle?.classList.remove('open');
   });
 });
@@ -166,12 +124,22 @@ async function loadModule(mod) {
   switch (mod) {
     case 'overview': return loadOverview();
     case 'products': return loadProducts();
+    case 'inventory': return loadInventory();
+    case 'racks': return loadRacks();
+    case 'repairing': return loadRepairs();
     case 'sales': return loadSaleProducts();
-    // Baaki modules yahan add karein
+    case 'purchases': return loadPurchases();
+    case 'customers': return loadCustomers();
+    case 'suppliers': return loadSuppliers();
+    case 'credit': return loadCredit();
+    case 'expenses': return loadExpenses();
+    case 'profitloss': return;
+    case 'transactions': return loadTransactions();
+    case 'settings': return loadSettings();
   }
 }
 
-// --- 7. OVERVIEW (SINGLE SYSTEM) ---
+// --- 6. OVERVIEW ---
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
     supabase.from('sales').select('balance'),
@@ -197,7 +165,7 @@ async function loadOverview() {
   else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 }
 
-// --- 8. PRODUCTS (SINGLE SYSTEM) ---
+// --- 7. PRODUCTS (CATEGORY + SUB-CATEGORY) ---
 let ALL_PRODUCTS = [];
 async function loadProducts(filter = '') {
   let q = supabase.from('products').select('*,racks(name)').order('created_at', { ascending: false });
@@ -207,8 +175,8 @@ async function loadProducts(filter = '') {
   ALL_PRODUCTS = data || [];
   const t = $('productsTable');
   if (!ALL_PRODUCTS.length) { t.innerHTML = '<div class="empty">No products found.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category</th><th>IMEI</th><th class="num">Price</th><th>Rack</th><th class="num">Stock</th><th>Status</th><th class="actions">Actions</th></tr></thead><tbody>
-    ${ALL_PRODUCTS.map(p => `<tr><td><strong>${esc(p.name)}</strong></td><td>${esc(p.category || '—')} ${p.sub_category ? '/ ' + esc(p.sub_category) : ''}</td><td><small>${esc(p.imei_1 || '—')}</small></td><td class="num">${fmt(p.sale_price)}</td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td>${p.quantity <= p.min_stock ? '<span class="pill red">Low</span>' : '<span class="pill green">OK</span>'}</td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="editProduct('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button></td></tr>`).join('')}
+  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category</th><th>Sub-Category</th><th>IMEI</th><th class="num">Price</th><th>Rack</th><th class="num">Stock</th><th>Status</th><th class="actions">Actions</th></tr></thead><tbody>
+    ${ALL_PRODUCTS.map(p => `<tr><td><strong>${esc(p.name)}</strong></td><td>${esc(p.category || '—')}</td><td>${esc(p.sub_category || '—')}</td><td><small>${esc(p.imei_1 || '—')}</small></td><td class="num">${fmt(p.sale_price)}</td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td>${p.quantity <= p.min_stock ? '<span class="pill red">Low</span>' : '<span class="pill green">OK</span>'}</td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="editProduct('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button></td></tr>`).join('')}
   </tbody></table>`;
 }
 $('productSearch')?.addEventListener('input', e => loadProducts(e.target.value));
@@ -220,27 +188,42 @@ window.deleteProduct = async (id) => {
   if (error) return toast(error.message, 'error');
   toast('Product deleted', 'success'); loadProducts();
 };
+
 async function openProductModal(p = null) {
   const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
   const isMobile = (p?.category || 'Mobile') === 'Mobile';
-  const isCover = (p?.category) === 'Cover';
   const body = `<div class="form-grid">
-      <div class="field full"><label>Name *</label><input id="pName" value="${esc(p?.name || '')}"></div>
-      <div class="field"><label>Category</label><select id="pCategory" onchange="toggleProductFields()"><option value="Mobile" ${!p || p.category === 'Mobile' ? 'selected' : ''}>Mobile</option><option value="Cover" ${p?.category === 'Cover' ? 'selected' : ''}>Cover</option><option value="Accessory" ${p?.category === 'Accessory' ? 'selected' : ''}>Accessory</option></select></div>
-      <div class="field" id="coverSubField" style="${isCover ? '' : 'display:none'}"><label>Cover Type</label><select id="pSubCategory"><option value="Simple" ${p?.sub_category === 'Simple' ? 'selected' : ''}>Simple</option><option value="Design" ${p?.sub_category === 'Design' ? 'selected' : ''}>Design</option><option value="Ladies" ${p?.sub_category === 'Ladies' ? 'selected' : ''}>Ladies</option></select></div>
+      <div class="field full"><label>Product Name *</label><input id="pName" value="${esc(p?.name || '')}"></div>
+      
+      <div class="field"><label>Main Category *</label>
+        <select id="pCategory" onchange="toggleProductFields()">
+          <option value="Mobile" ${p?.category === 'Mobile' ? 'selected' : ''}>Mobile Phone</option>
+          <option value="Glass" ${p?.category === 'Glass' ? 'selected' : ''}>Mobile Glass (OG etc)</option>
+          <option value="Cover" ${p?.category === 'Cover' ? 'selected' : ''}>Mobile Cover</option>
+          <option value="Accessory" ${p?.category === 'Accessory' ? 'selected' : ''}>Accessory</option>
+          <option value="Other" ${p?.category === 'Other' ? 'selected' : ''}>Other</option>
+        </select>
+      </div>
+
+      <div class="field"><label>Sub-Category / Model</label>
+        <input id="pSubCategory" placeholder="e.g. iPhone 11, Samsung S21" value="${esc(p?.sub_category || '')}">
+      </div>
+
       <div class="field" id="imei1Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 1</label><input id="pImei1" value="${esc(p?.imei_1 || '')}"></div>
       <div class="field" id="imei2Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 2</label><input id="pImei2" value="${esc(p?.imei_2 || '')}"></div>
+      
       <div class="field"><label>Purchase Price</label><input id="pPurchase" type="number" value="${p?.purchase_price || 0}"></div>
       <div class="field"><label>Sale Price</label><input id="pSale" type="number" value="${p?.sale_price || 0}"></div>
       <div class="field"><label>Rack Location</label><select id="pRack"><option value="">Unassigned</option>${(rackRows || []).map(r => `<option value="${r.id}" ${p?.rack_id === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>
       <div class="field"><label>Quantity</label><input id="pQty" type="number" value="${p?.quantity || 0}"></div>
-      <div class="field"><label>Min Stock</label><input id="pMin" type="number" value="${p?.min_stock || 5}"></div>
+      <div class="field"><label>Min Stock Alert</label><input id="pMin" type="number" value="${p?.min_stock || 5}"></div>
     </div>`;
   openModal(p ? 'Edit Product' : 'Add Product', body, async () => {
     const cat = $('pCategory').value;
     const payload = {
-      name: $('pName').value.trim(), category: cat,
-      sub_category: cat === 'Cover' ? $('pSubCategory').value : null,
+      name: $('pName').value.trim(), 
+      category: cat,
+      sub_category: $('pSubCategory').value.trim() || null,
       imei_1: cat === 'Mobile' ? ($('pImei1').value.trim() || null) : null,
       imei_2: cat === 'Mobile' ? ($('pImei2').value.trim() || null) : null,
       purchase_price: Number($('pPurchase').value) || 0,
@@ -249,7 +232,7 @@ async function openProductModal(p = null) {
       rack_id: $('pRack').value || null,
       min_stock: Number($('pMin').value) || 5
     };
-    if (!payload.name) throw new Error('Name required');
+    if (!payload.name) throw new Error('Product Name required');
     if (p) await supabase.from('products').update(payload).eq('id', p.id);
     else await supabase.from('products').insert(payload);
     toast('Saved', 'success'); closeModal(); loadProducts();
@@ -257,12 +240,65 @@ async function openProductModal(p = null) {
 }
 window.toggleProductFields = () => {
   const cat = $('pCategory').value;
-  $('coverSubField').style.display = cat === 'Cover' ? '' : 'none';
   $('imei1Field').style.display = cat === 'Mobile' ? '' : 'none';
   $('imei2Field').style.display = cat === 'Mobile' ? '' : 'none';
 };
 
-// --- 9. SALES / POS (SINGLE SYSTEM) ---
+// --- 8. RACK MANAGEMENT ---
+async function loadRacks() {
+  const { data: racks, error } = await supabase.from('racks').select('*').order('name');
+  if (error) { $('racksTable').innerHTML = '<div class="empty">Rack tables not installed.</div>'; return; }
+  const rows = racks || [];
+  $('racksTable').innerHTML = rows.length
+    ? `<table class="data"><thead><tr><th>Rack</th><th>Description</th><th>Actions</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.description || '—')}</td><td><button class="btn btn-danger btn-sm" onclick="deleteRack('${r.id}')">Delete</button></td></tr>`).join('')}</tbody></table>`
+    : '<div class="empty">No racks created.</div>';
+
+  const { data: stock } = await supabase.from('products').select('name,quantity,racks(name)').order('name');
+  $('rackStockTable').innerHTML = `<table class="data"><thead><tr><th>Rack</th><th>Product</th><th class="num">Quantity</th></tr></thead><tbody>${(stock || []).map(p => `<tr><td>${esc(p.racks?.name || 'Unassigned')}</td><td>${esc(p.name)}</td><td class="num">${Number(p.quantity || 0)}</td></tr>`).join('')}</tbody></table>`;
+}
+$('btnAddRack').onclick = () => openModal('Add Rack',
+  `<div class="form-grid"><div class="field"><label>Rack Name *</label><input id="rackName" placeholder="Rack A-01"></div><div class="field full"><label>Description</label><input id="rackDesc"></div></div>`,
+  async () => {
+    const name = $('rackName').value.trim();
+    if (!name) throw new Error('Rack name required');
+    const { error } = await supabase.from('racks').insert({ name, description: $('rackDesc').value.trim() || null });
+    if (error) throw new Error(error.message);
+    closeModal(); toast('Rack added', 'success'); loadRacks();
+  });
+window.deleteRack = async id => {
+  if (!confirm('Delete rack? Products in this rack must be reassigned first.')) return;
+  const { error } = await supabase.from('racks').delete().eq('id', id);
+  if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); }
+};
+$('inventoryRackFilter')?.addEventListener('change', loadInventory);
+
+// --- 9. INVENTORY ---
+async function loadInventory() {
+  const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
+  const rf = $('inventoryRackFilter');
+  if (rf && rf.options.length <= 1) rf.innerHTML += (rackRows || []).map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
+  
+  let iq = supabase.from('products').select('*,racks(name)').order('quantity', { ascending: true });
+  if (rf?.value) iq = iq.eq('rack_id', rf.value);
+  const { data: low } = await iq.limit(100);
+  const t = $('lowStockTable');
+  if (!low || !low.length) t.innerHTML = '<div class="empty">No products.</div>';
+  else t.innerHTML = `<table class="data"><thead><tr><th>Product</th><th>Category</th><th>Rack</th><th class="num">Stock</th><th class="num">Min</th><th>Status</th></tr></thead><tbody>
+    ${low.map(p => `<tr><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}${p.sub_category ? ' / ' + esc(p.sub_category) : ''}</small></td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td class="num">${p.min_stock}</td>
+    <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}
+  </tbody></table>`;
+
+  const { data: mov } = await supabase.from('inventory_movements').select('*, products(name)').order('created_at', { ascending: false }).limit(20);
+  const tm = $('movementsTable');
+  if (!mov || !mov.length) tm.innerHTML = '<div class="empty">No movements yet.</div>';
+  else tm.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Product</th><th>Type</th><th class="num">Qty</th><th>Notes</th></tr></thead><tbody>
+    ${mov.map(m => `<tr><td>${new Date(m.created_at).toLocaleString()}</td><td>${esc(m.products?.name || '—')}</td>
+    <td><span class="pill ${m.quantity > 0 ? 'green' : 'orange'}">${esc(m.movement_type)}</span></td>
+    <td class="num">${m.quantity}</td><td>${esc(m.notes || '')}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+// --- 10. SALES / POS ---
 let CART = [];
 let POS_CUSTOMERS = [];
 let POS_PREVIOUS_DUE = 0;
@@ -355,6 +391,42 @@ $('btnSaveSale').onclick = async () => {
   } catch (e) { toast(e.message, 'error'); } finally { $('btnSaveSale').disabled = false; }
 };
 
-// INITIAL LOAD
+// --- 11. CUSTOMERS ---
+let ALL_CUST = [];
+async function loadCustomers(filter = '') {
+  let q = supabase.from('customers').select('*').order('created_at', { ascending: false });
+  if (filter) q = q.ilike('name', `%${filter}%`);
+  const { data } = await q;
+  ALL_CUST = data || [];
+  const t = $('customersTable');
+  if (!ALL_CUST.length) { t.innerHTML = '<div class="empty">No customers.</div>'; return; }
+  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="actions">Actions</th></tr></thead><tbody>
+    ${ALL_CUST.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td>
+      <td class="actions"><button class="btn btn-ghost btn-sm" onclick="editCustomer('${c.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button></td></tr>`).join('')}
+  </tbody></table>`;
+}
+$('custSearch')?.addEventListener('input', e => loadCustomers(e.target.value));
+$('btnAddCustomer').onclick = () => openCustomerModal();
+window.editCustomer = (id) => openCustomerModal(ALL_CUST.find(c => c.id === id));
+window.deleteCustomer = async (id) => { if (!confirm('Delete?')) return; await supabase.from('customers').delete().eq('id', id); toast('Deleted'); loadCustomers(); };
+
+function openCustomerModal(c = null) {
+  const body = `<div class="form-grid">
+      <div class="field full"><label>Name *</label><input id="cName" value="${esc(c?.name || '')}"></div>
+      <div class="field"><label>Phone</label><input id="cPhone" value="${esc(c?.phone || '')}"></div>
+      <div class="field"><label>Opening Balance</label><input id="cBal" type="number" value="${c?.opening_balance || 0}"></div>
+      <div class="field full"><label>Address</label><textarea id="cAddr">${esc(c?.address || '')}</textarea></div>
+    </div>`;
+  openModal(c ? 'Edit Customer' : 'Add Customer', body, async () => {
+    const payload = { name: $('cName').value.trim(), phone: $('cPhone').value.trim() || null, address: $('cAddr').value.trim() || null, opening_balance: Number($('cBal').value) || 0 };
+    if (!payload.name) throw new Error('Name required');
+    if (c) await supabase.from('customers').update(payload).eq('id', c.id);
+    else await supabase.from('customers').insert(payload);
+    toast('Saved', 'success'); closeModal(); loadCustomers();
+  });
+}
+
+// --- INITIAL LOAD ---
 renderCart();
 loadOverview();
