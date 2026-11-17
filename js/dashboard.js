@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - FULL WORKING SYSTEM (v11.0)
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v12.0)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -82,36 +82,6 @@ function resetSidebarTimer() {
   sidebarTimeout = setTimeout(() => {
     sidebar.classList.remove('show'); handle.classList.remove('open');
   }, 15000);
-}
-
-// Theme Switcher
-const topbarUserInfo = document.querySelector('.topbar .user-info');
-if (topbarUserInfo) {
-  const controls = document.createElement('div'); controls.className = 'theme-controls';
-  const select = document.createElement('select'); select.className = 'theme-select';
-  const themes = [
-    { val: 'clay', name: 'Claymorphism' }, { val: 'glass', name: 'Glassmorphism' },
-    { val: 'neo', name: 'Neumorphism' }, { val: 'minimal', name: 'Minimalism' }
-  ];
-  themes.forEach(t => { const opt = document.createElement('option'); opt.value = t.val; opt.textContent = t.name; select.appendChild(opt); });
-  
-  const switchLabel = document.createElement('label'); switchLabel.className = 'switch';
-  switchLabel.innerHTML = `<input type="checkbox" id="dayNightToggle"><span class="slider"><span class="sun">☀️</span><span class="moon">🌙</span></span>`;
-  controls.appendChild(select); controls.appendChild(switchLabel);
-  topbarUserInfo.insertBefore(controls, topbarUserInfo.firstChild);
-
-  const applyTheme = () => {
-    const savedTheme = localStorage.getItem('bm_theme') || 'clay';
-    const isDark = localStorage.getItem('bm_dark') === 'true';
-    document.body.className = `theme-${savedTheme}`;
-    select.value = savedTheme;
-    const toggle = document.getElementById('dayNightToggle');
-    if (isDark) { document.body.classList.add('dark-mode'); if (toggle) toggle.checked = true; }
-    else { if (toggle) toggle.checked = false; }
-  };
-  applyTheme();
-  select.addEventListener('change', (e) => { localStorage.setItem('bm_theme', e.target.value); applyTheme(); });
-  document.getElementById('dayNightToggle').addEventListener('change', (e) => { localStorage.setItem('bm_dark', e.target.checked); applyTheme(); });
 }
 
 // --- 4. SHORTCUTS & NAVIGATION ---
@@ -278,7 +248,27 @@ window.toggleProductFields = () => {
   $('imei2Field').style.display = cat === 'Mobile' ? '' : 'none';
 };
 
-// --- 7. RACKS ---
+// --- 7. INVENTORY (Directly from Products Table) ---
+async function loadInventory() {
+  const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
+  const rf = $('inventoryRackFilter');
+  if (rf && rf.options.length <= 1) rf.innerHTML += (rackRows || []).map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
+  
+  let iq = supabase.from('products').select('*,racks!fk_products_racks(name)').order('quantity', { ascending: true });
+  if (rf?.value) iq = iq.eq('rack_id', rf.value);
+  const { data: low } = await iq.limit(100);
+  const t = $('lowStockTable');
+  if (!low || !low.length) t.innerHTML = '<div class="empty">No products.</div>';
+  else t.innerHTML = `<table class="data"><thead><tr><th>Product</th><th>Category</th><th>Rack</th><th class="num">Stock</th><th class="num">Min</th><th>Status</th></tr></thead><tbody>
+    ${low.map(p => `<tr><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}${p.sub_category ? ' / ' + esc(p.sub_category) : ''}</small></td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td class="num">${p.min_stock}</td>
+    <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}
+  </tbody></table>`;
+
+  // Simple movement log from Products (just to show it's working, as we don't have a movement table yet)
+  $('movementsTable').innerHTML = `<div class="empty">Movement log is currently based on product additions. (Purchase/Sale movements tracking coming soon).</div>`;
+}
+
+// --- 8. RACKS ---
 async function loadRacks() {
   const { data: racks, error } = await supabase.from('racks').select('*').order('name');
   if (error) { $('racksTable').innerHTML = '<div class="empty">Rack tables not installed.</div>'; return; }
@@ -306,7 +296,7 @@ window.deleteRack = async id => {
 };
 $('inventoryRackFilter')?.addEventListener('change', loadInventory);
 
-// --- 8. SALES / POS ---
+// --- 9. SALES / POS ---
 let CART = [];
 let POS_CUSTOMERS = [];
 let POS_PREVIOUS_DUE = 0;
@@ -399,7 +389,7 @@ $('btnSaveSale').onclick = async () => {
   } catch (e) { toast(e.message, 'error'); } finally { $('btnSaveSale').disabled = false; }
 };
 
-// --- 9. CUSTOMERS ---
+// --- 10. CUSTOMERS ---
 let ALL_CUST = [];
 async function loadCustomers(filter = '') {
   let q = supabase.from('customers').select('*').order('created_at', { ascending: false });
@@ -435,6 +425,9 @@ function openCustomerModal(c = null) {
   });
 }
 
-// --- INITIAL LOAD ---
+// --- 11. INVENTORY MOVEMENTS (Dummy for now, as we don't have movement table) ---
+// (Agar aapko movement tracking chahiye, toh humein ek 'inventory_movements' table banani hogi. Filhal ke liye yeh khali hai.)
+
+// INITIAL LOAD
 renderCart();
 loadOverview();
