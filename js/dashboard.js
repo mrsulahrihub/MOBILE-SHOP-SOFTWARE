@@ -1,22 +1,28 @@
 // =====================================================
-// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v9.5 Premium)
+// BM MOBILE ZONE - MAIN DASHBOARD CONTROLLER (v9.6 Multi-Tenant)
 // =====================================================
 import { supabase } from './config.js';
-import { getActiveProfile } from './auth-guard.js';
 
-// 1. Auth Guard
-const result = await getActiveProfile();
-if (!result) { location.replace('./login.html'); throw new Error('Unauthorized'); }
-const { profile } = result;
+// --- MULTI-TENANT AUTH GUARD ---
+const SHOP_ID = localStorage.getItem('shop_id');
+const SHOP_NAME = localStorage.getItem('shop_name') || 'BM MOBILE ZONE';
 
-document.getElementById('userName').textContent = profile.full_name;
-document.getElementById('userRole').textContent = profile.role.toUpperCase();
-document.getElementById('welcomeName').textContent = profile.full_name;
-document.getElementById('userAvatar').textContent = profile.full_name.charAt(0).toUpperCase();
+if (!SHOP_ID) {
+  window.location.replace('./login.html');
+  throw new Error('Unauthorized: No shop_id found.');
+}
+
+// Update Topbar Info with Shop Name
+document.getElementById('userName').textContent = SHOP_NAME;
+document.getElementById('userRole').textContent = 'ADMIN';
+document.getElementById('welcomeName').textContent = SHOP_NAME;
+document.getElementById('userAvatar').textContent = SHOP_NAME.charAt(0).toUpperCase();
 document.getElementById('todayDate').textContent = new Intl.DateTimeFormat('en-PK', { dateStyle: 'full' }).format(new Date());
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
-  await supabase.auth.signOut();
+  localStorage.removeItem('shop_id');
+  localStorage.removeItem('shop_name');
+  localStorage.removeItem('owner_name');
   location.replace('./login.html');
 });
 
@@ -25,9 +31,9 @@ const $ = (id) => document.getElementById(id);
 const fmt = (n) => 'PKR ' + Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-const SHOP = {
-  name: 'BM MOBILE ZONE',
-  address: 'Chohan Mobile Market, Zafarwal',
+const SHOP_INFO = {
+  name: SHOP_NAME,
+  address: 'Chohan Mobile Market, Zafarwal', // You can fetch this from settings later
   phone1: '0345-6613232',
   phone2: '0307-6613232',
   phoneMain: '03099100546'
@@ -171,7 +177,7 @@ async function loadModule(mod) {
     case 'suppliers': return loadSuppliers();
     case 'credit': return loadCredit();
     case 'expenses': return loadExpenses();
-    case 'profitloss': return; // user clicks Run
+    case 'profitloss': return; 
     case 'transactions': return loadTransactions();
     case 'settings': return loadSettings();
   }
@@ -182,13 +188,13 @@ async function loadModule(mod) {
 // =====================================================
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
-    supabase.from('sales').select('balance'),
-    supabase.from('products').select('quantity,is_active,name,min_stock'),
-    supabase.from('customers').select('id', { count: 'exact', head: true }),
-    supabase.from('purchases').select('total'),
-    supabase.from('expenses').select('amount'),
-    supabase.from('sales').select('total').gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
-    supabase.from('sales').select('total').gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
+    supabase.from('sales').select('balance').eq('shop_id', SHOP_ID),
+    supabase.from('products').select('quantity,is_active,name,min_stock').eq('shop_id', SHOP_ID),
+    supabase.from('customers').select('id', { count: 'exact', head: true }).eq('shop_id', SHOP_ID),
+    supabase.from('purchases').select('total').eq('shop_id', SHOP_ID),
+    supabase.from('expenses').select('amount').eq('shop_id', SHOP_ID),
+    supabase.from('sales').select('total').eq('shop_id', SHOP_ID).gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+    supabase.from('sales').select('total').eq('shop_id', SHOP_ID).gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
   ]);
   const sum = (arr, key) => (arr.data || []).reduce((s, r) => s + Number(r[key] || 0), 0);
   $('stProducts').textContent = (prods.data || []).filter(p => p.is_active !== false).length;
@@ -210,7 +216,7 @@ async function loadOverview() {
     $('dashStats').after(div);
   }
 
-  const { data: recent } = await supabase.from('sales').select('*').order('created_at', { ascending: false }).limit(5);
+  const { data: recent } = await supabase.from('sales').select('*').eq('shop_id', SHOP_ID).order('created_at', { ascending: false }).limit(5);
   if (!recent || !recent.length) $('recentSales').innerHTML = '<div class="empty">No sales yet.</div>';
   else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 }
@@ -220,7 +226,7 @@ async function loadOverview() {
 // =====================================================
 let ALL_PRODUCTS = [];
 async function loadProducts(filter = '') {
-  let q = supabase.from('products').select('*,racks(name)').order('created_at', { ascending: false });
+  let q = supabase.from('products').select('*,racks(name)').eq('shop_id', SHOP_ID).order('created_at', { ascending: false });
   if (filter) q = q.ilike('name', `%${filter}%`);
   const { data, error } = await q;
   if (error) { toast(error.message, 'error'); return; }
@@ -241,11 +247,11 @@ window.deleteProduct = async (id) => {
   if (!p) return toast('Product not found', 'error');
   if (!confirm(`Delete product "${p.name}"?\n\nAgar product kisi sale/purchase mein use hua hai to deactivate (inactive) ho jayega.`)) return;
 
-  const { error } = await supabase.from('products').delete().eq('id', id);
+  const { error } = await supabase.from('products').delete().eq('id', id).eq('shop_id', SHOP_ID);
 
   if (error) {
     if (error.code === '23503' || (error.message || '').toLowerCase().includes('foreign key')) {
-      const { error: softErr } = await supabase.from('products').update({ is_active: false, quantity: 0 }).eq('id', id);
+      const { error: softErr } = await supabase.from('products').update({ is_active: false, quantity: 0 }).eq('id', id).eq('shop_id', SHOP_ID);
       if (softErr) toast('Delete failed: ' + softErr.message, 'error');
       else { toast('Product deactivated (used in transactions)', 'success'); loadProducts(); }
     } else {
@@ -258,7 +264,7 @@ window.deleteProduct = async (id) => {
 };
 
 async function openProductModal(p = null) {
-  const { data: rackRows, error: rackErr } = await supabase.from('racks').select('id,name').order('name');
+  const { data: rackRows, error: rackErr } = await supabase.from('racks').select('id,name').eq('shop_id', SHOP_ID).order('name');
   if (rackErr) throw new Error('Rack setup missing. Run the supplied SQL migration first.');
   const isMobile = (p?.category || 'Mobile') === 'Mobile';
   const isCover = (p?.category) === 'Cover';
@@ -277,6 +283,7 @@ async function openProductModal(p = null) {
   openModal(p ? 'Edit Product' : 'Add Product', body, async () => {
     const cat = $('pCategory').value;
     const payload = {
+      shop_id: SHOP_ID,
       name: $('pName').value.trim(), category: cat,
       sub_category: cat === 'Cover' ? $('pSubCategory').value : null,
       imei_1: cat === 'Mobile' ? ($('pImei1').value.trim() || null) : null,
@@ -288,7 +295,7 @@ async function openProductModal(p = null) {
       min_stock: Number($('pMin').value) || 5
     };
     if (!payload.name) throw new Error('Name required');
-    if (p) await supabase.from('products').update(payload).eq('id', p.id);
+    if (p) await supabase.from('products').update(payload).eq('id', p.id).eq('shop_id', SHOP_ID);
     else await supabase.from('products').insert(payload);
     toast('Saved', 'success'); closeModal(); loadProducts();
   });
@@ -304,10 +311,10 @@ window.toggleProductFields = () => {
 // INVENTORY
 // =====================================================
 async function loadInventory() {
-  const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
+  const { data: rackRows } = await supabase.from('racks').select('id,name').eq('shop_id', SHOP_ID).order('name');
   const rf = $('inventoryRackFilter');
   if (rf && rf.options.length <= 1) rf.innerHTML += (rackRows || []).map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
-  let iq = supabase.from('products').select('*,racks(name)').order('quantity', { ascending: true });
+  let iq = supabase.from('products').select('*,racks(name)').eq('shop_id', SHOP_ID).order('quantity', { ascending: true });
   if (rf?.value) iq = iq.eq('rack_id', rf.value);
   const { data: low } = await iq.limit(100);
   const t = $('lowStockTable');
@@ -317,7 +324,7 @@ async function loadInventory() {
     <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}
   </tbody></table>`;
 
-  const { data: mov } = await supabase.from('inventory_movements').select('*, products(name)').order('created_at', { ascending: false }).limit(20);
+  const { data: mov } = await supabase.from('inventory_movements').select('*, products(name)').eq('shop_id', SHOP_ID).order('created_at', { ascending: false }).limit(20);
   const tm = $('movementsTable');
   if (!mov || !mov.length) tm.innerHTML = '<div class="empty">No movements yet.</div>';
   else tm.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Product</th><th>Type</th><th class="num">Qty</th><th>Notes</th></tr></thead><tbody>
@@ -335,7 +342,7 @@ let POS_CUSTOMERS = [];
 let POS_PREVIOUS_DUE = 0;
 
 async function loadPosCustomers() {
-  const { data, error } = await supabase.from('customers').select('id,name,phone').order('name');
+  const { data, error } = await supabase.from('customers').select('id,name,phone').eq('shop_id', SHOP_ID).order('name');
   if (error) return;
   POS_CUSTOMERS = data || [];
   $('posCustomerOptions').innerHTML = POS_CUSTOMERS.map(c => `<option value="${esc(c.name)}">${esc(c.phone || '')}</option>`).join('');
@@ -347,7 +354,7 @@ async function updatePosCustomerDue() {
   const match = POS_CUSTOMERS.find(c => (phone && c.phone === phone) || (name && c.name.toLowerCase() === name.toLowerCase()));
   if (!match) { POS_PREVIOUS_DUE = 0; $('previousDueBox').style.display = 'none'; return; }
   if (match.phone && !$('saleCustPhone').value) $('saleCustPhone').value = match.phone;
-  const { data, error } = await supabase.from('sales').select('balance').eq('customer_id', match.id).gt('balance', 0);
+  const { data, error } = await supabase.from('sales').select('balance').eq('customer_id', match.id).eq('shop_id', SHOP_ID).gt('balance', 0);
   if (error) { toast(error.message, 'error'); return; }
   POS_PREVIOUS_DUE = (data || []).reduce((n, x) => n + Number(x.balance || 0), 0);
   $('previousDueAmount').textContent = fmt(POS_PREVIOUS_DUE);
@@ -358,7 +365,7 @@ $('saleCustPhone').addEventListener('change', updatePosCustomerDue);
 
 async function loadSaleProducts() {
   await loadPosCustomers();
-  const { data } = await supabase.from('products').select('*').gt('quantity', 0).order('name');
+  const { data } = await supabase.from('products').select('*').eq('shop_id', SHOP_ID).gt('quantity', 0).order('name');
   $('saleProductSelect').innerHTML = '<option value="">— Choose product —</option>' + (data || []).map(p => {
     const catDisplay = p.category ? `[${p.category}${p.sub_category ? ' - ' + p.sub_category : ''}]` : '';
     return `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei_1 || '')}" data-stock="${p.quantity}">${esc(p.name)} ${catDisplay} — ${fmt(p.sale_price)} (${p.quantity} stock)</option>`;
@@ -402,18 +409,22 @@ $('btnSaveSale').onclick = async () => {
     if (custName !== 'Walk-in Customer') {
       let found = POS_CUSTOMERS.find(c => (custPhone && c.phone === custPhone) || c.name.toLowerCase() === custName.toLowerCase());
       if (!found) {
-        const { data: created, error: ce } = await supabase.from('customers').insert({ name: custName, phone: custPhone || null, opening_balance: 0 }).select('id,name,phone').single();
+        const { data: created, error: ce } = await supabase.from('customers').insert({ shop_id: SHOP_ID, name: custName, phone: custPhone || null, opening_balance: 0 }).select('id,name,phone').single();
         if (ce) throw new Error(ce.message);
         found = created; POS_CUSTOMERS.push(created);
       }
       customerId = found.id;
     }
+    
+    // IMPORTANT: RPC must be updated in Supabase to accept p_shop_id
     const { data, error } = await supabase.rpc('create_sale', {
+      p_shop_id: SHOP_ID, 
       p_customer_id: customerId, p_customer_name: custName, p_customer_phone: custPhone || null,
       p_subtotal: CART.reduce((s, c) => s + c.line_total, 0), p_discount: Number($('saleDiscount').value) || 0, p_total: total, p_paid: paid,
       p_payment_method: $('salePaymentMethod').value, p_notes: null,
       p_items: CART.map(c => ({ product_id: c.product_id, product_name: c.product_name, imei: c.imei, quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total }))
     });
+    
     if (error) throw new Error(error.message);
     const inv = data.invoice_no || 'INV-' + Date.now().toString().slice(-6);
     if (confirm('Print receipt?')) printThermal80mm({ invoice: inv, customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, previousDue: POS_PREVIOUS_DUE, date: new Date(), items: [...CART] });
@@ -445,7 +456,7 @@ async function loadSalesHistory() {
   const t = document.getElementById('salesHistoryTable');
   if (!t) return;
   t.innerHTML = '<div class="empty">Loading…</div>';
-  const { data, error } = await supabase.from('sales').select('*').order('created_at', { ascending: false }).limit(200);
+  const { data, error } = await supabase.from('sales').select('*').eq('shop_id', SHOP_ID).order('created_at', { ascending: false }).limit(200);
   if (error) { t.innerHTML = `<div class="empty" style="color:#ef4444">Error: ${esc(error.message)}</div>`; return; }
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No sales yet.</div>'; return; }
 
@@ -484,7 +495,7 @@ async function loadSalesHistory() {
 // PURCHASES
 // =====================================================
 async function loadPurchases() {
-  const { data } = await supabase.from('purchases').select('*').order('created_at', { ascending: false }).limit(50);
+  const { data } = await supabase.from('purchases').select('*').eq('shop_id', SHOP_ID).order('created_at', { ascending: false }).limit(50);
   const t = $('purchasesTable');
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No purchases yet.</div>'; return; }
   t.innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Supplier</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>
@@ -496,8 +507,8 @@ async function loadPurchases() {
 
 $('btnNewPurchase').onclick = async () => {
   const [{ data: prods }, { data: sups }] = await Promise.all([
-    supabase.from('products').select('id,name,category,sub_category,purchase_price,quantity').order('name'),
-    supabase.from('suppliers').select('id,name').order('name')
+    supabase.from('products').select('id,name,category,sub_category,purchase_price,quantity').eq('shop_id', SHOP_ID).order('name'),
+    supabase.from('suppliers').select('id,name').eq('shop_id', SHOP_ID).order('name')
   ]);
   const body = `<div class="form-grid">
       <div class="field"><label>Supplier</label><select id="puSup"><option value="">— None —</option>${(sups || []).map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></div>
@@ -516,8 +527,11 @@ $('btnNewPurchase').onclick = async () => {
     const total = qty * price; const paid = Number($('puPaid').value) || 0;
     if (!prodId) throw new Error('Select product');
     const invNo = 'PUR-' + Date.now().toString().slice(-6);
-    const { data: supsData } = await supabase.from('suppliers').select('name').eq('id', $('puSup').value).maybeSingle();
+    const { data: supsData } = await supabase.from('suppliers').select('name').eq('id', $('puSup').value).eq('shop_id', SHOP_ID).maybeSingle();
+    
+    // IMPORTANT: RPC must be updated to accept p_shop_id
     const { error } = await supabase.rpc('create_purchase', {
+      p_shop_id: SHOP_ID,
       p_invoice_no: invNo, p_supplier_id: $('puSup').value || null, p_supplier_name: supsData?.name || null,
       p_subtotal: total, p_discount: 0, p_total: total, p_paid: paid, p_payment_method: 'cash', p_notes: null,
       p_items: [{ product_id: prodId, product_name: opt.dataset.name, quantity: qty, unit_price: price, line_total: total }]
@@ -538,7 +552,7 @@ $('btnNewPurchase').onclick = async () => {
 // =====================================================
 let ALL_CUST = [];
 async function loadCustomers(filter = '') {
-  let q = supabase.from('customers').select('*').order('created_at', { ascending: false });
+  let q = supabase.from('customers').select('*').eq('shop_id', SHOP_ID).order('created_at', { ascending: false });
   if (filter) q = q.ilike('name', `%${filter}%`);
   const { data } = await q;
   ALL_CUST = data || [];
@@ -553,7 +567,7 @@ async function loadCustomers(filter = '') {
 $('custSearch')?.addEventListener('input', e => loadCustomers(e.target.value));
 $('btnAddCustomer').onclick = () => openCustomerModal();
 window.editCustomer = (id) => openCustomerModal(ALL_CUST.find(c => c.id === id));
-window.deleteCustomer = async (id) => { if (!confirm('Delete?')) return; await supabase.from('customers').delete().eq('id', id); toast('Deleted'); loadCustomers(); };
+window.deleteCustomer = async (id) => { if (!confirm('Delete?')) return; await supabase.from('customers').delete().eq('id', id).eq('shop_id', SHOP_ID); toast('Deleted'); loadCustomers(); };
 
 function openCustomerModal(c = null) {
   const body = `<div class="form-grid">
@@ -563,9 +577,9 @@ function openCustomerModal(c = null) {
       <div class="field full"><label>Address</label><textarea id="cAddr">${esc(c?.address || '')}</textarea></div>
     </div>`;
   openModal(c ? 'Edit Customer' : 'Add Customer', body, async () => {
-    const payload = { name: $('cName').value.trim(), phone: $('cPhone').value.trim() || null, address: $('cAddr').value.trim() || null, opening_balance: Number($('cBal').value) || 0 };
+    const payload = { shop_id: SHOP_ID, name: $('cName').value.trim(), phone: $('cPhone').value.trim() || null, address: $('cAddr').value.trim() || null, opening_balance: Number($('cBal').value) || 0 };
     if (!payload.name) throw new Error('Name required');
-    if (c) await supabase.from('customers').update(payload).eq('id', c.id);
+    if (c) await supabase.from('customers').update(payload).eq('id', c.id).eq('shop_id', SHOP_ID);
     else await supabase.from('customers').insert(payload);
     toast('Saved', 'success'); closeModal(); loadCustomers();
   });
@@ -576,7 +590,7 @@ function openCustomerModal(c = null) {
 // =====================================================
 let ALL_SUP = [];
 async function loadSuppliers() {
-  const { data } = await supabase.from('suppliers').select('*').order('created_at', { ascending: false });
+  const { data } = await supabase.from('suppliers').select('*').eq('shop_id', SHOP_ID).order('created_at', { ascending: false });
   ALL_SUP = data || [];
   const t = $('suppliersTable');
   if (!ALL_SUP.length) { t.innerHTML = '<div class="empty">No suppliers yet.</div>'; return; }
@@ -588,7 +602,7 @@ async function loadSuppliers() {
 }
 $('btnAddSupplier').onclick = () => openSupplierModal();
 window.editSupplier = (id) => openSupplierModal(ALL_SUP.find(s => s.id === id));
-window.deleteSupplier = async (id) => { if (!confirm('Delete?')) return; await supabase.from('suppliers').delete().eq('id', id); toast('Deleted'); loadSuppliers(); };
+window.deleteSupplier = async (id) => { if (!confirm('Delete?')) return; await supabase.from('suppliers').delete().eq('id', id).eq('shop_id', SHOP_ID); toast('Deleted'); loadSuppliers(); };
 
 function openSupplierModal(s = null) {
   const body = `<div class="form-grid">
@@ -598,9 +612,9 @@ function openSupplierModal(s = null) {
     <div class="field full"><label>Address</label><textarea id="sAddr">${esc(s?.address || '')}</textarea></div>
   </div>`;
   openModal(s ? 'Edit Supplier' : 'Add Supplier', body, async () => {
-    const payload = { name: $('sName').value.trim(), phone: $('sPhone').value.trim() || null, address: $('sAddr').value.trim() || null, opening_balance: Number($('sBal').value) || 0 };
+    const payload = { shop_id: SHOP_ID, name: $('sName').value.trim(), phone: $('sPhone').value.trim() || null, address: $('sAddr').value.trim() || null, opening_balance: Number($('sBal').value) || 0 };
     if (!payload.name) throw new Error('Name required');
-    if (s) await supabase.from('suppliers').update(payload).eq('id', s.id);
+    if (s) await supabase.from('suppliers').update(payload).eq('id', s.id).eq('shop_id', SHOP_ID);
     else await supabase.from('suppliers').insert(payload);
     toast('Saved', 'success'); closeModal(); loadSuppliers();
   });
@@ -612,6 +626,7 @@ function openSupplierModal(s = null) {
 async function loadCredit() {
   const { data: sales } = await supabase.from('sales')
     .select('id,invoice_no,customer_name,customer_phone,total,paid,balance,created_at')
+    .eq('shop_id', SHOP_ID)
     .gt('balance', 0)
     .order('created_at', { ascending: false });
 
@@ -695,7 +710,7 @@ async function loadCredit() {
     });
   }
 
-  const { data: rec } = await supabase.from('customer_payments').select('*, customers(name)').order('created_at', { ascending: false }).limit(20);
+  const { data: rec } = await supabase.from('customer_payments').select('*, customers(name)').eq('shop_id', SHOP_ID).order('created_at', { ascending: false }).limit(20);
   const tr = $('recoveriesTable');
   if (!rec || !rec.length) tr.innerHTML = '<div class="empty">No recoveries yet.</div>';
   else tr.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Customer</th><th class="num">Amount</th><th>Method</th></tr></thead><tbody>
@@ -726,8 +741,8 @@ document.getElementById('btnPrintCreditAll')?.addEventListener('click', () => {
     <div class="header-row">
       <div><h1 class="title">ALL OUTSTANDING UDHAR</h1></div>
       <div class="company-info">
-        <div class="company-name">${SHOP.name}</div>
-        <div class="company-details">${SHOP.address}<br>📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+        <div class="company-name">${SHOP_INFO.name}</div>
+        <div class="company-details">${SHOP_INFO.address}<br>📞 ${SHOP_INFO.phone1} / ${SHOP_INFO.phone2}</div>
       </div>
     </div>
     
@@ -758,7 +773,7 @@ document.getElementById('btnPrintCreditAll')?.addEventListener('click', () => {
         <b>Note:</b> This is a computer generated outstanding summary.
       </div>
       <div class="made-by">
-        Made by MS.Tech<br>📞 ${SHOP.phoneMain}<br>
+        Made by MS.Tech<br>📞 ${SHOP_INFO.phoneMain}<br>
         <div class="urdu">ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں</div>
       </div>
     </div>`;
@@ -775,8 +790,11 @@ window.openRecovery = (saleId, custName, balance) => {
   openModal('Receive Credit Payment', body, async () => {
     const amt = Number($('recAmt').value) || 0;
     if (amt <= 0) throw new Error('Enter valid amount');
-    const { data: sale } = await supabase.from('sales').select('customer_id').eq('id', saleId).single();
+    const { data: sale } = await supabase.from('sales').select('customer_id').eq('id', saleId).eq('shop_id', SHOP_ID).single();
+    
+    // IMPORTANT: RPC must be updated to accept p_shop_id
     const { error } = await supabase.rpc('record_customer_payment', {
+      p_shop_id: SHOP_ID, 
       p_customer_id: sale.customer_id, p_sale_id: saleId, p_amount: amt, p_payment_method: $('recMethod').value, p_notes: null
     });
     if (error) throw new Error(error.message);
@@ -801,7 +819,7 @@ async function loadExpenses(fromDate = '', toDate = '', category = '') {
     catSel.innerHTML = '<option value="">All Categories</option>' + EXPENSE_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
   }
 
-  let q = supabase.from('expenses').select('*').order('expense_date', { ascending: false }).order('created_at', { ascending: false });
+  let q = supabase.from('expenses').select('*').eq('shop_id', SHOP_ID).order('expense_date', { ascending: false }).order('created_at', { ascending: false });
   if (fromDate) q = q.gte('expense_date', fromDate);
   if (toDate) q = q.lte('expense_date', toDate);
   if (category) q = q.eq('category', category);
@@ -819,7 +837,7 @@ async function loadExpenseStats() {
   const today = now.toISOString().slice(0, 10);
   const weekAgo = new Date(now.getTime() - 7 * 86400000).toISOString().slice(0, 10);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-  const { data: all } = await supabase.from('expenses').select('amount,expense_date');
+  const { data: all } = await supabase.from('expenses').select('amount,expense_date').eq('shop_id', SHOP_ID);
   if (!all) return;
   const sum = (arr) => arr.reduce((s, x) => s + Number(x.amount || 0), 0);
   const setTxt = (id, v) => { const el = $(id); if (el) el.textContent = fmt(v); };
@@ -873,7 +891,7 @@ function renderExpenses(rows) {
 
 async function deleteExpense(id) {
   if (!confirm('Delete this expense?')) return;
-  const { error } = await supabase.from('expenses').delete().eq('id', id);
+  const { error } = await supabase.from('expenses').delete().eq('id', id).eq('shop_id', SHOP_ID);
   if (error) return toast(error.message, 'error');
   toast('Expense deleted'); loadExpenses();
 }
@@ -892,22 +910,25 @@ $('btnAddExpense').onclick = () => {
     </div>`;
   openModal('Add Expense', body, async () => {
     const payload = {
-      title: $('eCat').value, // FIX: Added title for DB constraint
+      shop_id: SHOP_ID,
+      title: $('eCat').value,
       category: $('eCat').value,
       description: $('eDesc').value.trim() || null,
       amount: Number($('eAmt').value) || 0,
       payment_method: $('eMethod').value,
       expense_date: $('eDate').value,
-      created_by: profile.id
+      created_by: 'admin'
     };
     if (payload.amount <= 0) throw new Error('Amount must be greater than 0');
     const { error } = await supabase.from('expenses').insert(payload);
     if (error) throw new Error(error.message);
+    
     await supabase.from('transactions').insert({
+      shop_id: SHOP_ID,
       transaction_type: 'expense', amount: payload.amount,
       payment_method: payload.payment_method, direction: 'out',
       notes: `${payload.category}: ${payload.description || ''}`,
-      created_by: profile.id
+      created_by: 'admin'
     });
     toast('Expense added', 'success'); closeModal(); loadExpenses();
   });
@@ -928,19 +949,19 @@ async function runProfitLossReport() {
   const t = $('plTable');
   t.innerHTML = '<div class="empty">Loading…</div>';
 
-  let sq = supabase.from('sale_items').select('product_id, product_name, quantity, unit_price, line_total, created_at');
+  let sq = supabase.from('sale_items').select('product_id, product_name, quantity, unit_price, line_total, created_at').eq('shop_id', SHOP_ID);
   if (from) sq = sq.gte('created_at', from + 'T00:00:00');
   if (to) sq = sq.lte('created_at', to + 'T23:59:59');
   const { data: saleItems, error: se } = await sq;
   if (se) { t.innerHTML = `<div class="empty" style="color:red">Sales error: ${esc(se.message)}</div>`; return; }
 
-  let pq = supabase.from('purchase_items').select('product_id, product_name, quantity, unit_price, line_total, created_at');
+  let pq = supabase.from('purchase_items').select('product_id, product_name, quantity, unit_price, line_total, created_at').eq('shop_id', SHOP_ID);
   if (from) pq = pq.gte('created_at', from + 'T00:00:00');
   if (to) pq = pq.lte('created_at', to + 'T23:59:59');
   const { data: purchItems, error: pe } = await pq;
   if (pe) { t.innerHTML = `<div class="empty" style="color:red">Purchase error: ${esc(pe.message)}</div>`; return; }
 
-  const { data: prods } = await supabase.from('products').select('id,name,purchase_price,sale_price');
+  const { data: prods } = await supabase.from('products').select('id,name,purchase_price,sale_price').eq('shop_id', SHOP_ID);
 
   const map = new Map();
   const ensure = (id, name) => {
@@ -1020,7 +1041,7 @@ async function runProfitLossReport() {
 // TRANSACTIONS
 // =====================================================
 async function loadTransactions() {
-  const { data } = await supabase.from('transactions').select('*').order('created_at', { ascending: false }).limit(100);
+  const { data } = await supabase.from('transactions').select('*').eq('shop_id', SHOP_ID).order('created_at', { ascending: false }).limit(100);
   const t = $('transactionsTable');
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No transactions yet.</div>'; return; }
   t.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Type</th><th>Party</th><th class="num">Amount</th><th>Direction</th><th>Method</th></tr></thead><tbody>
@@ -1061,22 +1082,22 @@ $('btnRunReport').onclick = async () => {
     : `${fromDate.toLocaleDateString('en-PK')} to ${toDate.toLocaleDateString('en-PK')}`;
 
   const headerHTML = `<div class="center" style="margin-bottom:14px">
-    <h3 style="font-size:15px;font-weight:900">${SHOP.name}</h3>
-    <p>${SHOP.address}<br>📞 ${SHOP.phone1} / ${SHOP.phone2}</p>
+    <h3 style="font-size:15px;font-weight:900">${SHOP_INFO.name}</h3>
+    <p>${SHOP_INFO.address}<br>📞 ${SHOP_INFO.phone1} / ${SHOP_INFO.phone2}</p>
     <p style="font-weight:800;margin-top:8px">REPORT: ${type.toUpperCase()} · ${periodLabel}</p>
   </div>`;
 
   let bodyHTML = '';
 
   if (type === 'sales' || type === 'purchases') {
-    const { data } = await supabase.from(type).select('*').gte('created_at', from).lte('created_at', to).order('created_at', { ascending: false });
+    const { data } = await supabase.from(type).select('*').eq('shop_id', SHOP_ID).gte('created_at', from).lte('created_at', to).order('created_at', { ascending: false });
     const grand = (data || []).reduce((a, x) => ({ total: a.total + Number(x.total || 0), paid: a.paid + Number(x.paid || 0), balance: a.balance + Number(x.balance || 0) }), { total: 0, paid: 0, balance: 0 });
     bodyHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Party</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>
       ${(data || []).map(x => `<tr><td>${esc(x.invoice_no)}</td><td>${esc(x.customer_name || x.supplier_name || '—')}</td><td class="num">${fmt(x.total)}</td><td class="num">${fmt(x.paid)}</td><td class="num">${fmt(x.balance)}</td><td>${new Date(x.created_at).toLocaleDateString()}</td></tr>`).join('')}
       <tr style="background:rgba(0,0,0,.06);font-weight:900"><th colspan="2">GRAND TOTAL</th><th class="num">${fmt(grand.total)}</th><th class="num">${fmt(grand.paid)}</th><th class="num">${fmt(grand.balance)}</th><th></th></tr>
     </tbody></table>`;
   } else if (type === 'expenses') {
-    const { data } = await supabase.from('expenses').select('*')
+    const { data } = await supabase.from('expenses').select('*').eq('shop_id', SHOP_ID)
       .gte('expense_date', fromDate.toISOString().slice(0, 10))
       .lte('expense_date', toDate.toISOString().slice(0, 10))
       .order('expense_date', { ascending: false });
@@ -1087,8 +1108,8 @@ $('btnRunReport').onclick = async () => {
     </tbody></table>`;
   } else if (type === 'pl') {
     const [saleRes, purchRes] = await Promise.all([
-      supabase.from('sale_items').select('*').gte('created_at', from).lte('created_at', to),
-      supabase.from('purchase_items').select('*').gte('created_at', from).lte('created_at', to)
+      supabase.from('sale_items').select('*').eq('shop_id', SHOP_ID).gte('created_at', from).lte('created_at', to),
+      supabase.from('purchase_items').select('*').eq('shop_id', SHOP_ID).gte('created_at', from).lte('created_at', to)
     ]);
     const map = new Map();
     const ensure = (id, name) => {
@@ -1110,7 +1131,7 @@ $('btnRunReport').onclick = async () => {
       <tr style="background:rgba(0,0,0,.06);font-weight:900"><th>TOTAL</th><th></th><th></th><th class="num">${fmt(totRev)}</th><th class="num">${fmt(totCogs)}</th><th class="num" style="color:${totProfit >= 0 ? '#10b981' : '#ef4444'}">${fmt(totProfit)}</th></tr>
     </tbody></table>`;
   } else if (type === 'customer') {
-    const { data } = await supabase.from('sales').select('*').gte('created_at', from).lte('created_at', to);
+    const { data } = await supabase.from('sales').select('*').eq('shop_id', SHOP_ID).gte('created_at', from).lte('created_at', to);
     const grouped = new Map();
     (data || []).forEach(x => {
       const k = x.customer_phone || x.customer_name || 'Walk-in';
@@ -1124,14 +1145,14 @@ $('btnRunReport').onclick = async () => {
       <tr style="background:rgba(0,0,0,.06);font-weight:900"><th colspan="2">GRAND TOTAL</th><th class="num">${rows.reduce((n, x) => n + x.bills, 0)}</th><th class="num">${fmt(rows.reduce((n, x) => n + x.total, 0))}</th><th class="num">${fmt(rows.reduce((n, x) => n + x.paid, 0))}</th><th class="num">${fmt(rows.reduce((n, x) => n + x.due, 0))}</th></tr>
     </tbody></table>`;
   } else if (type === 'credit') {
-    const { data } = await supabase.from('sales').select('*').gt('balance', 0).gte('created_at', from).lte('created_at', to);
+    const { data } = await supabase.from('sales').select('*').eq('shop_id', SHOP_ID).gt('balance', 0).gte('created_at', from).lte('created_at', to);
     const total = (data || []).reduce((n, x) => n + Number(x.balance || 0), 0);
     bodyHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Phone</th><th class="num">Balance</th></tr></thead><tbody>
       ${(data || []).map(x => `<tr><td>${esc(x.invoice_no)}</td><td>${esc(x.customer_name)}</td><td>${esc(x.customer_phone || '—')}</td><td class="num">${fmt(x.balance)}</td></tr>`).join('')}
       <tr style="background:rgba(0,0,0,.06);font-weight:900"><th colspan="3">TOTAL PENDING</th><th class="num">${fmt(total)}</th></tr>
     </tbody></table>`;
   } else if (type === 'repairing') {
-    const { data } = await supabase.from('repairing_jobs').select('*').gte('created_at', from).lte('created_at', to).order('created_at', { ascending: false });
+    const { data } = await supabase.from('repairing_jobs').select('*').eq('shop_id', SHOP_ID).gte('created_at', from).lte('created_at', to).order('created_at', { ascending: false });
     const total = (data || []).reduce((n, x) => n + Number(x.total_payment || 0), 0);
     const paid = (data || []).reduce((n, x) => n + Number(x.advance_payment || 0), 0);
     const due = (data || []).reduce((n, x) => n + Number(x.due_payment || 0), 0);
@@ -1153,8 +1174,8 @@ $('btnPrintReport').onclick = () => {
     <div class="header-row">
       <div><h1 class="title">${type} REPORT</h1></div>
       <div class="company-info">
-        <div class="company-name">${SHOP.name}</div>
-        <div class="company-details">${SHOP.address}<br>📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+        <div class="company-name">${SHOP_INFO.name}</div>
+        <div class="company-details">${SHOP_INFO.address}<br>📞 ${SHOP_INFO.phone1} / ${SHOP_INFO.phone2}</div>
       </div>
     </div>
     
@@ -1172,7 +1193,7 @@ $('btnPrintReport').onclick = () => {
         <b>Note:</b> This is a computer generated report.
       </div>
       <div class="made-by">
-        Made by MS.Tech<br>📞 ${SHOP.phoneMain}<br>
+        Made by MS.Tech<br>📞 ${SHOP_INFO.phoneMain}<br>
         <div class="urdu">ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں</div>
       </div>
     </div>`;
@@ -1184,13 +1205,13 @@ $('btnPrintReport').onclick = () => {
 // RACK MANAGEMENT
 // =====================================================
 async function loadRacks() {
-  const { data: racks, error } = await supabase.from('racks').select('*').order('name');
+  const { data: racks, error } = await supabase.from('racks').select('*').eq('shop_id', SHOP_ID).order('name');
   if (error) { $('racksTable').innerHTML = '<div class="empty">Rack tables not installed. Run SQL migration.</div>'; return; }
   const rows = racks || [];
   $('racksTable').innerHTML = rows.length
     ? `<table class="data"><thead><tr><th>Rack</th><th>Description</th><th>Actions</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.description || '—')}</td><td><button class="btn btn-danger btn-sm" onclick="deleteRack('${r.id}')">Delete</button></td></tr>`).join('')}</tbody></table>`
     : '<div class="empty">No racks created.</div>';
-  const { data: stock } = await supabase.from('products').select('name,quantity,racks(name)').order('name');
+  const { data: stock } = await supabase.from('products').select('name,quantity,racks(name)').eq('shop_id', SHOP_ID).order('name');
   $('rackStockTable').innerHTML = `<table class="data"><thead><tr><th>Rack</th><th>Product</th><th class="num">Quantity</th></tr></thead><tbody>${(stock || []).map(p => `<tr><td>${esc(p.racks?.name || 'Unassigned')}</td><td>${esc(p.name)}</td><td class="num">${Number(p.quantity || 0)}</td></tr>`).join('')}</tbody></table>`;
 }
 $('btnAddRack').onclick = () => openModal('Add Rack',
@@ -1198,13 +1219,13 @@ $('btnAddRack').onclick = () => openModal('Add Rack',
   async () => {
     const name = $('rackName').value.trim();
     if (!name) throw new Error('Rack name required');
-    const { error } = await supabase.from('racks').insert({ name, description: $('rackDesc').value.trim() || null });
+    const { error } = await supabase.from('racks').insert({ shop_id: SHOP_ID, name, description: $('rackDesc').value.trim() || null });
     if (error) throw new Error(error.message);
     closeModal(); toast('Rack added', 'success'); loadRacks();
   });
 window.deleteRack = async id => {
   if (!confirm('Delete rack? Products in this rack must be reassigned first.')) return;
-  const { error } = await supabase.from('racks').delete().eq('id', id);
+  const { error } = await supabase.from('racks').delete().eq('id', id).eq('shop_id', SHOP_ID);
   if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); }
 };
 $('inventoryRackFilter')?.addEventListener('change', loadInventory);
@@ -1213,7 +1234,7 @@ $('inventoryRackFilter')?.addEventListener('change', loadInventory);
 // REPAIRING
 // =====================================================
 async function loadRepairs(filter = '') {
-  const { data, error } = await supabase.from('repairing_jobs').select('*').order('created_at', { ascending: false }).limit(200);
+  const { data, error } = await supabase.from('repairing_jobs').select('*').eq('shop_id', SHOP_ID).order('created_at', { ascending: false }).limit(200);
   if (error) { $('repairsTable').innerHTML = '<div class="empty">Repairing table not installed. Run SQL migration.</div>'; return; }
   const statusFilter = $('repairStatusFilter')?.value || '';
   const rows = (data || [])
@@ -1250,6 +1271,7 @@ $('btnAddRepair').onclick = () => {
     if (!$('rCustomer').value.trim()) throw new Error('Customer name required');
     if (advance > total) throw new Error('Advance cannot exceed total');
     const payload = {
+      shop_id: SHOP_ID,
       slip_no: 'REP-' + Date.now().toString().slice(-7),
       customer_name: $('rCustomer').value.trim(),
       customer_mobile: $('rPhone').value.trim() || null,
@@ -1260,7 +1282,7 @@ $('btnAddRepair').onclick = () => {
       battery_status: $('rBattery').value.trim() || null,
       fault: $('rFault').value.trim() || null,
       total_payment: total, advance_payment: advance, due_payment: total - advance,
-      status: $('rStatus').value, created_by: profile.id
+      status: $('rStatus').value, created_by: 'admin'
     };
     const { data, error } = await supabase.from('repairing_jobs').insert(payload).select('*').single();
     if (error) throw new Error(error.message);
@@ -1277,7 +1299,7 @@ $('btnAddRepair').onclick = () => {
 };
 
 window.printRepairSlip = async id => {
-  const { data, error } = await supabase.from('repairing_jobs').select('*').eq('id', id).single();
+  const { data, error } = await supabase.from('repairing_jobs').select('*').eq('id', id).eq('shop_id', SHOP_ID).single();
   if (error) return toast(error.message, 'error');
   printRepairSlipData(data);
 };
@@ -1314,7 +1336,7 @@ function printRepairSlipData(r) {
 // SETTINGS
 // =====================================================
 async function loadSettings() {
-  const { data } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
+  const { data } = await supabase.from('settings').select('*').eq('shop_id', SHOP_ID).maybeSingle();
   if (!data) return;
   $('setShopName').value = data.shop_name || '';
   $('setOwner').value = data.owner_name || '';
@@ -1325,6 +1347,7 @@ async function loadSettings() {
 }
 $('btnSaveSettings').onclick = async () => {
   const payload = {
+    shop_id: SHOP_ID,
     shop_name: $('setShopName').value.trim(),
     owner_name: $('setOwner').value.trim(),
     address: $('setAddress').value.trim(),
@@ -1333,7 +1356,19 @@ $('btnSaveSettings').onclick = async () => {
     footer_text: $('setFooter').value.trim(),
     updated_at: new Date().toISOString()
   };
-  const { error } = await supabase.from('settings').update(payload).eq('id', 1);
+  
+  // Try update first
+  const { data: existing } = await supabase.from('settings').select('id').eq('shop_id', SHOP_ID).maybeSingle();
+  
+  let error;
+  if (existing) {
+     const res = await supabase.from('settings').update(payload).eq('id', existing.id).eq('shop_id', SHOP_ID);
+     error = res.error;
+  } else {
+     const res = await supabase.from('settings').insert(payload);
+     error = res.error;
+  }
+  
   if (error) toast(error.message, 'error'); else toast('Settings saved', 'success');
 };
 
@@ -1341,32 +1376,29 @@ $('btnSaveSettings').onclick = async () => {
 // PREMIUM PRINT SYSTEM (A4 & Thermal)
 // =====================================================
 
-// 1. PREMIUM THERMAL HEADER (No Watermark)
 function printThermalHeader() {
   return `
     <div class="center">
-      <div class="big" style="font-size: 16px; letter-spacing: 1px;">${SHOP.name}</div>
-      <div style="font-size: 11px;">${SHOP.address}</div>
-      <div style="font-size: 11px;">📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+      <div class="big" style="font-size: 16px; letter-spacing: 1px;">${SHOP_INFO.name}</div>
+      <div style="font-size: 11px;">${SHOP_INFO.address}</div>
+      <div style="font-size: 11px;">📞 ${SHOP_INFO.phone1} / ${SHOP_INFO.phone2}</div>
     </div>
     <div class="dashed-line"></div>`;
 }
 
-// 2. PREMIUM THERMAL FOOTER (Urdu Duplication Fixed)
 function printThermalFooter() {
   return `
     <div class="dashed-line"></div>
     <div class="center" style="font-size:11px; margin-top:8px;">
       Thank you for shopping!<br>Visit Again<br><br>
       <b>Made by MS.Tech</b><br>
-      📞 ${SHOP.phoneMain}<br>
+      📞 ${SHOP_INFO.phoneMain}<br>
       <div class="urdu" style="font-size:11px; margin-top:6px; font-weight:bold;">
         ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں
       </div>
     </div>`;
 }
 
-// 3. THERMAL PRINT WRAPPER (80mm - No Watermark)
 function printThermalWrapper(title, contentHTML) {
   const w = window.open('', '_blank', 'width=380,height=720');
   if (!w) { toast('Please allow pop-ups', 'error'); return; }
@@ -1389,7 +1421,6 @@ function printThermalWrapper(title, contentHTML) {
   w.document.close();
 }
 
-// 4. PREMIUM A4 PRINT WRAPPER (For Reports & Udhar) with Crown BM Watermark
 function printA4Wrapper(title, contentHTML) {
   const w = window.open('', '_blank', 'width=900,height=900');
   if (!w) { toast('Please allow pop-ups', 'error'); return; }
@@ -1463,9 +1494,6 @@ function printA4Wrapper(title, contentHTML) {
   w.document.close();
 }
 
-// =====================================================
-// 5. GENERATE POS RECEIPT (Thermal)
-// =====================================================
 function printThermal80mm(sale) {
   const content = `
     ${printThermalHeader()}
@@ -1497,16 +1525,13 @@ function printThermal80mm(sale) {
   printThermalWrapper('Receipt', content);
 }
 
-// =====================================================
-// 6. GENERATE CREDIT RECEIPT (A4 Premium)
-// =====================================================
 function printCreditReceipt(g) {
   const content = `
     <div class="header-row">
       <div><h1 class="title">UDHAR STATEMENT</h1></div>
       <div class="company-info">
-        <div class="company-name">${SHOP.name}</div>
-        <div class="company-details">${SHOP.address}<br>📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+        <div class="company-name">${SHOP_INFO.name}</div>
+        <div class="company-details">${SHOP_INFO.address}<br>📞 ${SHOP_INFO.phone1} / ${SHOP_INFO.phone2}</div>
       </div>
     </div>
     
@@ -1545,23 +1570,20 @@ function printCreditReceipt(g) {
         <b>Note:</b> This is a computer generated statement. Please bring this receipt for payment recovery.
       </div>
       <div class="made-by">
-        Made by MS.Tech<br>📞 ${SHOP.phoneMain}<br>
+        Made by MS.Tech<br>📞 ${SHOP_INFO.phoneMain}<br>
         <div class="urdu">ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں</div>
       </div>
     </div>`;
   printA4Wrapper('Udhar Statement', content);
 }
 
-// =====================================================
-// 7. GENERATE PROFIT & LOSS REPORT (A4 Premium)
-// =====================================================
 function printPLReport(rows, totals) {
   const content = `
     <div class="header-row">
       <div><h1 class="title">PROFIT & LOSS REPORT</h1></div>
       <div class="company-info">
-        <div class="company-name">${SHOP.name}</div>
-        <div class="company-details">${SHOP.address}<br>📞 ${SHOP.phone1} / ${SHOP.phone2}</div>
+        <div class="company-name">${SHOP_INFO.name}</div>
+        <div class="company-details">${SHOP_INFO.address}<br>📞 ${SHOP_INFO.phone1} / ${SHOP_INFO.phone2}</div>
       </div>
     </div>
     
@@ -1594,7 +1616,7 @@ function printPLReport(rows, totals) {
         <b>Note:</b> This is a computer generated profit & loss report.
       </div>
       <div class="made-by">
-        Made by MS.Tech<br>📞 ${SHOP.phoneMain}<br>
+        Made by MS.Tech<br>📞 ${SHOP_INFO.phoneMain}<br>
         <div class="urdu">ہر قسم کے سافٹ ویئر بنوانے کے لیے رابطہ کریں</div>
       </div>
     </div>`;
