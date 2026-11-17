@@ -2,145 +2,355 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Super Admin | BM System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Admin | MS.Tech SaaS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
-  body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; padding: 20px; display: flex; justify-content: center; }
-  .container { width: 100%; max-width: 800px; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
-  h1, h2 { text-align: center; color: #38bdf8; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-  input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #334155; color: #fff; box-sizing: border-box; }
-  button { width: 100%; padding: 12px; background: #38bdf8; color: #0f172a; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-  button:hover { background: #0ea5e9; }
-  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
-  th { background: #334155; color: #94a3b8; }
-  .status-active { color: #10b981; font-weight: bold; }
-  .status-inactive { color: #ef4444; font-weight: bold; }
-  #login-section, #dashboard-section { display: none; }
+:root {
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --primary: #3b82f6;
+  --primary-glow: rgba(59, 130, 246, 0.4);
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --border: #334155;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+/* --- SIDEBAR --- */
+.sidebar {
+  width: 260px; background: var(--panel); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 24px; position: fixed; height: 100vh;
+}
+.logo { font-size: 20px; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 10px; margin-bottom: 40px; }
+.logo i { font-size: 24px; }
+.nav-item {
+  padding: 12px 16px; border-radius: 8px; color: var(--muted); font-size: 14px; font-weight: 600;
+  display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; margin-bottom: 5px;
+}
+.nav-item:hover, .nav-item.active { background: rgba(59, 130, 246, 0.1); color: var(--primary); }
+.nav-item i { width: 20px; text-align: center; }
+
+/* --- MAIN CONTENT --- */
+.main { flex: 1; margin-left: 260px; padding: 30px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.topbar h1 { font-size: 24px; font-weight: 800; }
+.btn {
+  padding: 10px 20px; border-radius: 8px; border: none; font-weight: 700; font-size: 14px;
+  cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px var(--primary-glow); }
+.btn-primary:hover { background: #2563eb; transform: translateY(-2px); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #dc2626; }
+.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-ghost:hover { background: var(--border); }
+
+/* --- DASHBOARD CARDS --- */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+.stat-card {
+  background: var(--panel); border: 1px solid var(--border); padding: 24px; border-radius: 16px;
+  display: flex; align-items: center; gap: 20px; position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary);
+}
+.stat-icon {
+  width: 50px; height: 50px; border-radius: 12px; background: rgba(59, 130, 246, 0.1);
+  color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.stat-info h3 { font-size: 24px; font-weight: 900; margin-bottom: 4px; }
+.stat-info p { font-size: 13px; color: var(--muted); font-weight: 600; }
+
+/* --- TABLES --- */
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 30px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.card-header h2 { font-size: 18px; font-weight: 800; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
+td { padding: 16px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+tr:last-child td { border-bottom: none; }
+.pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+.pill.green { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.pill.red { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+/* --- MODALS --- */
+.modal-backdrop {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 999;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--panel); width: 100%; max-width: 500px; border-radius: 16px;
+  border: 1px solid var(--border); padding: 30px; animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal h3 { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
+.input-group { margin-bottom: 16px; }
+.input-group label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+.input-group input, .input-group select {
+  width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: #0f172a; color: white; font-family: inherit; font-size: 14px;
+}
+.input-group input:focus { outline: none; border-color: var(--primary); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+
+/* --- LOGIN SCREEN --- */
+#loginScreen {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.login-box {
+  background: var(--panel); padding: 40px; border-radius: 20px; width: 100%; max-width: 400px;
+  border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center;
+}
+.login-box h1 { color: var(--primary); font-size: 28px; margin-bottom: 10px; }
+.login-box p { color: var(--muted); margin-bottom: 30px; font-size: 14px; }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <!-- LOGIN SECTION -->
-  <div id="login-section">
-    <h1>Super Admin Login</h1>
-    <div style="max-width: 300px; margin: 0 auto;">
-      <input type="text" id="saUsername" placeholder="Username" style="margin-bottom: 10px;">
-      <input type="password" id="saPassword" placeholder="Password" style="margin-bottom: 20px;">
-      <button onclick="loginSuperAdmin()">Login</button>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1><i class="fa-solid fa-crown"></i> Super Admin</h1>
+    <p>Enter your credentials to manage SaaS</p>
+    <div class="input-group">
+      <input type="text" id="loginUser" placeholder="Username (superadmin)">
     </div>
-  </div>
-
-  <!-- DASHBOARD SECTION -->
-  <div id="dashboard-section">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h1>Super Admin Dashboard</h1>
-      <button onclick="logout()" style="width: auto; padding: 8px 16px; background: #ef4444; color: white;">Logout</button>
+    <div class="input-group">
+      <input type="password" id="loginPass" placeholder="Password (admin123)">
     </div>
-    
-    <div style="background: #0f172a; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-      <h2>Create New Shop Login</h2>
-      <div class="grid">
-        <input type="text" id="shopName" placeholder="Shop Name (e.g. BM Mobile)">
-        <input type="text" id="ownerName" placeholder="Owner Name">
-        <input type="text" id="shopPhone" placeholder="Phone Number">
-        <input type="text" id="shopUsername" placeholder="Login Username (e.g. bmzafarwal)">
-        <input type="password" id="shopPassword" placeholder="Password">
-      </div>
-      <button onclick="createShop()">Create Shop Account</button>
-    </div>
-
-    <h2>All Registered Shops</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Shop Name</th>
-          <th>Username</th>
-          <th>Password</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="shopsTableBody">
-        <!-- Shops will load here -->
-      </tbody>
-    </table>
+    <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="loginSA()">Login Securely</button>
   </div>
 </div>
 
-<!-- Supabase Library -->
+<!-- MAIN APP -->
+<div id="app" style="display: none; width: 100%;">
+  
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo"><i class="fa-solid fa-cube"></i> MS.Tech SaaS</div>
+    <div class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
+    <div class="nav-item" onclick="alert('Coming Soon!')"><i class="fa-solid fa-file-invoice-dollar"></i> Billing</div>
+    <div class="nav-item" onclick="alert('Coming Soon!')"><i class="fa-solid fa-gear"></i> Settings</div>
+    <div class="nav-item" style="margin-top: auto; color: var(--danger);" onclick="logoutSA()"><i class="fa-solid fa-right-from-bracket"></i> Logout</div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Overview Dashboard</h1>
+        <p style="color: var(--muted); font-size: 13px;">Welcome back, Super Admin</p>
+      </div>
+      <button class="btn btn-primary" onclick="openShopModal()"><i class="fa-solid fa-plus"></i> Create New Shop</button>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="color: #10b981; background: rgba(16,185,129,0.1);"><i class="fa-solid fa-store"></i></div>
+        <div class="stat-info">
+          <h3 id="statTotalShops">0</h3>
+          <p>Total Shops</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="color: #3b82f6; background: rgba(59,130,246,0.1);"><i class="fa-solid fa-check-circle"></i></div>
+        <div class="stat-info">
+          <h3 id="statActiveShops">0</h3>
+          <p>Active Shops</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="color: #f59e0b; background: rgba(245,158,11,0.1);"><i class="fa-solid fa-ban"></i></div>
+        <div class="stat-info">
+          <h3 id="statBlockedShops">0</h3>
+          <p>Blocked Shops</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHOPS TABLE -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Registered Shops</h2>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Shop Info</th>
+            <th>Login Credentials</th>
+            <th>Status</th>
+            <th>Join Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="shopsTableBody">
+          <!-- JS will populate -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- ADD SHOP MODAL -->
+<div class="modal-backdrop" id="shopModal">
+  <div class="modal">
+    <h3>Create New Shop</h3>
+    <div class="input-group">
+      <label>Shop Name *</label>
+      <input type="text" id="newShopName" placeholder="e.g. BM Mobile Zone">
+    </div>
+    <div class="input-group">
+      <label>Owner Name</label>
+      <input type="text" id="newOwnerName" placeholder="e.g. Muhammad Umar">
+    </div>
+    <div class="input-group">
+      <label>Phone Number</label>
+      <input type="text" id="newShopPhone" placeholder="e.g. 03001234567">
+    </div>
+    <hr style="border-color: var(--border); margin: 20px 0;">
+    <div class="input-group">
+      <label>Login Username *</label>
+      <input type="text" id="newShopUser" placeholder="e.g. bmzafarwal">
+    </div>
+    <div class="input-group">
+      <label>Login Password *</label>
+      <input type="text" id="newShopPass" placeholder="e.g. 12345">
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeShopModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createShop()">Create Shop</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUPABASE JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // APNI SUPABASE CREDENTIALS YAHAN DAALEIN
-  const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-  const SUPABASE_KEY = 'YOUR_ANON_KEY';
+  // ==========================================
+  // SUPABASE CONFIGURATION (APNI DETAILS DAALEIN)
+  // ==========================================
+  const SUPABASE_URL = 'https://lateoozrnyzjkcyftyp.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_5V9LTrlkpe5Sv-ALosMOng_hfXYNLKE';
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Check if logged in as Super Admin
+  // ==========================================
+  // AUTHENTICATION
+  // ==========================================
   window.onload = () => {
     if (localStorage.getItem('isSuperAdmin') === 'true') {
-      document.getElementById('login-section').style.display = 'none';
-      document.getElementById('dashboard-section').style.display = 'block';
-      loadShops();
-    } else {
-      document.getElementById('login-section').style.display = 'block';
+      showApp();
     }
   };
 
-  async function loginSuperAdmin() {
-    const u = document.getElementById('saUsername').value;
-    const p = document.getElementById('saPassword').value;
+  async function loginSA() {
+    const u = document.getElementById('loginUser').value;
+    const p = document.getElementById('loginPass').value;
+    
+    if(!u || !p) return alert('Enter username and password');
+
     const { data, error } = await supabase.from('shops').select('*').eq('username', u).eq('password', p).single();
     
     if (error || !data) return alert('Invalid Credentials!');
     if (data.shop_name !== 'SUPER ADMIN') return alert('You are not a Super Admin!');
     
     localStorage.setItem('isSuperAdmin', 'true');
-    location.reload();
+    showApp();
   }
 
-  function logout() {
+  function logoutSA() {
     localStorage.removeItem('isSuperAdmin');
-    location.reload();
+    window.location.reload();
   }
+
+  function showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadShops();
+  }
+
+  // ==========================================
+  // SHOP MANAGEMENT
+  // ==========================================
+  function openShopModal() { document.getElementById('shopModal').classList.add('open'); }
+  function closeShopModal() { document.getElementById('shopModal').classList.remove('open'); }
 
   async function createShop() {
-    const shopName = document.getElementById('shopName').value;
-    const ownerName = document.getElementById('ownerName').value;
-    const phone = document.getElementById('shopPhone').value;
-    const username = document.getElementById('shopUsername').value;
-    const password = document.getElementById('shopPassword').value;
+    const shopName = document.getElementById('newShopName').value.trim();
+    const ownerName = document.getElementById('newOwnerName').value.trim();
+    const phone = document.getElementById('newShopPhone').value.trim();
+    const username = document.getElementById('newShopUser').value.trim();
+    const password = document.getElementById('newShopPass').value.trim();
 
-    if (!shopName || !username || !password) return alert('Shop Name, Username, Password required!');
+    if (!shopName || !username || !password) return alert('Shop Name, Username and Password are required!');
 
-    const { data, error } = await supabase.from('shops').insert([{
-      shop_name: shopName, owner_name: ownerName, phone: phone, username: username, password: password
+    const { error } = await supabase.from('shops').insert([{
+      shop_name: shopName, 
+      owner_name: ownerName || null, 
+      phone: phone || null, 
+      username: username, 
+      password: password
     }]);
 
-    if (error) return alert('Error: ' + error.message);
+    if (error) {
+      if (error.code === '23505') return alert('This Username is already taken. Please try another.');
+      return alert('Error: ' + error.message);
+    }
+
     alert('Shop Created Successfully!');
+    closeShopModal();
+    
+    // Clear inputs
+    document.getElementById('newShopName').value = '';
+    document.getElementById('newOwnerName').value = '';
+    document.getElementById('newShopPhone').value = '';
+    document.getElementById('newShopUser').value = '';
+    document.getElementById('newShopPass').value = '';
+    
     loadShops();
-    document.getElementById('shopName').value = '';
-    document.getElementById('shopUsername').value = '';
-    document.getElementById('shopPassword').value = '';
   }
 
   async function loadShops() {
     const { data, error } = await supabase.from('shops').select('*').order('created_at', { ascending: false });
     if (error) return console.error(error);
     
+    const shops = data || [];
+    
+    // Update Stats
+    document.getElementById('statTotalShops').textContent = shops.filter(s => s.shop_name !== 'SUPER ADMIN').length;
+    document.getElementById('statActiveShops').textContent = shops.filter(s => s.is_active && s.shop_name !== 'SUPER ADMIN').length;
+    document.getElementById('statBlockedShops').textContent = shops.filter(s => !s.is_active && s.shop_name !== 'SUPER ADMIN').length;
+
+    // Populate Table
     const tbody = document.getElementById('shopsTableBody');
-    tbody.innerHTML = data.map(s => `
+    tbody.innerHTML = shops.filter(s => s.shop_name !== 'SUPER ADMIN').map(s => `
       <tr>
-        <td>${s.shop_name}</td>
-        <td>${s.username}</td>
-        <td>${s.password}</td>
-        <td class="${s.is_active ? 'status-active' : 'status-inactive'}">${s.is_active ? 'Active' : 'Inactive'}</td>
         <td>
-          <button onclick="toggleShop('${s.id}', ${s.is_active})" style="width: auto; padding: 5px 10px; font-size: 12px; background: ${s.is_active ? '#ef4444' : '#10b981'}; color: white;">
-            ${s.is_active ? 'Disable' : 'Enable'}
+          <strong style="color: var(--text); font-size: 15px;">${s.shop_name}</strong><br>
+          <small style="color: var(--muted);">${s.owner_name || 'No owner'} · ${s.phone || 'No phone'}</small>
+        </td>
+        <td>
+          <span style="background: var(--bg); padding: 4px 8px; border-radius: 6px; font-family: monospace;">${s.username}</span><br>
+          <small style="color: var(--muted);">Pass: ${s.password}</small>
+        </td>
+        <td>
+          <span class="pill ${s.is_active ? 'green' : 'red'}">${s.is_active ? 'ACTIVE' : 'BLOCKED'}</span>
+        </td>
+        <td style="color: var(--muted);">${new Date(s.created_at).toLocaleDateString()}</td>
+        <td>
+          <button class="btn ${s.is_active ? 'btn-danger' : 'btn-primary'}" style="padding: 6px 12px; font-size: 12px;" onclick="toggleShop('${s.id}', ${s.is_active})">
+            ${s.is_active ? '<i class="fa-solid fa-ban"></i> Block' : '<i class="fa-solid fa-check"></i> Unblock'}
           </button>
         </td>
       </tr>
@@ -148,6 +358,9 @@
   }
 
   async function toggleShop(id, currentStatus) {
+    const action = currentStatus ? 'block' : 'unblock';
+    if (!confirm(`Are you sure you want to ${action} this shop?`)) return;
+    
     const { error } = await supabase.from('shops').update({ is_active: !currentStatus }).eq('id', id);
     if (error) return alert(error.message);
     loadShops();
