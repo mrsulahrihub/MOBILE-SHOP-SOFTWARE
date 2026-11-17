@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - FULL WORKING SYSTEM (v16.0 - ULTIMATE)
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v17.0 - FINAL)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -22,10 +22,11 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => 'PKR ' + Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 const SHOP_INFO = { name: 'BM MOBILE ZONE', address: 'Chohan Mobile Market, Zafarwal', phone1: '0345-6613232', phone2: '0307-6613232' };
 
 function checkPermission(action) {
-  if (!SESSION.staff_id) return true; // No login means old mode, allow all
+  if (!SESSION.staff_id) return true; // Full access if no staff logged in (legacy)
   if (IS_ADMIN) return true;
   if (action === 'edit' && !SESSION.can_edit) { toast('Aapko edit ki ijazat nahi hai!', 'error'); return false; }
   if (action === 'delete' && !SESSION.can_delete) { toast('Aapko delete ki ijazat nahi hai!', 'error'); return false; }
@@ -244,7 +245,7 @@ const MODULE_TITLES = {
   overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Racks', 
   repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers', 
   suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses', 
-  reports: 'Reports & P&L', settings: 'Settings' 
+  reports: 'Reports & P&L', settings: 'Staff Settings' 
 };
 
 document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
@@ -252,7 +253,7 @@ document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
     const mod = btn.dataset.module;
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); btn.classList.add('active');
     document.querySelectorAll('.module').forEach(m => m.classList.remove('active')); 
-    const targetMod = $('module-' + mod) || $('module-profitloss'); // Fallback for profitloss
+    const targetMod = $('module-' + mod);
     if(targetMod) targetMod.classList.add('active');
     $('pageTitle').textContent = MODULE_TITLES[mod] || mod; loadModule(mod);
     sidebar.classList.remove('show'); handle?.classList.remove('open');
@@ -272,8 +273,7 @@ async function loadModule(mod) {
     case 'suppliers': return loadSuppliers();
     case 'credit': return loadCredit();
     case 'expenses': return loadExpenses();
-    case 'reports': return loadReports();
-    case 'profitloss': return loadReports(); // Redirect old link
+    case 'reports': return; // Handled by button click
     case 'settings': return loadStaff();
   }
 }
@@ -447,31 +447,61 @@ $('saleDiscount').addEventListener('input', renderCart); $('salePaid').addEventL
 
 $('btnSaveSale').onclick = async () => {
   if (!CART.length) return toast('Cart empty', 'error');
-  const total = Math.max(0, CART.reduce((s, c) => s + c.line_total, 0) - (Number($('saleDiscount').value) || 0));
+  
+  const subtotal = CART.reduce((s, c) => s + c.line_total, 0);
+  const discount = Number($('saleDiscount').value) || 0;
+  const total = Math.max(0, subtotal - discount);
   const paid = Number($('salePaid').value) || 0;
   const custName = $('saleCustName').value.trim() || 'Walk-in Customer';
   const custPhone = $('saleCustPhone').value.trim();
+  const payMethod = $('salePaymentMethod').value;
+
   $('btnSaveSale').disabled = true;
+  $('btnSaveSale').textContent = 'Saving...';
+
   try {
     let customerId = null;
     if (custName !== 'Walk-in Customer') {
       let found = POS_CUSTOMERS.find(c => (custPhone && c.phone === custPhone) || c.name.toLowerCase() === custName.toLowerCase());
-      if (!found) { const { data: created, error: ce } = await supabase.from('customers').insert({ name: custName, phone: custPhone || null, opening_balance: 0 }).select('id,name,phone').single(); if (ce) throw new Error(ce.message); found = created; POS_CUSTOMERS.push(created); }
+      if (!found) {
+        const { data: created, error: ce } = await supabase.from('customers').insert({ name: custName, phone: custPhone || null, opening_balance: 0 }).select('id,name,phone').single();
+        if (ce) throw new Error('Customer Error: ' + ce.message); 
+        found = created; POS_CUSTOMERS.push(created);
+      }
       customerId = found.id;
     }
-    const { data, error } = await supabase.rpc('create_sale', {
-      p_customer_id: customerId, p_customer_name: custName, p_customer_phone: custPhone || null,
-      p_subtotal: CART.reduce((s, c) => s + c.line_total, 0), p_discount: Number($('saleDiscount').value) || 0, p_total: total, p_paid: paid,
-      p_payment_method: $('salePaymentMethod').value, p_notes: null,
-      p_items: CART.map(c => ({ product_id: c.product_id, product_name: c.product_name, imei: c.imei, quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total, category: c.category, sub_category: c.sub_category }))
-    });
-    if (error) throw new Error(error.message);
-    const printOpt = confirm('Print Thermal Receipt (OK) ya A4 Premium Invoice (Cancel)?');
-    if (printOpt) printThermal80mm({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] }, 'sale');
-    else printA4Premium({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] }, 'sale');
-    toast('Sale Saved!', 'success'); CART = []; renderCart(); loadSaleProducts(); loadOverview(); loadCredit();
+
+    const invNo = 'INV-' + Date.now().toString().slice(-6);
+
+    const { data: saleData, error: saleErr } = await supabase.from('sales').insert({
+      invoice_no: invNo, customer_id: customerId, customer_name: custName, customer_phone: custPhone || null,
+      subtotal, discount, total, paid, balance: total - paid, payment_method: payMethod
+    }).select().single();
+
+    if (saleErr) throw new Error('Sale DB Error: ' + saleErr.message);
+
+    const saleItems = CART.map(c => ({
+      sale_id: saleData.id, product_id: c.product_id, product_name: c.product_name, imei: c.imei || null,
+      quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total, category: c.category, sub_category: c.sub_category
+    }));
+
+    const { error: itemsErr } = await supabase.from('sale_items').insert(saleItems);
+    if (itemsErr) throw new Error('Items DB Error: ' + itemsErr.message);
+
+    for (const item of CART) {
+      const { data: prod } = await supabase.from('products').select('quantity').eq('id', item.product_id).single();
+      if (prod) await supabase.from('products').update({ quantity: Math.max(0, prod.quantity - item.quantity) }).eq('id', item.product_id);
+    }
+
+    const printOpt = confirm('Sale Saved Successfully! \n\nPrint Thermal Receipt (OK) ya A4 Premium Invoice (Cancel)?');
+    const payload = { invoice: invNo, customer: custName, phone: custPhone, subtotal, discount, total, paid, balance: total - paid, date: new Date(), items: [...CART] };
+    if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'sale');
+
+    toast('Sale Saved & Stock Updated!', 'success'); CART = []; renderCart(); loadSaleProducts(); loadOverview();
     $('saleCustName').value = ''; $('saleCustPhone').value = ''; $('salePaid').value = 0; $('saleDiscount').value = 0; POS_PREVIOUS_DUE = 0; $('previousDueBox').style.display = 'none';
-  } catch (e) { toast(e.message, 'error'); } finally { $('btnSaveSale').disabled = false; }
+    if (!$('salesHistoryBox').hidden) loadSalesHistory();
+  } catch (err) { console.error(err); toast(err.message, 'error'); }
+  finally { $('btnSaveSale').disabled = false; $('btnSaveSale').textContent = '💾 Save Sale (F4)'; }
 };
 
 $('btnSalesHistory').onclick = () => { const box = $('salesHistoryBox'); box.hidden = !box.hidden; if (!box.hidden) loadSalesHistory(); };
@@ -620,7 +650,7 @@ $('btnPrintCreditAll').onclick = () => {
   const rows = $('creditSummaryTable').querySelectorAll('tbody tr'); if (!rows.length) return toast('Nothing to print', 'error');
   const printOpt = confirm('Print Thermal Report (OK) ya A4 Premium (Cancel)?');
   const payload = { invoice: 'UDHAR-ALL', customer: 'All Customers', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from(rows).map(r => { const cols = r.querySelectorAll('td'); return { description: cols[0].innerText, price: 0, qty: 1, total: Number(cols[3].innerText.replace(/[^0-9]/g, '')) }; }) };
-  if (printOpt) { /* For thermal, reuse sales style */ printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); }
+  if (printOpt) { printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); }
   else printA4Premium(payload, 'sale');
 };
 
@@ -658,9 +688,11 @@ async function runReport() {
   const from = $('reportFrom').value; const to = $('reportTo').value;
   const search = $('reportSearch')?.value?.trim().toLowerCase() || '';
   const out = $('reportOutput'); out.innerHTML = '<div class="empty">Loading…</div>';
+  const plSummary = $('plSummary');
   
   try {
     if (type === 'sales') {
+      plSummary.style.display = 'none';
       let q = supabase.from('sales').select('*').order('created_at', { ascending: false });
       if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
       const { data } = await q;
@@ -670,6 +702,7 @@ async function runReport() {
       out.innerHTML = `<h3 style="margin-bottom:12px">Sales Report — Total: ${fmt(total)}</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>${filtered.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
     } 
     else if (type === 'purchases') {
+      plSummary.style.display = 'none';
       let q = supabase.from('purchases').select('*, suppliers(name)').order('created_at', { ascending: false });
       if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
       const { data } = await q;
@@ -678,6 +711,7 @@ async function runReport() {
       out.innerHTML = `<h3 style="margin-bottom:12px">Purchase Report</h3><table class="data"><thead><tr><th>Invoice</th><th>Supplier</th><th class="num">Total</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${filtered.map(p => `<tr><td>${esc(p.invoice_no || '—')}</td><td>${esc(p.suppliers?.name || '—')}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
     } 
     else if (type === 'expenses') {
+      plSummary.style.display = 'none';
       let q = supabase.from('expenses').select('*').order('expense_date', { ascending: false });
       if (from) q = q.gte('expense_date', from); if (to) q = q.lte('expense_date', to);
       const { data } = await q;
@@ -686,6 +720,7 @@ async function runReport() {
       out.innerHTML = `<h3 style="margin-bottom:12px">Expense Report</h3><table class="data"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th></tr></thead><tbody>${filtered.map(e => `<tr><td>${esc(e.expense_date)}</td><td>${esc(e.category || '')}</td><td>${esc(e.description || '')}</td><td class="num">${fmt(e.amount)}</td></tr>`).join('')}</tbody></table>`;
     }
     else if (type === 'pl') {
+      plSummary.style.display = 'flex';
       let q = supabase.from('sale_items').select('product_id,product_name,quantity,unit_price,line_total,created_at');
       if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
       const { data: items } = await q;
@@ -701,11 +736,13 @@ async function runReport() {
       out.innerHTML = `<h3 style="margin-bottom:12px">Profit & Loss (Item-wise)</h3>` + (rows.length ? `<table class="data"><thead><tr><th>Product</th><th class="num">Qty Sold</th><th class="num">Revenue</th><th class="num">Cost</th><th class="num">Profit</th></tr></thead><tbody>${rows.sort((a,b)=>b.profit-a.profit).map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.qty}</td><td class="num">${fmt(r.revenue)}</td><td class="num">${fmt(r.cost)}</td><td class="num" style="color:${r.profit>=0?'#22a06b':'#dc2626'}"><b>${fmt(r.profit)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No data found.</div>');
     }
     else if (type === 'customer') {
+      plSummary.style.display = 'none';
       const { data } = await supabase.from('customers').select('*'); let filtered = data || [];
       if (search) filtered = filtered.filter(c => (c.name||'').toLowerCase().includes(search) || (c.phone||'').includes(search));
       out.innerHTML = `<h3 style="margin-bottom:12px">Customer Report</h3><table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th></tr></thead><tbody>${filtered.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td></tr>`).join('')}</tbody></table>`;
     }
     else if (type === 'repairing') {
+      plSummary.style.display = 'none';
       const { data } = await supabase.from('repairs').select('*'); let filtered = data || [];
       if (search) filtered = filtered.filter(r => (r.customer_name||'').toLowerCase().includes(search) || (r.mobile||'').toLowerCase().includes(search) || (r.issue||'').toLowerCase().includes(search));
       out.innerHTML = `<h3 style="margin-bottom:12px">Repairing Report</h3><table class="data"><thead><tr><th>Slip</th><th>Customer</th><th>Mobile</th><th>Issue</th><th class="num">Charge</th><th>Status</th></tr></thead><tbody>${filtered.map(r => `<tr><td>${esc(r.slip_no || '')}</td><td>${esc(r.customer_name)}</td><td>${esc(r.mobile || '')}</td><td>${esc(r.issue || '')}</td><td class="num">${fmt(r.charge)}</td><td>${esc(r.status)}</td></tr>`).join('')}</tbody></table>`;
@@ -715,30 +752,23 @@ async function runReport() {
 
 // --- 15. STAFF / SETTINGS ---
 async function loadStaff() {
+  const t = $('staffTable'); t.innerHTML = '<div class="empty">Loading staff data…</div>';
   const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: false });
-  const t = $('staffTable');
-  if (error) { t.innerHTML = `<div class="empty">Staff table not installed: ${esc(error.message)}</div>`; return; }
-  if (!data || !data.length) { t.innerHTML = '<div class="empty">No staff members.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Permissions</th><th>Actions</th></tr></thead><tbody>${data.map(s => `<tr><td><b>${esc(s.staff_id)}</b></td><td>${esc(s.name)}</td><td>${esc(s.role)}</td><td><small>Edit: ${s.can_edit?'✅':'❌'} | Delete: ${s.can_delete?'✅':'❌'}</small></td><td><button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
+  if (error) { t.innerHTML = `<div class="empty">Staff table error: ${esc(error.message)}</div>`; return; }
+  if (!data || !data.length) { t.innerHTML = '<div class="empty">No staff members found. Click "+ Generate Staff ID" to add one.</div>'; return; }
+  t.innerHTML = `<table class="data"><thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Permissions</th><th class="actions">Actions</th></tr></thead><tbody>${data.map(s => `<tr><td><b>${esc(s.staff_id)}</b></td><td>${esc(s.name)}</td><td><span class="pill ${s.role === 'Admin' ? 'green' : 'orange'}">${esc(s.role)}</span></td><td><small>Edit: ${s.can_edit ? '<span style="color:green">✅ Yes</span>' : '<span style="color:red">❌ No</span>'} &nbsp;|&nbsp; Delete: ${s.can_delete ? '<span style="color:green">✅ Yes</span>' : '<span style="color:red">❌ No</span>'}</small></td><td class="actions">${s.staff_id === '01' ? '<small style="color:#7b869a">Protected</small>' : `<button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">Del</button>`}</td></tr>`).join('')}</tbody></table>`;
 }
 $('btnAddStaff').onclick = () => {
-  const body = `<div class="form-grid">
-    <div class="field"><label>Staff ID (e.g. 02)</label><input id="stId" placeholder="02"></div>
-    <div class="field"><label>Name</label><input id="stName" placeholder="Staff Name"></div>
-    <div class="field"><label>Password</label><input id="stPass" type="password" placeholder="****"></div>
-    <div class="field"><label>Role</label><select id="stRole"><option value="Staff">Staff</option><option value="Manager">Manager</option><option value="Admin">Admin (Full Access)</option></select></div>
-    <div class="field full" style="display:flex;gap:20px;margin-top:10px;">
-      <label style="display:flex;align-items:center;gap:5px;text-transform:none;font-size:13px;"><input type="checkbox" id="stEdit"> Can Edit Records</label>
-      <label style="display:flex;align-items:center;gap:5px;text-transform:none;font-size:13px;"><input type="checkbox" id="stDelete"> Can Delete Records</label>
-    </div>
-  </div>`;
+  const body = `<div class="form-grid"><div class="field"><label>Staff ID *</label><input id="stId" placeholder="e.g. 02, 03" autocomplete="off"></div><div class="field"><label>Staff Name *</label><input id="stName" placeholder="Full Name"></div><div class="field full"><label>Password *</label><input id="stPass" type="password" placeholder="Set a password"></div><div class="field"><label>Role</label><select id="stRole"><option value="Staff">Staff</option><option value="Manager">Manager</option><option value="Admin">Admin (Full Access)</option></select></div><div class="field full" style="display:flex;gap:20px;margin-top:10px;padding:10px;background:rgba(0,0,0,0.02);border-radius:8px;"><label style="display:flex;align-items:center;gap:6px;text-transform:none;font-size:13px;cursor:pointer;"><input type="checkbox" id="stEdit"> Can Edit Records</label><label style="display:flex;align-items:center;gap:6px;text-transform:none;font-size:13px;cursor:pointer;"><input type="checkbox" id="stDelete"> Can Delete Records</label></div></div>`;
   openModal('Generate Staff ID', body, async () => {
-    const payload = { staff_id: $('stId').value.trim(), name: $('stName').value.trim(), password: $('stPass').value.trim(), role: $('stRole').value, can_edit: $('stEdit').checked, can_delete: $('stDelete').checked };
-    if (!payload.staff_id || !payload.name || !payload.password) throw new Error('All fields required');
-    await supabase.from('staff').insert(payload); closeModal(); toast('Staff ID Generated', 'success'); loadStaff();
+    const staffId = $('stId').value.trim(); const name = $('stName').value.trim(); const password = $('stPass').value.trim();
+    if (!staffId || !name || !password) throw new Error('All fields are required!');
+    const { error } = await supabase.from('staff').insert({ staff_id: staffId, name: name, password: password, role: $('stRole').value, can_edit: $('stEdit').checked, can_delete: $('stDelete').checked });
+    if (error) { if (error.code === '23505') throw new Error('This Staff ID already exists. Please choose a different one.'); throw new Error(error.message); }
+    closeModal(); toast('Staff ID Generated Successfully!', 'success'); loadStaff();
   });
 };
-window.deleteStaff = async (id) => { if(!checkPermission('delete')) return; if (!confirm('Delete this staff?')) return; await supabase.from('staff').delete().eq('id', id); toast('Deleted'); loadStaff(); };
+window.deleteStaff = async (id) => { if (!checkPermission('delete')) return; if (!confirm('Delete this staff member?')) return; const { error } = await supabase.from('staff').delete().eq('id', id); if (error) return toast(error.message, 'error'); toast('Staff deleted'); loadStaff(); };
 
 // INITIAL LOAD
 renderCart();
