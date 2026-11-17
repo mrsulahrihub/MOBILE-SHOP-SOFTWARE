@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - FULL WORKING SYSTEM (v14.0 - FINAL PREMIUM)
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v15.0 - FINAL)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -21,6 +21,10 @@ const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;'
 
 const SHOP_INFO = { name: 'BM MOBILE ZONE', address: 'Chohan Mobile Market, Zafarwal', phone1: '0345-6613232', phone2: '0307-6613232' };
 
+const playBeep = () => {
+  try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime); osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1); } catch (e) {}
+};
+
 function toast(msg, type = 'info') {
   const host = $('toastHost'); if (!host) return;
   const el = document.createElement('div'); el.className = `toast ${type}`; el.textContent = msg;
@@ -39,18 +43,33 @@ $('modalConfirm').onclick = async () => {
   if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
 
-// --- 3. PREMIUM PRINTING FUNCTIONS ---
+// --- 3. PREMIUM PRINTING FUNCTIONS (Thermal & A4) ---
 
-// Thermal 80mm (Image 1 Style)
-function printThermal80mm(data) {
+function printThermal80mm(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=340,height=640');
   if (!w) { toast('Popup blocked — allow popups to print', 'error'); return; }
+  
   const items = (data.items || []).map(it => `
     <tr>
       <td style="text-align:left;font-size:11px">${esc(it.product_name || it.name)}<br><span style="font-size:9px;color:#444">${esc(it.category || '')} ${it.imei ? 'IMEI: '+esc(it.imei) : ''}</span></td>
-      <td style="text-align:center;font-size:11px">${it.quantity}</td>
-      <td style="text-align:right;font-size:11px">${Number(it.line_total || it.amount).toLocaleString()}</td>
+      <td style="text-align:center;font-size:11px">${it.quantity || it.qty || 1}</td>
+      <td style="text-align:right;font-size:11px">${Number(it.line_total || it.total || it.amount || 0).toLocaleString()}</td>
     </tr>`).join('');
+
+  let urduTerms = '';
+  if (type === 'repair' || type === 'sale') {
+    urduTerms = `
+    <hr style="border-top: 1px dashed #000; margin: 6px 0;">
+    <div style="text-align:right; font-size:12px; font-family:'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', Arial, sans-serif; direction: rtl; line-height: 1.6;">
+      <div style="text-align:center; font-weight:bold; font-size:13px; margin-bottom:4px;">ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔</div>
+      <div>• ﺑراه ِ ﮐرم ﻣﺎل ﮐﺎؤﻧﭨر ﭘر ﭼﯾﮏ ﮐرﯾں۔</div>
+      <div>• ﭘﮭوﻟﯽ ﮨوﺋﯽ ﺑﯾﭨری ﮐﯽ ﮐوﺋﯽ وارﻧﭨﯽ ﻧﮩﯾں ﮨﮯ۔</div>
+      <div>• ﺑﯾﭨری ﮐﯽ وارﻧﭨﯽ ﺻرف 2 دن ﮨوﮔﯽ۔</div>
+      <div>• اﺳﭨرپ واﻟﯽ ﺑﯾﭨری ﮐﯽ ﮐوﺋﯽ وارﻧﭨﯽ ﻧﮩﯾں ﮨﮯ۔</div>
+      <div>• اﺳﺗﻌﻤﺎل ﺷده Accessories واﭘس ﯾﺎ ﺗﺑدﯾل ﻧﮩﯾں ﮨوں ﮔﯽ۔</div>
+    </div>`;
+  }
+
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title>
   <style>
     @page { size: 80mm auto; margin: 4mm; }
@@ -81,6 +100,7 @@ function printThermal80mm(data) {
     <div class="row bold"><span>Total</span><span>PKR ${Number(data.total||0).toLocaleString()}</span></div>
     <div class="row"><span>Paid</span><span>PKR ${Number(data.paid||0).toLocaleString()}</span></div>
     ${data.balance > 0 ? `<div class="row bold"><span>Due</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}
+    ${urduTerms}
     <hr>
     <div class="center">Thank you for shopping!</div>
     <div class="center">Visit Again</div>
@@ -92,10 +112,10 @@ function printThermal80mm(data) {
 }
 window.printThermal80mm = printThermal80mm;
 
-// A4 Premium (Image 2 Style)
-function printA4Premium(data) {
+function printA4Premium(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=800,height=900');
   if (!w) { toast('Popup blocked', 'error'); return; }
+  
   const rows = (data.items || []).map((it, idx) => `
     <tr>
       <td>${idx + 1}. ${esc(it.description || it.product_name || it.name)}</td>
@@ -103,10 +123,24 @@ function printA4Premium(data) {
       <td style="text-align:center">${it.qty || it.quantity || 1}</td>
       <td style="text-align:right">PKR ${Number(it.total || it.line_total || it.amount || 0).toLocaleString()}</td>
     </tr>`).join('');
+
+  let urduTerms = '';
+  if (type === 'repair' || type === 'sale') {
+    urduTerms = `
+    <div style="margin-top: 30px; padding: 15px; background: #f8fafc; border-left: 4px solid #5b8def; text-align:right; font-family:'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', Arial, sans-serif; direction: rtl; font-size: 14px; color: #333; line-height: 1.8;">
+      <div style="font-weight:bold; margin-bottom:5px;">ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔</div>
+      <div>• ﺑراه ِ ﮐرم ﻣﺎل ﮐﺎؤﻧﭨر ﭘر ﭼﯾﮏ ﮐرﯾں۔</div>
+      <div>• ﭘﮭوﻟﯽ ﮨوﺋﯽ ﺑﯾﭨری ﮐﯽ ﮐوﺋﯽ وارﻧﭨﯽ ﻧﮩﯾں ﮨﮯ۔</div>
+      <div>• ﺑﯾﭨری ﮐﯽ وارﻧﭨﯽ ﺻرف 2 دن ﮨوﮔﯽ۔</div>
+      <div>• اﺳﭨرپ واﻟﯽ ﺑﯾﭨری ﮐﯽ ﮐوﺋﯽ وارﻧﭨﯽ ﻧﮩﯾں ﮨﮯ۔</div>
+      <div>• اﺳﺗﻌﻣﺎل ﺷده Accessories واﭘس ﯾﺎ ﺗﺑدﯾل ﻧﮩﯾں ﮨوں ﮔﯽ۔</div>
+    </div>`;
+  }
+
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-    body { font-family: 'Inter', sans-serif; background: #fff; color: #333; margin: 0; padding: 40px; }
+    body { font-family: 'Inter', sans-serif; background: #fff; color: #333; margin: 0; padding: 40px; position: relative; min-height: 100vh; }
     .header-bg { position: absolute; top: 0; left: 0; width: 100%; height: 150px; background: linear-gradient(135deg, #0f172a 0%, #5b8def 50%, #7c5cff 100%); clip-path: ellipse(150% 100% at 50% 0%); z-index: -1; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; margin-top: 60px; }
     .title { font-size: 42px; font-weight: 800; color: #1b2436; margin: 0; border-left: 5px solid #5b8def; padding-left: 15px; line-height: 1; }
@@ -155,6 +189,7 @@ function printA4Premium(data) {
         ${data.balance > 0 ? `<div class="totals-row" style="color:#dc2626"><span>BALANCE</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}
       </div>
     </div>
+    ${urduTerms}
     <div class="footer-bg"></div>
     <script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script>
   </body></html>`;
@@ -175,10 +210,7 @@ if (handle) {
     if (!sidebar.contains(e.target) && !handle.contains(e.target)) { sidebar.classList.remove('show'); handle.classList.remove('open'); clearTimeout(sidebarTimeout); }
   });
 }
-function resetSidebarTimer() {
-  clearTimeout(sidebarTimeout);
-  sidebarTimeout = setTimeout(() => { sidebar.classList.remove('show'); handle.classList.remove('open'); }, 15000);
-}
+function resetSidebarTimer() { clearTimeout(sidebarTimeout); sidebarTimeout = setTimeout(() => { sidebar.classList.remove('show'); handle.classList.remove('open'); }, 15000); }
 
 const MODULE_TITLES = { overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Racks', repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers', suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses', profitloss: 'Profit & Loss', transactions: 'Transactions', reports: 'Reports', settings: 'Settings' };
 document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
@@ -234,9 +266,23 @@ async function loadOverview() {
   else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 }
 
-// --- 6. PRODUCTS (UPDATED) ---
+// --- 6. PRODUCTS (UPDATED WITH AUTO-SUGGESTIONS) ---
 let ALL_PRODUCTS = [];
-const CATEGORIES = ['Mobile', 'Glass', 'Cover', 'Accessory', 'Other'];
+const CATEGORIES = [
+  'Mobile Phones', 'Mobile Accessories', 'Chargers & Cables', 'Handsfree & Audio',
+  'Batteries', 'Memory & Storage', 'Mobile Parts', 'SIM & Network', 'Repairing Tools', 'Other Gadgets'
+];
+const CAT_ITEMS = {
+  'Mobile Accessories': ['Glass Protector', 'Back Cover', 'Flip Cover', 'Camera Lens', 'Ring Holder', 'Phone Pouch', 'Selfie Stick', 'Car Mount', 'OTG Cable'],
+  'Chargers & Cables': ['Fast Charger', 'Type-C Cable', 'Lightning Cable', 'Micro USB Cable', 'Car Charger', 'Power Bank', 'Wireless Charger', 'Adapter'],
+  'Handsfree & Audio': ['Handsfree', 'Earbuds', 'Bluetooth Headset', 'Neckband', 'Speaker', 'Airpods'],
+  'Batteries': ['Mobile Battery', 'Power Bank Battery', 'Lithium Ion', 'Strip Battery'],
+  'Memory & Storage': ['Memory Card 32GB', 'Memory Card 64GB', 'Memory Card 128GB', 'USB Flash Drive', 'OTG Pen Drive'],
+  'Mobile Parts': ['LCD Panel', 'Touch Screen', 'Battery Connector', 'Charging Port', 'Camera Module', 'Speaker', 'Vibrator', 'Flex Cable', 'Back Camera', 'Front Camera'],
+  'SIM & Network': ['SIM Ejector', 'SIM Adapter', 'Network Booster', 'Signal Antenna'],
+  'Repairing Tools': ['Screwdriver Kit', 'Opening Pry Tool', 'Tweezers', 'Heat Gun', 'Suction Cup', 'Multimeter', 'BGA Rework Station'],
+  'Other Gadgets': ['Smart Watch', 'Fitness Band', 'Bluetooth Tracker', 'VR Headset', 'Gaming Controller']
+};
 
 async function loadProducts(filter = '') {
   let q = supabase.from('products').select('*,racks!fk_products_racks(name)').order('created_at', { ascending: false });
@@ -246,8 +292,8 @@ async function loadProducts(filter = '') {
   ALL_PRODUCTS = data || [];
   const t = $('productsTable');
   if (!ALL_PRODUCTS.length) { t.innerHTML = '<div class="empty">No products found.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category</th><th>Sub-Category</th><th>IMEI</th><th class="num">Price</th><th>Rack</th><th class="num">Stock</th><th>Status</th><th class="actions">Actions</th></tr></thead><tbody>
-    ${ALL_PRODUCTS.map(p => `<tr><td><strong>${esc(p.name)}</strong></td><td>${esc(p.category || '—')}</td><td>${esc(p.sub_category || '—')}</td><td><small>${esc(p.imei_1 || '—')}</small></td><td class="num">${fmt(p.sale_price)}</td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td>${p.quantity <= p.min_stock ? '<span class="pill red">Low</span>' : '<span class="pill green">OK</span>'}</td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="editProduct('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button></td></tr>`).join('')}
+  t.innerHTML = `<table class="data"><thead><tr><th>Product Name</th><th>Category</th><th>Brand</th><th>Barcode</th><th class="num">Price</th><th class="num">Stock</th><th>Status</th><th class="actions">Actions</th></tr></thead><tbody>
+    ${ALL_PRODUCTS.map(p => `<tr><td><strong>${esc(p.name)}</strong><br><small>${esc(p.sub_category || '')}</small></td><td>${esc(p.category || '—')}</td><td>${esc(p.brand || '—')}</td><td><small>${esc(p.barcode || '—')}</small></td><td class="num">${fmt(p.sale_price)}</td><td class="num">${p.quantity}</td><td>${p.quantity <= p.min_stock ? '<span class="pill red">Low</span>' : '<span class="pill green">OK</span>'}</td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="editProduct('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button></td></tr>`).join('')}
   </tbody></table>`;
 }
 $('productSearch')?.addEventListener('input', e => loadProducts(e.target.value));
@@ -258,36 +304,45 @@ window.deleteProduct = async (id) => { if (!confirm('Delete this product?')) ret
 async function openProductModal(p = null) {
   const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
   const body = `<div class="form-grid">
-      <div class="field full"><label>Product Name / Model *</label><input id="pName" value="${esc(p?.name || '')}" placeholder="e.g. iPhone 11 OG Glass"></div>
-      <div class="field"><label>Main Category *</label>
-        <select id="pCategory" onchange="toggleProductFields()">${CATEGORIES.map(c => `<option value="${c}" ${p?.category === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
+      <div class="field"><label>Product Name *</label><input id="pName" value="${esc(p?.name || '')}" placeholder="e.g. iPhone 11 Glass"></div>
+      <div class="field"><label>Brand</label><input id="pBrand" value="${esc(p?.brand || '')}" placeholder="e.g. Apple, Samsung, Anker"></div>
+      
+      <div class="field"><label>Category *</label>
+        <select id="pCategory" onchange="updateSubCatOptions()">
+          ${CATEGORIES.map(c => `<option value="${c}" ${p?.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+        </select>
       </div>
-      <div class="field"><label>Sub-Category / Type</label><input id="pSubCategory" placeholder="e.g. OG, 3D, Simple" value="${esc(p?.sub_category || '')}"></div>
-      <div class="field" id="imei1Field" style="${p?.category === 'Mobile' ? '' : 'display:none'}"><label>IMEI 1</label><input id="pImei1" value="${esc(p?.imei_1 || '')}"></div>
-      <div class="field" id="imei2Field" style="${p?.category === 'Mobile' ? '' : 'display:none'}"><label>IMEI 2</label><input id="pImei2" value="${esc(p?.imei_2 || '')}"></div>
+      <div class="field"><label>Sub-Category / Model</label>
+        <input id="pSubCategory" list="subCatList" placeholder="Select or type..." value="${esc(p?.sub_category || '')}">
+        <datalist id="subCatList"></datalist>
+      </div>
+
       <div class="field"><label>Purchase Price</label><input id="pPurchase" type="number" value="${p?.purchase_price || 0}"></div>
       <div class="field"><label>Sale Price</label><input id="pSale" type="number" value="${p?.sale_price || 0}"></div>
+      <div class="field"><label>Stock Quantity</label><input id="pQty" type="number" value="${p?.quantity || 0}"></div>
+      <div class="field"><label>Barcode</label><input id="pBarcode" value="${esc(p?.barcode || '')}" placeholder="Scan or type barcode"></div>
       <div class="field"><label>Rack Location</label><select id="pRack"><option value="">Unassigned</option>${(rackRows || []).map(r => `<option value="${r.id}" ${p?.rack_id === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>
-      <div class="field"><label>Quantity</label><input id="pQty" type="number" value="${p?.quantity || 0}"></div>
       <div class="field"><label>Min Stock Alert</label><input id="pMin" type="number" value="${p?.min_stock || 5}"></div>
     </div>`;
   openModal(p ? 'Edit Product' : 'Add Product', body, async () => {
     const payload = {
-      name: $('pName').value.trim(), category: $('pCategory').value, sub_category: $('pSubCategory').value.trim() || null,
-      imei_1: $('pCategory').value === 'Mobile' ? ($('pImei1').value.trim() || null) : null,
-      imei_2: $('pCategory').value === 'Mobile' ? ($('pImei2').value.trim() || null) : null,
-      purchase_price: Number($('pPurchase').value) || 0, sale_price: Number($('pSale').value) || 0,
+      name: $('pName').value.trim(), brand: $('pBrand').value.trim() || null, category: $('pCategory').value, sub_category: $('pSubCategory').value.trim() || null,
+      barcode: $('pBarcode').value.trim() || null, purchase_price: Number($('pPurchase').value) || 0, sale_price: Number($('pSale').value) || 0,
       quantity: Number($('pQty').value) || 0, rack_id: $('pRack').value || null, min_stock: Number($('pMin').value) || 5
     };
     if (!payload.name) throw new Error('Product Name required');
     if (p) await supabase.from('products').update(payload).eq('id', p.id); else await supabase.from('products').insert(payload);
     toast('Saved', 'success'); closeModal(); loadProducts();
   });
+  updateSubCatOptions(p?.sub_category);
 }
-window.toggleProductFields = () => {
-  const isMobile = $('pCategory').value === 'Mobile';
-  $('imei1Field').style.display = isMobile ? '' : 'none';
-  $('imei2Field').style.display = isMobile ? '' : 'none';
+
+window.updateSubCatOptions = (val = '') => {
+  const cat = $('pCategory').value;
+  const items = CAT_ITEMS[cat] || [];
+  const dl = $('subCatList');
+  if (dl) dl.innerHTML = items.map(i => `<option value="${esc(i)}">`).join('');
+  if (val !== undefined && val !== '') $('pSubCategory').value = val;
 };
 
 // --- 7. INVENTORY ---
@@ -333,7 +388,7 @@ $('btnAddRack').onclick = () => openModal('Add Rack', `<div class="form-grid"><d
 });
 window.deleteRack = async id => { if (!confirm('Delete rack?')) return; const { error } = await supabase.from('racks').delete().eq('id', id); if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); } };
 
-// --- 9. SALES / POS (UPDATED WITH CATEGORY FILTER) ---
+// --- 9. SALES / POS (UPDATED) ---
 let CART = []; let POS_CUSTOMERS = []; let POS_PREVIOUS_DUE = 0; let POS_ALL_PRODS = [];
 
 async function loadPosCustomers() {
@@ -360,7 +415,6 @@ async function loadSaleProducts() {
   const { data } = await supabase.from('products').select('*').gt('quantity', 0).order('name');
   POS_ALL_PRODS = data || [];
   
-  // Populate Category Filter
   const cats = [...new Set(POS_ALL_PRODS.map(p => p.category).filter(Boolean))];
   $('saleCategoryFilter').innerHTML = '<option value="">— All Categories —</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
   filterPosProducts();
@@ -382,7 +436,7 @@ $('btnAddToCart').onclick = () => {
   const existing = CART.find(c => c.product_id === opt.value);
   if (existing) { existing.quantity++; existing.line_total = existing.quantity * existing.unit_price; }
   else CART.push({ product_id: opt.value, product_name: opt.dataset.name, imei: opt.dataset.imei, category: opt.dataset.cat, sub_category: opt.dataset.subcat, unit_price: Number(opt.dataset.price), quantity: 1, line_total: Number(opt.dataset.price) });
-  renderCart();
+  playBeep(); renderCart();
 };
 
 function renderCart() {
@@ -425,12 +479,11 @@ $('btnSaveSale').onclick = async () => {
     });
     if (error) throw new Error(error.message);
     
-    // User ko choose karne dein kaunsa print karna hai
     const printOpt = confirm('Print Thermal Receipt (OK) ya A4 Premium Invoice (Cancel)?');
     if (printOpt) {
-      printThermal80mm({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] });
+      printThermal80mm({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] }, 'sale');
     } else {
-      printA4Premium({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] });
+      printA4Premium({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] }, 'sale');
     }
     
     toast('Sale Saved!', 'success'); CART = []; renderCart(); loadSaleProducts(); loadOverview();
@@ -454,10 +507,29 @@ window.reprintSale = async (id) => {
   const { data: items } = await supabase.from('sale_items').select('*').eq('sale_id', id);
   const printOpt = confirm('Print Thermal Receipt (OK) ya A4 Premium Invoice (Cancel)?');
   const payload = { invoice: s.invoice_no, customer: s.customer_name, phone: s.customer_phone, subtotal: s.subtotal, discount: s.discount, total: s.total, paid: s.paid, balance: s.balance, date: s.created_at, items: items || [] };
-  if (printOpt) printThermal80mm(payload); else printA4Premium(payload);
+  if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'sale');
 };
 
-// --- 10. REPAIRING (UPDATED WITH THERMAL) ---
+// --- 10. REPAIRING (UPDATED WITH WARRANTY & 100+ FAULTS) ---
+const COMMON_FAULTS = [
+  'Screen Broken', 'Touch Not Working', 'Battery Drain', 'Not Charging', 'No Power', 'No Display', 'Dead', 'Water Damage',
+  'Camera Not Working', 'Front Camera', 'Back Camera', 'Speaker Not Working', 'Mic Not Working', 'Earpiece Not Working',
+  'Vibrator Not Working', 'Network Issue', 'No Signal', 'WiFi Issue', 'Bluetooth Issue', 'Face ID Not Working', 'Fingerprint Issue',
+  'Software Update', 'Hanging Problem', 'Auto Restart', 'Bootloop', 'Fast Charging Issue', 'Slow Charging', 'Heating Issue',
+  'Headphone Jack', 'Charging Port', 'Data Cable Issue', 'Volume Button', 'Power Button', 'Home Button', 'Silent Switch',
+  'Back Glass Broken', 'Camera Glass', 'Lens Scratch', 'Bezel Damage', 'Frame Bend', 'Battery Swollen', 'Water Indicator',
+  'SIM Not Detected', 'Memory Card Slot', 'Speaker Crackling', 'Display Flicker', 'Screen Lines', 'Ghost Touch',
+  'LCD Burn', 'Backlight Issue', 'No Sound', 'Low Sound', 'Call Drops', 'Echo on Call', 'Proximity Sensor',
+  'Light Sensor', 'Gyro Sensor', 'Compass Sensor', 'IR Blaster', 'NFC Issue', 'Wireless Charging', 'Reverse Charging',
+  'Pop-up Camera', 'Slider Phone', 'Flip Phone Hinge', 'Screen Protector', 'Back Cover', 'Lens Protector',
+  'Board Repair', 'IC Replacement', 'CPU Issue', 'Power IC', 'Charging IC', 'Audio IC', 'Network IC',
+  'Memory IC', 'Display IC', 'BGA Rework', 'Jumper Wire', 'Track Repair', 'Water Clean', 'Corrosion Clean',
+  'Antenna Replace', 'Charging Flex', 'LCD Flex', 'Touch Flex', 'Digitizer', 'Glass Replacement',
+  'Software Flash', 'Firmware Update', 'FRP Lock', 'iCloud Lock', 'Google Lock', 'Pattern Lock', 'Bypass',
+  'Signal Booster', 'Battery Connector', 'Charging Port Replace', 'Speaker Replace', 'Mic Replace', 'Camera Module',
+  'Face ID Flex', 'Fingerprint Flex', 'Vibrator Motor', 'Haptic Engine', 'Taptic Engine', 'True Tone', 'Battery Health'
+];
+
 async function loadRepairs() {
   const q = $('repairSearch')?.value?.trim() || ''; const st = $('repairStatusFilter')?.value || '';
   let query = supabase.from('repairs').select('*').order('created_at', { ascending: false });
@@ -483,7 +555,7 @@ window.viewRepair = async (id) => {
   if (!r) return toast('Not found', 'error');
   const printOpt = confirm('Print Thermal Slip (OK) ya A4 Invoice (Cancel)?');
   const payload = { invoice: r.slip_no, customer: r.customer_name, phone: r.phone, subtotal: r.charge, discount: 0, total: r.charge, paid: r.advance, balance: (r.charge - r.advance), date: r.created_at, items: [{ name: r.mobile + ' - ' + (r.issue || 'Repair'), qty: 1, total: r.charge }] };
-  if (printOpt) printThermal80mm(payload); else printA4Premium(payload);
+  if (printOpt) printThermal80mm(payload, 'repair'); else printA4Premium(payload, 'repair');
 };
 
 function openRepairModal(r = null) {
@@ -492,14 +564,33 @@ function openRepairModal(r = null) {
     <div class="field"><label>Phone</label><input id="rPhone" value="${esc(r?.phone || '')}"></div>
     <div class="field"><label>Mobile Model</label><input id="rMobile" value="${esc(r?.mobile || '')}"></div>
     <div class="field"><label>IMEI</label><input id="rImei" value="${esc(r?.imei || '')}"></div>
-    <div class="field full"><label>Issue / Problem</label><textarea id="rIssue" rows="2">${esc(r?.issue || '')}</textarea></div>
+    
+    <div class="field full">
+      <label>Fault / Issue (Auto-suggest)</label>
+      <input id="rIssue" list="faultsList" value="${esc(r?.issue || '')}" placeholder="Type to search 100+ faults...">
+      <datalist id="faultsList">${COMMON_FAULTS.map(f => `<option value="${esc(f)}">`).join('')}</datalist>
+    </div>
+    
+    <div class="field full" style="display:flex;gap:10px;align-items:center;background:rgba(0,0,0,0.02);padding:10px;border-radius:8px;">
+      <div style="flex:1"><label style="margin:0;font-size:12px;">Battery Warranty</label>
+        <select id="rBatWarranty" style="padding:6px"><option value="No" ${r?.battery_warranty === 'No' ? 'selected' : ''}>No</option><option value="Yes (2 Days)" ${r?.battery_warranty === 'Yes (2 Days)' ? 'selected' : ''}>Yes (2 Days)</option></select>
+      </div>
+      <div style="flex:1"><label style="margin:0;font-size:12px;">Dead Warranty</label>
+        <select id="rDeadWarranty" style="padding:6px"><option value="No" ${r?.dead_warranty === 'No' ? 'selected' : ''}>No</option><option value="Yes" ${r?.dead_warranty === 'Yes' ? 'selected' : ''}>Yes</option></select>
+      </div>
+    </div>
+    
     <div class="field"><label>Charge (PKR)</label><input id="rCharge" type="number" value="${r?.charge || 0}"></div>
     <div class="field"><label>Advance (PKR)</label><input id="rAdvance" type="number" value="${r?.advance || 0}"></div>
     <div class="field"><label>Status</label><select id="rStatus">${['Received','In Progress','Ready','Delivered'].map(s => `<option ${r?.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
     <div class="field full"><label>Notes</label><textarea id="rNotes" rows="2">${esc(r?.notes || '')}</textarea></div>
   </div>`;
   openModal(r ? 'Edit Repair Slip' : 'New Repair Slip', body, async () => {
-    const payload = { customer_name: $('rCust').value.trim(), phone: $('rPhone').value.trim() || null, mobile: $('rMobile').value.trim() || null, imei: $('rImei').value.trim() || null, issue: $('rIssue').value.trim() || null, charge: Number($('rCharge').value) || 0, advance: Number($('rAdvance').value) || 0, status: $('rStatus').value, notes: $('rNotes').value.trim() || null };
+    const payload = { 
+      customer_name: $('rCust').value.trim(), phone: $('rPhone').value.trim() || null, mobile: $('rMobile').value.trim() || null, imei: $('rImei').value.trim() || null, 
+      issue: $('rIssue').value.trim() || null, battery_warranty: $('rBatWarranty').value, dead_warranty: $('rDeadWarranty').value, 
+      charge: Number($('rCharge').value) || 0, advance: Number($('rAdvance').value) || 0, status: $('rStatus').value, notes: $('rNotes').value.trim() || null 
+    };
     if (!payload.customer_name) throw new Error('Customer name required');
     if (r) { if (payload.status === 'Delivered' && r.status !== 'Delivered') payload.delivered_at = new Date().toISOString(); await supabase.from('repairs').update(payload).eq('id', r.id); }
     else await supabase.from('repairs').insert(payload);
@@ -559,7 +650,7 @@ function openCustomerModal(c = null) {
   });
 }
 
-// --- 13. SUPPLIERS (UPDATED WITH CATEGORY) ---
+// --- 13. SUPPLIERS ---
 let ALL_SUP = [];
 async function loadSuppliers() {
   const { data } = await supabase.from('suppliers').select('*').order('name');
@@ -581,18 +672,14 @@ function openSupplierModal(s = null) {
   });
 }
 
-// --- 14. CREDIT / UDHAR (WITH THERMAL PRINT) ---
+// --- 14. CREDIT / UDHAR ---
 async function loadCredit() {
   const [{ data: sales }, { data: recov }] = await Promise.all([
     supabase.from('sales').select('customer_id,customer_name,customer_phone,balance,invoice_no,created_at').gt('balance', 0).order('created_at', { ascending: false }),
     supabase.from('credit_recoveries').select('*, customers(name,phone)').order('created_at', { ascending: false }).limit(100)
   ]);
   const map = {};
-  (sales || []).forEach(s => {
-    const key = s.customer_id || s.customer_name || 'walkin';
-    if (!map[key]) map[key] = { name: s.customer_name || 'Walk-in', phone: s.customer_phone, total: 0, count: 0 };
-    map[key].total += Number(s.balance || 0); map[key].count++;
-  });
+  (sales || []).forEach(s => { const key = s.customer_id || s.customer_name || 'walkin'; if (!map[key]) map[key] = { name: s.customer_name || 'Walk-in', phone: s.customer_phone, total: 0, count: 0 }; map[key].total += Number(s.balance || 0); map[key].count++; });
   const summary = Object.values(map).sort((a, b) => b.total - a.total);
   $('creditSummaryTable').innerHTML = summary.length ? `<table class="data"><thead><tr><th>Customer</th><th>Phone</th><th class="num">Invoices</th><th class="num">Outstanding</th></tr></thead><tbody>${summary.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.phone || '—')}</td><td class="num">${s.count}</td><td class="num"><b>${fmt(s.total)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding credit. 🎉</div>';
   $('creditTable').innerHTML = (sales || []).length ? `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Balance</th><th>Date</th><th></th></tr></thead><tbody>${sales.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}<br><small>${esc(s.customer_phone || '')}</small></td><td class="num">${fmt(s.balance)}</td><td><small>${new Date(s.created_at).toLocaleDateString()}</small></td><td><button class="btn btn-primary btn-sm" onclick="recoverCredit('${s.invoice_no}')">Recover</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding invoices.</div>';
@@ -618,7 +705,7 @@ $('btnPrintCreditAll').onclick = () => {
     html += '</tbody></table><hr><div class="center">Made by MS.Tech</div>';
     const w = window.open('', '_blank'); w.document.write(`<html><head><style>body{font-family:'Courier New',monospace;font-weight:bold;padding:10px;font-size:12px}table{width:100%}th{text-align:left;border-bottom:2px dashed #000}td{padding:2px 0;border-bottom:1px dashed #ccc}.center{text-align:center;margin-top:10px}</style></head><body>${html}<script>window.print();setTimeout(()=>window.close(),500);<\/script></body></html>`); w.document.close();
   } else {
-    printA4Premium({ invoice: 'UDHAR-ALL', customer: 'All Customers', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from(rows).map(r => { const cols = r.querySelectorAll('td'); return { description: cols[0].innerText, price: 0, qty: 1, total: Number(cols[3].innerText.replace(/[^0-9]/g, '')) }; }) });
+    printA4Premium({ invoice: 'UDHAR-ALL', customer: 'All Customers', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from(rows).map(r => { const cols = r.querySelectorAll('td'); return { description: cols[0].innerText, price: 0, qty: 1, total: Number(cols[3].innerText.replace(/[^0-9]/g, '')) }; }) }, 'sale');
   }
 };
 
@@ -643,9 +730,9 @@ $('btnAddExpense').onclick = () => {
 window.deleteExpense = async (id) => { if (!confirm('Delete expense?')) return; await supabase.from('expenses').delete().eq('id', id); toast('Deleted'); loadExpenses(); };
 $('btnFilterExpenses').onclick = () => loadExpenses();
 
-// --- 16. PROFIT & LOSS (WITH A4 PRINT) ---
+// --- 16. PROFIT & LOSS ---
 $('btnRunPL').onclick = runPL;
-$('btnPrintPL').onclick = () => { const printOpt = confirm('Print Thermal Report (OK) ya A4 Premium (Cancel)?'); if (printOpt) { printThermal80mm({ invoice: 'P&L', customer: 'Item-wise Report', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('plTable').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { name: c[0].innerText, qty: c[1].innerText, total: c[4].innerText }; }) }); } else { printA4Premium({ invoice: 'P&L', customer: 'Profit & Loss Report', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('plTable').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0].innerText, price: 0, qty: c[1].innerText, total: c[4].innerText }; }) }); } };
+$('btnPrintPL').onclick = () => { const printOpt = confirm('Print Thermal Report (OK) ya A4 Premium (Cancel)?'); if (printOpt) { printThermal80mm({ invoice: 'P&L', customer: 'Item-wise Report', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('plTable').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { name: c[0].innerText, qty: c[1].innerText, total: c[4].innerText }; }) }, 'sale'); } else { printA4Premium({ invoice: 'P&L', customer: 'Profit & Loss Report', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('plTable').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0].innerText, price: 0, qty: c[1].innerText, total: c[4].innerText }; }) }, 'sale'); } };
 
 async function runPL() {
   const from = $('plFrom').value; const to = $('plTo').value;
@@ -674,9 +761,9 @@ async function loadTransactions() {
   $('transactionsTable').innerHTML = tx.length ? `<table class="data"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="num">In</th><th class="num">Out</th></tr></thead><tbody>${tx.map(t => `<tr><td><small>${new Date(t.date).toLocaleString()}</small></td><td><span class="pill ${t.type === 'SALE' || t.type === 'RECOVERY' ? 'green' : 'orange'}">${t.type}</span></td><td>${esc(t.desc)}</td><td class="num" style="color:#22a06b">${t.in ? fmt(t.in) : '—'}</td><td class="num" style="color:#dc2626">${t.out ? fmt(t.out) : '—'}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">No transactions.</div>';
 }
 
-// --- 18. REPORTS (WITH A4 PRINT) ---
+// --- 18. REPORTS ---
 $('btnRunReport').onclick = runReport;
-$('btnPrintReport').onclick = () => { const printOpt = confirm('Print Thermal (OK) ya A4 Premium (Cancel)?'); if (printOpt) { printThermal80mm({ invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { name: c[0]?.innerText + ' ' + (c[1]?.innerText||''), qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) }); } else { printA4Premium({ invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0]?.innerText + ' ' + (c[1]?.innerText||''), price: 0, qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) }); } };
+$('btnPrintReport').onclick = () => { const printOpt = confirm('Print Thermal (OK) ya A4 Premium (Cancel)?'); if (printOpt) { printThermal80mm({ invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { name: c[0]?.innerText + ' ' + (c[1]?.innerText||''), qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) }, 'sale'); } else { printA4Premium({ invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0]?.innerText + ' ' + (c[1]?.innerText||''), price: 0, qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) }, 'sale'); } };
 
 async function runReport() {
   const type = $('reportType').value; let from = $('reportFrom').value; let to = $('reportTo').value;
