@@ -1,5 +1,5 @@
 // =====================================================
-// MOBILE SHOP — LOGIN CONTROLLER (Custom Shops Table)
+// MOBILE SHOP — LOGIN CONTROLLER (Staff + Shop Support)
 // =====================================================
 
 import { supabase } from './config.js';
@@ -52,13 +52,46 @@ form.addEventListener('submit', async (event) => {
     const password = document.getElementById('password')?.value || '';
 
     if (!username || !password) {
-        return showError('Please enter both username and password.');
+        return showError('Please enter both Staff ID and Password.');
     }
 
     setLoading(true);
 
     try {
-        // 1) Check in 'shops' table
+        // =====================================================
+        // STEP 1: Check in 'staff' table first (Staff ID Login)
+        // =====================================================
+        const { data: staffData, error: staffError } = await supabase
+            .from('staff')
+            .select('*')
+            .eq('staff_id', username)
+            .eq('password', password)
+            .maybeSingle();
+
+        if (staffError) throw staffError;
+
+        // AGAR STAFF MIL GAYA
+        if (staffData) {
+            // Save Staff Session
+            localStorage.setItem('bm_staff', JSON.stringify({
+                id: staffData.id,
+                staff_id: staffData.staff_id,
+                name: staffData.name,
+                role: staffData.role,
+                can_edit: staffData.can_edit,
+                can_delete: staffData.can_delete
+            }));
+
+            showSuccess('Staff Login successful — redirecting…');
+            setTimeout(() => {
+                window.location.replace('./dashboard.html');
+            }, 500);
+            return;
+        }
+
+        // =====================================================
+        // STEP 2: Fallback to 'shops' table (Owner/Admin Login)
+        // =====================================================
         const { data: shop, error: shopError } = await supabase
             .from('shops')
             .select('*')
@@ -69,21 +102,24 @@ form.addEventListener('submit', async (event) => {
         if (shopError) throw shopError;
 
         if (!shop) {
-            throw new Error('Invalid username or password.');
+            throw new Error('Invalid Staff ID or Password.');
         }
 
-        if (!shop.is_active) {
+        if (shop.is_active === false) {
             throw new Error('Your shop account is disabled. Please contact Super Admin.');
         }
 
-        // 2) Save to LocalStorage for Dashboard Multi-Tenant
+        // Save Shop Session
         localStorage.setItem('shop_id', shop.id);
         localStorage.setItem('shop_name', shop.shop_name);
         localStorage.setItem('owner_name', shop.owner_name || '');
+        localStorage.removeItem('bm_staff'); // Clear staff session
 
-        // 3) Success
+        // Success
         showSuccess('Login successful — redirecting…');
-        window.location.replace('./dashboard.html');
+        setTimeout(() => {
+            window.location.replace('./dashboard.html');
+        }, 500);
 
     } catch (err) {
         showError(err.message || 'Login failed. Please try again.');
