@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - FULL WORKING SYSTEM (v19.0 - PREMIUM)
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v20.0 - PREMIUM FIXED)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -54,7 +54,6 @@ $('modalConfirm').onclick = async () => {
 
 // --- 3. KEYBOARD SHORTCUTS ---
 document.addEventListener('keydown', (e) => {
-  // Agar user input/textarea mein type kar raha hai, to shortcuts ignore karein (except Esc & F-keys)
   const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
   
   if (e.key === 'Escape') {
@@ -76,7 +75,7 @@ document.addEventListener('keydown', (e) => {
         'e': 'expenses', 'k': 'reports', 't': 'settings'
       };
       if (e.shiftKey && key === 's') {
-        e.preventDefault(); document.querySelector(`[data-module="settings"]`)?.click(); // Alt+Shift+S for Settings
+        e.preventDefault(); document.querySelector(`[data-module="settings"]`)?.click(); 
       } else if (shortcutMap[key]) {
         e.preventDefault(); document.querySelector(`[data-module="${shortcutMap[key]}"]`)?.click();
       }
@@ -91,7 +90,7 @@ function printThermal80mm(data, type = 'sale') {
   
   const items = (data.items || []).map(it => `
     <tr>
-      <td style="text-align:left;font-size:11px">${esc(it.product_name || it.name)}<br><span style="font-size:9px;color:#444">${esc(it.category || '')} ${it.imei ? 'IMEI: '+esc(it.imei) : ''}</span></td>
+      <td style="text-align:left;font-size:11px">${esc(it.product_name || it.name || it.description)}<br><span style="font-size:9px;color:#444">${esc(it.category || '')} ${it.imei ? 'IMEI: '+esc(it.imei) : ''}</span></td>
       <td style="text-align:center;font-size:11px">${it.quantity || it.qty || 1}</td>
       <td style="text-align:right;font-size:11px">${Number(it.line_total || it.total || it.amount || 0).toLocaleString()}</td>
     </tr>`).join('');
