@@ -40,7 +40,7 @@
     <p class="nav-label">SYSTEM</p>
     <button class="nav-item" data-module="settings">⚙ Settings</button>
 
-    <div class="sidebar-foot">v10.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
+    <div class="sidebar-foot">v14.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
   </aside>
 
   <main class="main">
@@ -101,7 +101,9 @@
         <div class="module-head"><div><h2>Inventory</h2><p>Stock levels & movement history</p></div></div>
         <div class="clay" style="padding:20px">
           <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Low Stock Alerts</h3>
-          <div class="form-grid" style="margin-bottom:14px"><div class="field"><label>Rack Filter</label><select id="inventoryRackFilter"><option value="">All Racks</option></select></div></div>
+          <div class="form-grid" style="margin-bottom:14px">
+            <div class="field"><label>Rack Filter</label><select id="inventoryRackFilter"><option value="">All Racks</option></select></div>
+          </div>
           <div class="table-wrap" id="lowStockTable"><div class="empty">Loading…</div></div>
         </div>
         <div class="clay" style="padding:20px">
@@ -130,6 +132,15 @@
               <div class="field"><label>Customer Name</label><input id="saleCustName" list="posCustomerOptions" placeholder="Search / add customer"><datalist id="posCustomerOptions"></datalist></div>
               <div class="field"><label>Customer Phone</label><input id="saleCustPhone" placeholder="03xx-xxxxxxx"></div>
               <div class="field full" id="previousDueBox" style="display:none;padding:10px;background:rgba(245,158,66,.12);border-radius:8px"><b>Previous Pending Payment:</b> <span id="previousDueAmount">PKR 0</span></div>
+              
+              <!-- NAYA: Category Filter POS ke liye -->
+              <div class="field full">
+                <label>Filter Category</label>
+                <select id="saleCategoryFilter" onchange="filterPosProducts()">
+                  <option value="">— All Categories —</option>
+                </select>
+              </div>
+
               <div class="field full"><label>Select Product</label><select id="saleProductSelect"><option value="">— Choose product —</option></select></div>
             </div>
             <button class="btn btn-primary" style="margin-top:14px" id="btnAddToCart">+ Add to Cart (F2)</button>
@@ -160,7 +171,13 @@
       <!-- REPAIRING -->
       <section class="module" id="module-repairing">
         <div class="module-head"><div><h2>Repairing</h2><p>Repair jobs, advance / due payments and Urdu receipts</p></div><button class="btn btn-primary" id="btnAddRepair">+ New Repair Slip</button></div>
-        <div class="clay" style="padding:20px"><div class="form-grid" style="margin-bottom:14px"><div class="field"><label>Search Customer / Mobile / IMEI</label><input id="repairSearch" placeholder="Search repairing jobs..."></div><div class="field"><label>Status</label><select id="repairStatusFilter"><option value="">All</option><option>Received</option><option>In Progress</option><option>Ready</option><option>Delivered</option></select></div></div><div class="table-wrap" id="repairsTable"><div class="empty">Loading…</div></div></div>
+        <div class="clay" style="padding:20px">
+          <div class="form-grid" style="margin-bottom:14px">
+            <div class="field"><label>Search Customer / Mobile / IMEI</label><input id="repairSearch" placeholder="Search repairing jobs..."></div>
+            <div class="field"><label>Status</label><select id="repairStatusFilter"><option value="">All</option><option>Received</option><option>In Progress</option><option>Ready</option><option>Delivered</option></select></div>
+          </div>
+          <div class="table-wrap" id="repairsTable"><div class="empty">Loading…</div></div>
+        </div>
       </section>
 
       <!-- PURCHASES -->
@@ -187,7 +204,7 @@
         <div class="clay" style="padding:20px"><div class="table-wrap" id="suppliersTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- CREDIT / UDHAR (UPGRADED) -->
+      <!-- CREDIT / UDHAR -->
       <section class="module" id="module-credit">
         <div class="module-head">
           <div><h2>Credit / Udhar Management</h2><p>Name-wise outstanding balances & recovery</p></div>
@@ -204,7 +221,7 @@
         <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Credit Recoveries</h3><div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- EXPENSES (UPGRADED) -->
+      <!-- EXPENSES -->
       <section class="module" id="module-expenses">
         <div class="module-head">
           <div><h2>Expenses</h2><p>Date-wise expense tracking with categories</p></div>
@@ -227,7 +244,7 @@
         </div>
       </section>
 
-      <!-- PROFIT & LOSS (NEW) -->
+      <!-- PROFIT & LOSS -->
       <section class="module" id="module-profitloss">
         <div class="module-head">
           <div><h2>Profit & Loss (Item-wise)</h2><p>Har product ka buy/sale/profit track karein</p></div>
@@ -250,7 +267,7 @@
         <div class="clay" style="padding:20px"><div class="table-wrap" id="transactionsTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- REPORTS (UPGRADED) -->
+      <!-- REPORTS -->
       <section class="module" id="module-reports">
         <div class="module-head"><div><h2>Premium Reports</h2><p>Daily / Weekly / Monthly with Profit & Loss</p></div></div>
         <div class="clay" style="padding:22px">
