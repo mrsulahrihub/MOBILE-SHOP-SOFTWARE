@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - FULL WORKING SYSTEM (v17.0 - FINAL)
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v18.0 - FINAL)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -15,6 +15,7 @@ document.getElementById('todayDate').textContent = new Intl.DateTimeFormat('en-P
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
   localStorage.removeItem('bm_staff');
+  localStorage.removeItem('shop_id');
   window.location.replace('./login.html');
 });
 
@@ -26,7 +27,7 @@ const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;'
 const SHOP_INFO = { name: 'BM MOBILE ZONE', address: 'Chohan Mobile Market, Zafarwal', phone1: '0345-6613232', phone2: '0307-6613232' };
 
 function checkPermission(action) {
-  if (!SESSION.staff_id) return true; // Full access if no staff logged in (legacy)
+  if (!SESSION.staff_id) return true; // No login means old mode, allow all
   if (IS_ADMIN) return true;
   if (action === 'edit' && !SESSION.can_edit) { toast('Aapko edit ki ijazat nahi hai!', 'error'); return false; }
   if (action === 'delete' && !SESSION.can_delete) { toast('Aapko delete ki ijazat nahi hai!', 'error'); return false; }
@@ -504,14 +505,67 @@ $('btnSaveSale').onclick = async () => {
   finally { $('btnSaveSale').disabled = false; $('btnSaveSale').textContent = '💾 Save Sale (F4)'; }
 };
 
-$('btnSalesHistory').onclick = () => { const box = $('salesHistoryBox'); box.hidden = !box.hidden; if (!box.hidden) loadSalesHistory(); };
+// SALES HISTORY - FIXED
+$('btnSalesHistory').onclick = () => { 
+  const box = $('salesHistoryBox'); 
+  box.hidden = !box.hidden; 
+  if (!box.hidden) loadSalesHistory(); 
+};
 $('btnRefreshSales').onclick = () => loadSalesHistory();
+
 async function loadSalesHistory() {
-  const { data, error } = await supabase.from('sales').select('*').order('created_at', { ascending: false }).limit(100);
-  const t = $('salesHistoryTable'); if (error) { t.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
-  if (!data || !data.length) { t.innerHTML = '<div class="empty">No sales yet.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Method</th><th>Date</th><th></th></tr></thead><tbody>${data.map(s => `<tr><td><b>${esc(s.invoice_no)}</b></td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${esc(s.payment_method || 'cash')}</td><td><small>${new Date(s.created_at).toLocaleString()}</small></td><td><button class="btn btn-ghost btn-sm" onclick="reprintSale('${s.id}')">🖨</button></td></tr>`).join('')}</tbody></table>`;
+  const t = $('salesHistoryTable');
+  t.innerHTML = '<div class="empty">Loading history…</div>';
+  
+  const { data, error } = await supabase
+    .from('sales')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(100);
+
+  if (error) { 
+    t.innerHTML = `<div class="empty">Error loading sales: ${esc(error.message)}</div>`; 
+    return; 
+  }
+  
+  if (!data || !data.length) { 
+    t.innerHTML = '<div class="empty">No sales found in database.</div>'; 
+    return; 
+  }
+  
+  t.innerHTML = `
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Invoice</th>
+          <th>Customer</th>
+          <th class="num">Total</th>
+          <th class="num">Paid</th>
+          <th class="num">Balance</th>
+          <th>Method</th>
+          <th>Date</th>
+          <th class="actions">Print</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(s => `
+          <tr>
+            <td><b>${esc(s.invoice_no)}</b></td>
+            <td>${esc(s.customer_name || 'Walk-in')}<br><small>${esc(s.customer_phone || '')}</small></td>
+            <td class="num">${fmt(s.total)}</td>
+            <td class="num">${fmt(s.paid)}</td>
+            <td class="num">${s.balance > 0 ? `<b style="color:#dc2626">${fmt(s.balance)}</b>` : '<span class="pill green">Paid</span>'}</td>
+            <td>${esc(s.payment_method || 'cash')}</td>
+            <td><small>${new Date(s.created_at).toLocaleString()}</small></td>
+            <td class="actions">
+              <button class="btn btn-ghost btn-sm" onclick="reprintSale('${s.id}')">🖨 Print</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
 }
+
 window.reprintSale = async (id) => {
   const { data: s } = await supabase.from('sales').select('*').eq('id', id).single();
   if (!s) return toast('Sale not found', 'error');
