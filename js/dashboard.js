@@ -1,5 +1,5 @@
 // =====================================================
-// BM MOBILE ZONE - COMPLETE SINGLE SYSTEM DASHBOARD (v10.5)
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v11.0)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -56,7 +56,7 @@ $('modalConfirm').onclick = async () => {
   if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
 
-// --- 3. SMART SIDEBAR LOGIC ---
+// --- 3. SIDEBAR & THEME ---
 const sidebar = document.getElementById('mainSidebar');
 const handle = document.getElementById('sidebarHandle');
 let sidebarTimeout;
@@ -84,7 +84,37 @@ function resetSidebarTimer() {
   }, 15000);
 }
 
-// --- 4. SHORTCUTS ---
+// Theme Switcher
+const topbarUserInfo = document.querySelector('.topbar .user-info');
+if (topbarUserInfo) {
+  const controls = document.createElement('div'); controls.className = 'theme-controls';
+  const select = document.createElement('select'); select.className = 'theme-select';
+  const themes = [
+    { val: 'clay', name: 'Claymorphism' }, { val: 'glass', name: 'Glassmorphism' },
+    { val: 'neo', name: 'Neumorphism' }, { val: 'minimal', name: 'Minimalism' }
+  ];
+  themes.forEach(t => { const opt = document.createElement('option'); opt.value = t.val; opt.textContent = t.name; select.appendChild(opt); });
+  
+  const switchLabel = document.createElement('label'); switchLabel.className = 'switch';
+  switchLabel.innerHTML = `<input type="checkbox" id="dayNightToggle"><span class="slider"><span class="sun">☀️</span><span class="moon">🌙</span></span>`;
+  controls.appendChild(select); controls.appendChild(switchLabel);
+  topbarUserInfo.insertBefore(controls, topbarUserInfo.firstChild);
+
+  const applyTheme = () => {
+    const savedTheme = localStorage.getItem('bm_theme') || 'clay';
+    const isDark = localStorage.getItem('bm_dark') === 'true';
+    document.body.className = `theme-${savedTheme}`;
+    select.value = savedTheme;
+    const toggle = document.getElementById('dayNightToggle');
+    if (isDark) { document.body.classList.add('dark-mode'); if (toggle) toggle.checked = true; }
+    else { if (toggle) toggle.checked = false; }
+  };
+  applyTheme();
+  select.addEventListener('change', (e) => { localStorage.setItem('bm_theme', e.target.value); applyTheme(); });
+  document.getElementById('dayNightToggle').addEventListener('change', (e) => { localStorage.setItem('bm_dark', e.target.checked); applyTheme(); });
+}
+
+// --- 4. SHORTCUTS & NAVIGATION ---
 document.addEventListener('keydown', (e) => {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
     if (e.key === 'Escape') closeModal();
@@ -99,7 +129,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeModal();
 });
 
-// --- 5. NAVIGATION ---
 const MODULE_TITLES = {
   overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Rack Management',
   repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers',
@@ -139,7 +168,7 @@ async function loadModule(mod) {
   }
 }
 
-// --- 6. OVERVIEW ---
+// --- 5. OVERVIEW ---
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
     supabase.from('sales').select('balance'),
@@ -165,10 +194,10 @@ async function loadOverview() {
   else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 }
 
-// --- 7. PRODUCTS (CATEGORY + SUB-CATEGORY) ---
+// --- 6. PRODUCTS (CATEGORY WISE) ---
 let ALL_PRODUCTS = [];
 async function loadProducts(filter = '') {
-  let q = supabase.from('products').select('*,racks(name)').order('created_at', { ascending: false });
+  let q = supabase.from('products').select('*,racks!fk_products_racks(name)').order('created_at', { ascending: false });
   if (filter) q = q.ilike('name', `%${filter}%`);
   const { data, error } = await q;
   if (error) { toast(error.message, 'error'); return; }
@@ -193,7 +222,7 @@ async function openProductModal(p = null) {
   const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
   const isMobile = (p?.category || 'Mobile') === 'Mobile';
   const body = `<div class="form-grid">
-      <div class="field full"><label>Product Name *</label><input id="pName" value="${esc(p?.name || '')}"></div>
+      <div class="field full"><label>Product Name *</label><input id="pName" value="${esc(p?.name || '')}" placeholder="e.g. OG Glass iPhone 11"></div>
       
       <div class="field"><label>Main Category *</label>
         <select id="pCategory" onchange="toggleProductFields()">
@@ -206,7 +235,12 @@ async function openProductModal(p = null) {
       </div>
 
       <div class="field"><label>Sub-Category / Model</label>
-        <input id="pSubCategory" placeholder="e.g. iPhone 11, Samsung S21" value="${esc(p?.sub_category || '')}">
+        <input id="pSubCategory" list="subCatList" placeholder="e.g. iPhone 11, Samsung S21" value="${esc(p?.sub_category || '')}">
+        <datalist id="subCatList">
+          <option value="iPhone 11"><option value="iPhone 12"><option value="iPhone 13">
+          <option value="Samsung S21"><option value="Samsung S22"><option value="Infinix Hot 12">
+          <option value="Vivo Y21"><option value="Oppo A16">
+        </datalist>
       </div>
 
       <div class="field" id="imei1Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 1</label><input id="pImei1" value="${esc(p?.imei_1 || '')}"></div>
@@ -244,7 +278,7 @@ window.toggleProductFields = () => {
   $('imei2Field').style.display = cat === 'Mobile' ? '' : 'none';
 };
 
-// --- 8. RACK MANAGEMENT ---
+// --- 7. RACKS ---
 async function loadRacks() {
   const { data: racks, error } = await supabase.from('racks').select('*').order('name');
   if (error) { $('racksTable').innerHTML = '<div class="empty">Rack tables not installed.</div>'; return; }
@@ -253,7 +287,7 @@ async function loadRacks() {
     ? `<table class="data"><thead><tr><th>Rack</th><th>Description</th><th>Actions</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.description || '—')}</td><td><button class="btn btn-danger btn-sm" onclick="deleteRack('${r.id}')">Delete</button></td></tr>`).join('')}</tbody></table>`
     : '<div class="empty">No racks created.</div>';
 
-  const { data: stock } = await supabase.from('products').select('name,quantity,racks(name)').order('name');
+  const { data: stock } = await supabase.from('products').select('name,quantity,racks!fk_products_racks(name)').order('name');
   $('rackStockTable').innerHTML = `<table class="data"><thead><tr><th>Rack</th><th>Product</th><th class="num">Quantity</th></tr></thead><tbody>${(stock || []).map(p => `<tr><td>${esc(p.racks?.name || 'Unassigned')}</td><td>${esc(p.name)}</td><td class="num">${Number(p.quantity || 0)}</td></tr>`).join('')}</tbody></table>`;
 }
 $('btnAddRack').onclick = () => openModal('Add Rack',
@@ -272,33 +306,7 @@ window.deleteRack = async id => {
 };
 $('inventoryRackFilter')?.addEventListener('change', loadInventory);
 
-// --- 9. INVENTORY ---
-async function loadInventory() {
-  const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
-  const rf = $('inventoryRackFilter');
-  if (rf && rf.options.length <= 1) rf.innerHTML += (rackRows || []).map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
-  
-  let iq = supabase.from('products').select('*,racks(name)').order('quantity', { ascending: true });
-  if (rf?.value) iq = iq.eq('rack_id', rf.value);
-  const { data: low } = await iq.limit(100);
-  const t = $('lowStockTable');
-  if (!low || !low.length) t.innerHTML = '<div class="empty">No products.</div>';
-  else t.innerHTML = `<table class="data"><thead><tr><th>Product</th><th>Category</th><th>Rack</th><th class="num">Stock</th><th class="num">Min</th><th>Status</th></tr></thead><tbody>
-    ${low.map(p => `<tr><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}${p.sub_category ? ' / ' + esc(p.sub_category) : ''}</small></td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td class="num">${p.min_stock}</td>
-    <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}
-  </tbody></table>`;
-
-  const { data: mov } = await supabase.from('inventory_movements').select('*, products(name)').order('created_at', { ascending: false }).limit(20);
-  const tm = $('movementsTable');
-  if (!mov || !mov.length) tm.innerHTML = '<div class="empty">No movements yet.</div>';
-  else tm.innerHTML = `<table class="data"><thead><tr><th>Date</th><th>Product</th><th>Type</th><th class="num">Qty</th><th>Notes</th></tr></thead><tbody>
-    ${mov.map(m => `<tr><td>${new Date(m.created_at).toLocaleString()}</td><td>${esc(m.products?.name || '—')}</td>
-    <td><span class="pill ${m.quantity > 0 ? 'green' : 'orange'}">${esc(m.movement_type)}</span></td>
-    <td class="num">${m.quantity}</td><td>${esc(m.notes || '')}</td></tr>`).join('')}
-  </tbody></table>`;
-}
-
-// --- 10. SALES / POS ---
+// --- 8. SALES / POS ---
 let CART = [];
 let POS_CUSTOMERS = [];
 let POS_PREVIOUS_DUE = 0;
@@ -391,7 +399,7 @@ $('btnSaveSale').onclick = async () => {
   } catch (e) { toast(e.message, 'error'); } finally { $('btnSaveSale').disabled = false; }
 };
 
-// --- 11. CUSTOMERS ---
+// --- 9. CUSTOMERS ---
 let ALL_CUST = [];
 async function loadCustomers(filter = '') {
   let q = supabase.from('customers').select('*').order('created_at', { ascending: false });
