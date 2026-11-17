@@ -391,13 +391,13 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
       <!-- Form -->
       <form id="loginForm" action="#" method="POST" novalidate>
 
-        <!-- Email -->
+        <!-- Username -->
         <div class="field">
-          <label for="email">Email</label>
+          <label for="username">Username</label>
           <div class="control">
-            <span class="icon"><i class="fa-regular fa-envelope"></i></span>
-            <input type="email" id="email" name="email"
-                   placeholder="you@example.com" autocomplete="email" required>
+            <span class="icon"><i class="fa-regular fa-user"></i></span>
+            <input type="text" id="username" name="username"
+                   placeholder="Enter your shop username" autocomplete="username" required>
           </div>
         </div>
 
@@ -412,15 +412,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
               <i class="fa-regular fa-eye"></i>
             </button>
           </div>
-
-          <!-- Strength -->
-          <div class="strength" id="strength">
-            <div class="track"><div class="bar" id="strengthBar"></div></div>
-            <span class="txt" id="strengthText">Weak</span>
-          </div>
-
-          <!-- Caps warning -->
-          <div class="caps" id="capsWarning"><i class="fa-solid fa-triangle-exclamation"></i> Caps Lock is ON</div>
         </div>
 
         <!-- Options -->
@@ -465,15 +456,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
 </div>
 
 <!-- ================= SCRIPTS ================= -->
-<!-- 1) UI helpers (password toggle, caps, strength) — plain JS, no modules -->
+<!-- 1) UI helpers (password toggle) -->
 <script>
 (function () {
   const pwdInput  = document.getElementById('password');
   const toggle    = document.getElementById('togglePassword');
-  const strength  = document.getElementById('strength');
-  const bar       = document.getElementById('strengthBar');
-  const text      = document.getElementById('strengthText');
-  const capsWarn  = document.getElementById('capsWarning');
 
   // Show / hide password
   toggle.addEventListener('click', () => {
@@ -484,40 +471,10 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--primary);outlin
       : '<i class="fa-regular fa-eye"></i>';
     toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
   });
-
-  // Caps Lock
-  pwdInput.addEventListener('keyup', (e) => {
-    const on = e.getModifierState && e.getModifierState('CapsLock');
-    capsWarn.classList.toggle('show', !!on);
-  });
-  pwdInput.addEventListener('blur', () => capsWarn.classList.remove('show'));
-
-  // Strength meter
-  pwdInput.addEventListener('input', () => {
-    const v = pwdInput.value;
-    if (!v) { strength.classList.remove('show'); return; }
-    strength.classList.add('show');
-
-    let score = 0;
-    if (v.length >= 6) score++;
-    if (v.length >= 10) score++;
-    if (/[A-Z]/.test(v)) score++;
-    if (/\d/.test(v)) score++;
-    if (/[^A-Za-z0-9]/.test(v)) score++;
-
-    const pct   = Math.min(100, score * 20);
-    const label = score <= 2 ? 'Weak' : score === 3 ? 'Fair' : score === 4 ? 'Good' : 'Strong';
-    const color = score <= 2 ? '#ff6b81' : score === 3 ? '#f59e42' : score === 4 ? '#65a6ff' : '#32d69a';
-
-    bar.style.width = pct + '%';
-    bar.style.background = color;
-    text.textContent = label;
-    text.style.color = color;
-  });
 })();
 </script>
 
-<!-- 2) Auth logic with Supabase (module) -->
+<!-- 2) Auth logic with Supabase -->
 <script type="module" src="js/login.js"></script>
 
 </body>
