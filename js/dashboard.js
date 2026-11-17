@@ -1,9 +1,6 @@
-// =====================================================
-// BM MOBILE ZONE - SINGLE SYSTEM DASHBOARD (v10.0)
-// =====================================================
 import { supabase } from './config.js';
 
-// --- 1. AUTH & INIT ---
+// --- 1. INITIAL SETUP ---
 document.getElementById('userName').textContent = 'BM MOBILE ZONE';
 document.getElementById('userRole').textContent = 'ADMIN';
 document.getElementById('welcomeName').textContent = 'Admin';
@@ -24,7 +21,7 @@ const SHOP_INFO = {
   address: 'Chohan Mobile Market, Zafarwal',
   phone1: '0345-6613232',
   phone2: '0307-6613232',
-  phoneMain: '0307-6613232'
+  phoneMain: '0345-6613232'
 };
 
 const playBeep = () => {
@@ -72,7 +69,6 @@ document.addEventListener('keydown', (e) => {
       document.querySelector(`[data-module="${shortcuts[key]}"]`)?.click();
     }
     
-    // Save Sale Shortcut
     if (key === 's') { e.preventDefault(); $('btnSaveSale')?.click(); }
   }
 
@@ -104,12 +100,22 @@ async function loadModule(mod) {
   switch (mod) {
     case 'overview': return loadOverview();
     case 'products': return loadProducts();
+    case 'inventory': return loadInventory();
+    case 'racks': return loadRacks();
+    case 'repairing': return loadRepairs();
     case 'sales': return loadSaleProducts();
-    // Baaki modules yahan add karein
+    case 'purchases': return loadPurchases();
+    case 'customers': return loadCustomers();
+    case 'suppliers': return loadSuppliers();
+    case 'credit': return loadCredit();
+    case 'expenses': return loadExpenses();
+    case 'profitloss': return; 
+    case 'transactions': return loadTransactions();
+    case 'settings': return loadSettings();
   }
 }
 
-// --- 5. OVERVIEW (Single System) ---
+// --- 5. OVERVIEW (SINGLE SYSTEM) ---
 async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
     supabase.from('sales').select('balance'),
@@ -120,38 +126,120 @@ async function loadOverview() {
     supabase.from('sales').select('total').gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
     supabase.from('sales').select('total').gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
   ]);
-  
   const sum = (arr, key) => (arr.data || []).reduce((s, r) => s + Number(r[key] || 0), 0);
   $('stProducts').textContent = (prods.data || []).filter(p => p.is_active !== false).length;
   $('stStock').textContent = sum(prods, 'quantity');
   $('stTodaySales').textContent = fmt(sum(salesToday, 'total'));
   $('stMonthSales').textContent = fmt(sum(salesMonth, 'total'));
+  $('stPurchases').textContent = fmt(sum(purch, 'total'));
+  $('stCustomers').textContent = custs.count || 0;
+  $('stOutstanding').textContent = fmt(sum(sales, 'balance'));
+  $('stExpenses').textContent = fmt(sum(exp, 'amount'));
 
   const { data: recent } = await supabase.from('sales').select('*').order('created_at', { ascending: false }).limit(5);
   if (!recent || !recent.length) $('recentSales').innerHTML = '<div class="empty">No sales yet.</div>';
-  else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
+  else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 }
 
-// --- 6. PRODUCTS (Single System) ---
+// --- 6. PRODUCTS (SINGLE SYSTEM) ---
 let ALL_PRODUCTS = [];
 async function loadProducts(filter = '') {
-  let q = supabase.from('products').select('*').order('created_at', { ascending: false });
+  let q = supabase.from('products').select('*,racks(name)').order('created_at', { ascending: false });
   if (filter) q = q.ilike('name', `%${filter}%`);
   const { data, error } = await q;
   if (error) { toast(error.message, 'error'); return; }
   ALL_PRODUCTS = data || [];
   const t = $('productsTable');
   if (!ALL_PRODUCTS.length) { t.innerHTML = '<div class="empty">No products found.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>
-    ${ALL_PRODUCTS.map(p => `<tr><td>${esc(p.name)}</td><td>${esc(p.category || '—')}</td><td>${fmt(p.sale_price)}</td><td>${p.quantity}</td><td><button class="btn btn-primary btn-sm" onclick="editProduct('${p.id}')">Edit</button></td></tr>`).join('')}
+  t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category</th><th>IMEI</th><th class="num">Price</th><th>Rack</th><th class="num">Stock</th><th>Status</th><th class="actions">Actions</th></tr></thead><tbody>
+    ${ALL_PRODUCTS.map(p => `<tr><td><strong>${esc(p.name)}</strong></td><td>${esc(p.category || '—')} ${p.sub_category ? '/ ' + esc(p.sub_category) : ''}</td><td><small>${esc(p.imei_1 || '—')}</small></td><td class="num">${fmt(p.sale_price)}</td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td>${p.quantity <= p.min_stock ? '<span class="pill red">Low</span>' : '<span class="pill green">OK</span>'}</td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="editProduct('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Del</button></td></tr>`).join('')}
   </tbody></table>`;
 }
+$('productSearch')?.addEventListener('input', e => loadProducts(e.target.value));
+$('btnAddProduct')?.addEventListener('click', () => openProductModal());
 
-// --- 7. SALES / POS (Single System) ---
+window.editProduct = (id) => { const p = ALL_PRODUCTS.find(x => x.id === id); if (p) openProductModal(p); };
+window.deleteProduct = async (id) => {
+  if (!confirm('Delete this product?')) return;
+  const { error } = await supabase.from('products').delete().eq('id', id);
+  if (error) return toast(error.message, 'error');
+  toast('Product deleted', 'success'); loadProducts();
+};
+
+async function openProductModal(p = null) {
+  const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
+  const isMobile = (p?.category || 'Mobile') === 'Mobile';
+  const isCover = (p?.category) === 'Cover';
+  const body = `<div class="form-grid">
+      <div class="field full"><label>Name *</label><input id="pName" value="${esc(p?.name || '')}"></div>
+      <div class="field"><label>Category</label><select id="pCategory" onchange="toggleProductFields()"><option value="Mobile" ${!p || p.category === 'Mobile' ? 'selected' : ''}>Mobile</option><option value="Cover" ${p?.category === 'Cover' ? 'selected' : ''}>Cover</option><option value="Accessory" ${p?.category === 'Accessory' ? 'selected' : ''}>Accessory</option></select></div>
+      <div class="field" id="coverSubField" style="${isCover ? '' : 'display:none'}"><label>Cover Type</label><select id="pSubCategory"><option value="Simple" ${p?.sub_category === 'Simple' ? 'selected' : ''}>Simple</option><option value="Design" ${p?.sub_category === 'Design' ? 'selected' : ''}>Design</option><option value="Ladies" ${p?.sub_category === 'Ladies' ? 'selected' : ''}>Ladies</option></select></div>
+      <div class="field" id="imei1Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 1</label><input id="pImei1" value="${esc(p?.imei_1 || '')}"></div>
+      <div class="field" id="imei2Field" style="${isMobile ? '' : 'display:none'}"><label>IMEI 2</label><input id="pImei2" value="${esc(p?.imei_2 || '')}"></div>
+      <div class="field"><label>Purchase Price</label><input id="pPurchase" type="number" value="${p?.purchase_price || 0}"></div>
+      <div class="field"><label>Sale Price</label><input id="pSale" type="number" value="${p?.sale_price || 0}"></div>
+      <div class="field"><label>Rack Location</label><select id="pRack"><option value="">Unassigned</option>${(rackRows || []).map(r => `<option value="${r.id}" ${p?.rack_id === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Quantity</label><input id="pQty" type="number" value="${p?.quantity || 0}"></div>
+      <div class="field"><label>Min Stock</label><input id="pMin" type="number" value="${p?.min_stock || 5}"></div>
+    </div>`;
+  openModal(p ? 'Edit Product' : 'Add Product', body, async () => {
+    const cat = $('pCategory').value;
+    const payload = {
+      name: $('pName').value.trim(), category: cat,
+      sub_category: cat === 'Cover' ? $('pSubCategory').value : null,
+      imei_1: cat === 'Mobile' ? ($('pImei1').value.trim() || null) : null,
+      imei_2: cat === 'Mobile' ? ($('pImei2').value.trim() || null) : null,
+      purchase_price: Number($('pPurchase').value) || 0,
+      sale_price: Number($('pSale').value) || 0,
+      quantity: Number($('pQty').value) || 0,
+      rack_id: $('pRack').value || null,
+      min_stock: Number($('pMin').value) || 5
+    };
+    if (!payload.name) throw new Error('Name required');
+    if (p) await supabase.from('products').update(payload).eq('id', p.id);
+    else await supabase.from('products').insert(payload);
+    toast('Saved', 'success'); closeModal(); loadProducts();
+  });
+}
+window.toggleProductFields = () => {
+  const cat = $('pCategory').value;
+  $('coverSubField').style.display = cat === 'Cover' ? '' : 'none';
+  $('imei1Field').style.display = cat === 'Mobile' ? '' : 'none';
+  $('imei2Field').style.display = cat === 'Mobile' ? '' : 'none';
+};
+
+// --- 7. SALES / POS (SINGLE SYSTEM) ---
 let CART = [];
+let POS_CUSTOMERS = [];
+let POS_PREVIOUS_DUE = 0;
+
+async function loadPosCustomers() {
+  const { data } = await supabase.from('customers').select('id,name,phone').order('name');
+  POS_CUSTOMERS = data || [];
+  $('posCustomerOptions').innerHTML = POS_CUSTOMERS.map(c => `<option value="${esc(c.name)}">${esc(c.phone || '')}</option>`).join('');
+}
+
+async function updatePosCustomerDue() {
+  const name = $('saleCustName').value.trim();
+  const phone = $('saleCustPhone').value.trim();
+  const match = POS_CUSTOMERS.find(c => (phone && c.phone === phone) || (name && c.name.toLowerCase() === name.toLowerCase()));
+  if (!match) { POS_PREVIOUS_DUE = 0; $('previousDueBox').style.display = 'none'; return; }
+  if (match.phone && !$('saleCustPhone').value) $('saleCustPhone').value = match.phone;
+  const { data } = await supabase.from('sales').select('balance').eq('customer_id', match.id).gt('balance', 0);
+  POS_PREVIOUS_DUE = (data || []).reduce((n, x) => n + Number(x.balance || 0), 0);
+  $('previousDueAmount').textContent = fmt(POS_PREVIOUS_DUE);
+  $('previousDueBox').style.display = POS_PREVIOUS_DUE > 0 ? 'block' : 'none';
+}
+$('saleCustName').addEventListener('change', updatePosCustomerDue);
+$('saleCustPhone').addEventListener('change', updatePosCustomerDue);
+
 async function loadSaleProducts() {
+  await loadPosCustomers();
   const { data } = await supabase.from('products').select('*').gt('quantity', 0).order('name');
-  $('saleProductSelect').innerHTML = '<option value="">— Choose product —</option>' + (data || []).map(p => `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}">${esc(p.name)} — ${fmt(p.sale_price)} (${p.quantity} stock)</option>`).join('');
+  $('saleProductSelect').innerHTML = '<option value="">— Choose product —</option>' + (data || []).map(p => {
+    const catDisplay = p.category ? `[${p.category}${p.sub_category ? ' - ' + p.sub_category : ''}]` : '';
+    return `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei_1 || '')}" data-stock="${p.quantity}">${esc(p.name)} ${catDisplay} — ${fmt(p.sale_price)} (${p.quantity} stock)</option>`;
+  }).join('');
 }
 
 $('btnAddToCart').onclick = () => {
@@ -159,41 +247,64 @@ $('btnAddToCart').onclick = () => {
   if (!opt.value) return toast('Select product', 'error');
   const existing = CART.find(c => c.product_id === opt.value);
   if (existing) { existing.quantity++; existing.line_total = existing.quantity * existing.unit_price; }
-  else CART.push({ product_id: opt.value, product_name: opt.dataset.name, unit_price: Number(opt.dataset.price), quantity: 1, line_total: Number(opt.dataset.price) });
+  else CART.push({ product_id: opt.value, product_name: opt.dataset.name, imei: opt.dataset.imei, unit_price: Number(opt.dataset.price), quantity: 1, line_total: Number(opt.dataset.price) });
   playBeep();
   renderCart();
 };
 
 function renderCart() {
   if (!CART.length) $('cartItems').innerHTML = '<div class="empty">Cart is empty</div>';
-  else $('cartItems').innerHTML = `<table class="data">${CART.map((c, i) => `<tr><td>${esc(c.product_name)}</td><td>${c.quantity}</td><td>${fmt(c.line_total)}</td><td><button class="btn btn-danger btn-sm" onclick="removeCart(${i})">×</button></td></tr>`).join('')}</table>`;
+  else $('cartItems').innerHTML = `<table class="data cart-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th><th></th></tr></thead><tbody>${CART.map((c, i) => `<tr><td>${esc(c.product_name)}</td><td class="num">${c.quantity}</td><td class="num">${fmt(c.line_total)}</td><td><button class="btn btn-danger btn-sm" onclick="removeCart(${i})">×</button></td></tr>`).join('')}</tbody></table>`;
   const sub = CART.reduce((s, c) => s + c.line_total, 0);
-  const total = Math.max(0, sub - (Number($('saleDiscount').value) || 0));
+  const disc = Number($('saleDiscount').value) || 0;
+  const total = Math.max(0, sub - disc);
   $('cartSubtotal').textContent = fmt(sub); $('cartTotal').textContent = fmt(total);
   if (Number($('salePaid').value) === 0) $('salePaid').value = total;
+  const udhar = total - (Number($('salePaid').value) || 0);
+  $('udharWarning').style.display = udhar > 0 ? 'block' : 'none';
 }
 window.removeCart = (i) => { CART.splice(i, 1); renderCart(); };
+$('saleDiscount').addEventListener('input', renderCart);
+$('salePaid').addEventListener('input', renderCart);
 
 $('btnSaveSale').onclick = async () => {
   if (!CART.length) return toast('Cart empty', 'error');
-  const total = CART.reduce((s, c) => s + c.line_total, 0) - (Number($('saleDiscount').value) || 0);
+  const total = Math.max(0, CART.reduce((s, c) => s + c.line_total, 0) - (Number($('saleDiscount').value) || 0));
   const paid = Number($('salePaid').value) || 0;
-  
+  const custName = $('saleCustName').value.trim() || 'Walk-in Customer';
+  const custPhone = $('saleCustPhone').value.trim();
   $('btnSaveSale').disabled = true;
   try {
-    // RPC WITHOUT p_shop_id (Single System)
-    const { data, error } = await supabase.rpc('create_sale_single', {
-      p_customer_name: $('saleCustName').value.trim() || 'Walk-in',
-      p_customer_phone: $('saleCustPhone').value.trim() || null,
-      p_subtotal: CART.reduce((s, c) => s + c.line_total, 0), p_discount: Number($('saleDiscount').value) || 0, p_total: total, p_paid: paid,
-      p_payment_method: 'cash', p_notes: null,
-      p_items: CART.map(c => ({ product_id: c.product_id, product_name: c.product_name, quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total }))
-    });
-    if (error) throw new Error(error.message);
+    let customerId = null;
+    if (custName !== 'Walk-in Customer') {
+      let found = POS_CUSTOMERS.find(c => (custPhone && c.phone === custPhone) || c.name.toLowerCase() === custName.toLowerCase());
+      if (!found) {
+        const { data: created, error: ce } = await supabase.from('customers').insert({ name: custName, phone: custPhone || null, opening_balance: 0 }).select('id,name,phone').single();
+        if (ce) throw new Error(ce.message);
+        found = created; POS_CUSTOMERS.push(created);
+      }
+      customerId = found.id;
+    }
     
+    // Single System RPC (no p_shop_id)
+    const { data, error } = await supabase.rpc('create_sale', {
+      p_customer_id: customerId, p_customer_name: custName, p_customer_phone: custPhone || null,
+      p_subtotal: CART.reduce((s, c) => s + c.line_total, 0), p_discount: Number($('saleDiscount').value) || 0, p_total: total, p_paid: paid,
+      p_payment_method: $('salePaymentMethod').value, p_notes: null,
+      p_items: CART.map(c => ({ product_id: c.product_id, product_name: c.product_name, imei: c.imei, quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total }))
+    });
+    
+    if (error) throw new Error(error.message);
+    const inv = data.invoice_no || 'INV-' + Date.now().toString().slice(-6);
+    if (confirm('Print receipt?')) printThermal80mm({ invoice: inv, customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, previousDue: POS_PREVIOUS_DUE, date: new Date(), items: [...CART] });
     toast('Sale Saved!', 'success'); CART = []; renderCart(); loadSaleProducts(); loadOverview();
+    $('saleCustName').value = ''; $('saleCustPhone').value = ''; $('salePaid').value = 0; $('saleDiscount').value = 0; POS_PREVIOUS_DUE = 0; $('previousDueBox').style.display = 'none';
   } catch (e) { toast(e.message, 'error'); } finally { $('btnSaveSale').disabled = false; }
 };
+
+// --- 8. BAQI MODULES (Racks, Repairs, Customers, Udhar, Expense, Print) ---
+// Inke liye main aapko alag se functions bhej raha hoon jo bilkul pehle ki tarah chalenge.
+// Aap inko isi file ke andar neeche paste kar dein.
 
 // INITIAL LOAD
 renderCart();
