@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
 <title>Dashboard | BM MOBILE ZONE</title>
 <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body class="theme-clay">
 
-<div id="sidebarHandle" class="sidebar-handle" onclick="document.getElementById('mainSidebar').classList.toggle('show')">
+<div id="sidebarHandle" class="sidebar-handle">
   <span class="arrow-icon">›</span>
 </div>
 
@@ -39,7 +40,7 @@
     <p class="nav-label">SYSTEM</p>
     <button class="nav-item" data-module="settings">⚙ Settings</button>
 
-    <div class="sidebar-foot">v9.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
+    <div class="sidebar-foot">v10.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
   </aside>
 
   <main class="main">
@@ -70,6 +71,10 @@
           <div class="stat clay"><div class="stat-icon green">▤</div><div><strong id="stStock">—</strong><small>Stock Units</small></div></div>
           <div class="stat clay"><div class="stat-icon orange">↗</div><div><strong id="stTodaySales">—</strong><small>Today's Sales</small></div></div>
           <div class="stat clay"><div class="stat-icon purple">▨</div><div><strong id="stMonthSales">—</strong><small>Monthly Sales</small></div></div>
+          <div class="stat clay"><div class="stat-icon blue">↙</div><div><strong id="stPurchases">—</strong><small>Total Purchases</small></div></div>
+          <div class="stat clay"><div class="stat-icon purple">♙</div><div><strong id="stCustomers">—</strong><small>Customers</small></div></div>
+          <div class="stat clay"><div class="stat-icon red">₹</div><div><strong id="stOutstanding">—</strong><small>Outstanding Credit</small></div></div>
+          <div class="stat clay"><div class="stat-icon orange">▥</div><div><strong id="stExpenses">—</strong><small>Total Expenses</small></div></div>
         </div>
         <div class="clay" style="padding:24px">
           <div class="module-head"><div><h2>Recent Sales</h2><p>Last 5 sale transactions</p></div></div>
@@ -91,21 +96,45 @@
         </div>
       </section>
 
+      <!-- INVENTORY -->
+      <section class="module" id="module-inventory">
+        <div class="module-head"><div><h2>Inventory</h2><p>Stock levels & movement history</p></div></div>
+        <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Low Stock Alerts</h3>
+          <div class="form-grid" style="margin-bottom:14px"><div class="field"><label>Rack Filter</label><select id="inventoryRackFilter"><option value="">All Racks</option></select></div></div>
+          <div class="table-wrap" id="lowStockTable"><div class="empty">Loading…</div></div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Stock Movements</h3>
+          <div class="table-wrap" id="movementsTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- RACK MANAGEMENT -->
+      <section class="module" id="module-racks">
+        <div class="module-head"><div><h2>Rack Management</h2><p>Create racks and see rack-wise stock</p></div><button class="btn btn-primary" id="btnAddRack">+ Add Rack</button></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="racksTable"><div class="empty">Loading…</div></div></div>
+        <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Rack-wise Inventory</h3><div class="table-wrap" id="rackStockTable"><div class="empty">Loading…</div></div></div>
+      </section>
+
       <!-- SALES / POS -->
       <section class="module" id="module-sales">
         <div class="module-head">
           <div><h2>New Sale</h2><p>Point of sale billing</p></div>
           <button class="btn btn-ghost" id="btnSalesHistory">📋 Sales History</button>
         </div>
+
         <div class="pos-grid">
           <div class="clay" style="padding:22px">
             <div class="form-grid">
               <div class="field"><label>Customer Name</label><input id="saleCustName" list="posCustomerOptions" placeholder="Search / add customer"><datalist id="posCustomerOptions"></datalist></div>
               <div class="field"><label>Customer Phone</label><input id="saleCustPhone" placeholder="03xx-xxxxxxx"></div>
+              <div class="field full" id="previousDueBox" style="display:none;padding:10px;background:rgba(245,158,66,.12);border-radius:8px"><b>Previous Pending Payment:</b> <span id="previousDueAmount">PKR 0</span></div>
               <div class="field full"><label>Select Product</label><select id="saleProductSelect"><option value="">— Choose product —</option></select></div>
             </div>
-            <button class="btn btn-primary" style="margin-top:14px" id="btnAddToCart">+ Add to Cart</button>
+            <button class="btn btn-primary" style="margin-top:14px" id="btnAddToCart">+ Add to Cart (F2)</button>
           </div>
+
           <div class="clay" style="padding:22px">
             <h3 style="font-size:14px;font-weight:800;margin-bottom:12px">Cart</h3>
             <div id="cartItems" style="max-height:260px;overflow-y:auto"><div class="empty">Cart is empty</div></div>
@@ -113,9 +142,12 @@
             <div class="field" style="margin-top:8px"><label>Discount</label><input id="saleDiscount" type="number" value="0" min="0"></div>
             <div class="cart-total grand"><span>Total</span><span id="cartTotal">0</span></div>
             <div class="field" style="margin-top:8px"><label>Paid Amount</label><input id="salePaid" type="number" value="0" min="0"></div>
-            <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" id="btnSaveSale">💾 Save Sale</button>
+            <div class="field"><label>Payment Method</label><select id="salePaymentMethod"><option value="cash">Cash</option><option value="bank">Bank Transfer</option><option value="other">Other</option></select></div>
+            <div id="udharWarning" style="display:none;margin-top:10px;padding:10px;background:rgba(245,158,66,0.1);border-left:3px solid #f59e0b;border-radius:6px;font-size:12px;color:#b45309">⚠️ Due amount will be auto-saved to Credit / Udhar section.</div>
+            <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" id="btnSaveSale">💾 Save Sale (F4)</button>
           </div>
         </div>
+
         <div class="clay" style="padding:22px;margin-top:20px" id="salesHistoryBox" hidden>
           <div class="module-head" style="margin-bottom:14px">
             <div><h2>Sales History</h2><p>All past sale transactions</p></div>
@@ -125,8 +157,141 @@
         </div>
       </section>
 
-      <!-- BAQI MODULES (Inventory, Racks, Repair, Purchases, Customers, Udhar, Expenses, Reports, Settings) -->
-      <!-- Inke HTML aap wapas apne purane code se le lein, unka design same rahega -->
+      <!-- REPAIRING -->
+      <section class="module" id="module-repairing">
+        <div class="module-head"><div><h2>Repairing</h2><p>Repair jobs, advance / due payments and Urdu receipts</p></div><button class="btn btn-primary" id="btnAddRepair">+ New Repair Slip</button></div>
+        <div class="clay" style="padding:20px"><div class="form-grid" style="margin-bottom:14px"><div class="field"><label>Search Customer / Mobile / IMEI</label><input id="repairSearch" placeholder="Search repairing jobs..."></div><div class="field"><label>Status</label><select id="repairStatusFilter"><option value="">All</option><option>Received</option><option>In Progress</option><option>Ready</option><option>Delivered</option></select></div></div><div class="table-wrap" id="repairsTable"><div class="empty">Loading…</div></div></div>
+      </section>
+
+      <!-- PURCHASES -->
+      <section class="module" id="module-purchases">
+        <div class="module-head"><div><h2>Purchases</h2><p>Stock intake from suppliers</p></div><button class="btn btn-primary" id="btnNewPurchase">+ New Purchase (F8)</button></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="purchasesTable"><div class="empty">Loading…</div></div></div>
+      </section>
+
+      <!-- CUSTOMERS -->
+      <section class="module" id="module-customers">
+        <div class="module-head">
+          <div><h2>Customers</h2><p>All registered customers</p></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="search-bar"><input id="custSearch" placeholder="Search customers…"></div>
+            <button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button>
+          </div>
+        </div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="customersTable"><div class="empty">Loading…</div></div></div>
+      </section>
+
+      <!-- SUPPLIERS -->
+      <section class="module" id="module-suppliers">
+        <div class="module-head"><div><h2>Suppliers</h2><p>Vendors & payable balances</p></div><button class="btn btn-primary" id="btnAddSupplier">+ Add Supplier</button></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="suppliersTable"><div class="empty">Loading…</div></div></div>
+      </section>
+
+      <!-- CREDIT / UDHAR (UPGRADED) -->
+      <section class="module" id="module-credit">
+        <div class="module-head">
+          <div><h2>Credit / Udhar Management</h2><p>Name-wise outstanding balances & recovery</p></div>
+          <button class="btn btn-ghost" id="btnPrintCreditAll">🖨 Print All Udhar</button>
+        </div>
+        <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Customer-wise Udhar Summary</h3>
+          <div class="table-wrap" id="creditSummaryTable"><div class="empty">Loading…</div></div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">All Outstanding Invoices</h3>
+          <div class="table-wrap" id="creditTable"><div class="empty">Loading…</div></div>
+        </div>
+        <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Credit Recoveries</h3><div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div></div>
+      </section>
+
+      <!-- EXPENSES (UPGRADED) -->
+      <section class="module" id="module-expenses">
+        <div class="module-head">
+          <div><h2>Expenses</h2><p>Date-wise expense tracking with categories</p></div>
+          <button class="btn btn-primary" id="btnAddExpense">+ Add Expense (F9)</button>
+        </div>
+        <div class="stats-row" id="expenseStats">
+          <div class="stat clay"><div class="stat-icon orange">▥</div><div><strong id="expToday">—</strong><small>Today</small></div></div>
+          <div class="stat clay"><div class="stat-icon purple">▨</div><div><strong id="expWeek">—</strong><small>This Week</small></div></div>
+          <div class="stat clay"><div class="stat-icon blue">▣</div><div><strong id="expMonth">—</strong><small>This Month</small></div></div>
+          <div class="stat clay"><div class="stat-icon red">₹</div><div><strong id="expTotal">—</strong><small>All Time</small></div></div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="form-grid" style="margin-bottom:14px">
+            <div class="field"><label>From</label><input type="date" id="expFilterFrom"></div>
+            <div class="field"><label>To</label><input type="date" id="expFilterTo"></div>
+            <div class="field"><label>Category</label><select id="expFilterCat"><option value="">All</option></select></div>
+            <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-primary" id="btnFilterExpenses">Filter</button></div>
+          </div>
+          <div class="table-wrap" id="expensesTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
+      <!-- PROFIT & LOSS (NEW) -->
+      <section class="module" id="module-profitloss">
+        <div class="module-head">
+          <div><h2>Profit & Loss (Item-wise)</h2><p>Har product ka buy/sale/profit track karein</p></div>
+          <button class="btn btn-ghost" id="btnPrintPL">🖨 Print Report</button>
+        </div>
+        <div class="clay" style="padding:20px">
+          <div class="form-grid" style="margin-bottom:14px">
+            <div class="field"><label>From Date</label><input type="date" id="plFrom"></div>
+            <div class="field"><label>To Date</label><input type="date" id="plTo"></div>
+            <div class="field" style="display:flex;align-items:flex-end"><button class="btn btn-primary" id="btnRunPL">Run Report</button></div>
+          </div>
+          <div id="plSummary" class="stats-row" style="margin-bottom:20px"></div>
+          <div class="table-wrap" id="plTable"><div class="empty">Click "Run Report" to load item-wise profit data.</div></div>
+        </div>
+      </section>
+
+      <!-- TRANSACTIONS -->
+      <section class="module" id="module-transactions">
+        <div class="module-head"><div><h2>Transactions</h2><p>Unified money-in / money-out ledger</p></div></div>
+        <div class="clay" style="padding:20px"><div class="table-wrap" id="transactionsTable"><div class="empty">Loading…</div></div></div>
+      </section>
+
+      <!-- REPORTS (UPGRADED) -->
+      <section class="module" id="module-reports">
+        <div class="module-head"><div><h2>Premium Reports</h2><p>Daily / Weekly / Monthly with Profit & Loss</p></div></div>
+        <div class="clay" style="padding:22px">
+          <div class="form-grid">
+            <div class="field"><label>Report Type</label><select id="reportType">
+              <option value="customer">Customer-wise Report</option>
+              <option value="repairing">Repairing Report</option>
+              <option value="sales">Sales Report</option>
+              <option value="purchases">Purchase Report</option>
+              <option value="credit">Credit Report</option>
+              <option value="expenses">Expense Report</option>
+              <option value="pl">Profit & Loss Report</option>
+            </select></div>
+            <div class="field"><label>Period</label><select id="reportPeriod"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="custom">Custom Range</option></select></div>
+            <div class="field"><label>From Date</label><input type="date" id="reportFrom"></div>
+            <div class="field"><label>To Date</label><input type="date" id="reportTo"></div>
+            <div class="field" style="display:flex;align-items:flex-end;gap:10px">
+              <button class="btn btn-primary" id="btnRunReport">Run Report</button>
+              <button class="btn btn-ghost" id="btnPrintReport">🖨 Print</button>
+            </div>
+          </div>
+        </div>
+        <div class="clay" style="padding:20px"><div id="reportOutput"><div class="empty">Select a report type and click "Run Report".</div></div></div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="module" id="module-settings">
+        <div class="module-head"><div><h2>Settings</h2><p>Shop information & configuration</p></div></div>
+        <div class="clay" style="padding:22px">
+          <div class="form-grid">
+            <div class="field"><label>Shop Name</label><input id="setShopName"></div>
+            <div class="field"><label>Owner Name</label><input id="setOwner"></div>
+            <div class="field full"><label>Address</label><input id="setAddress"></div>
+            <div class="field"><label>Contact</label><input id="setPhone"></div>
+            <div class="field"><label>Currency</label><input id="setCurrency"></div>
+            <div class="field full"><label>Footer Text</label><input id="setFooter"></div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:18px" id="btnSaveSettings">💾 Save Settings</button>
+        </div>
+      </section>
+
     </div>
   </main>
 </div>
