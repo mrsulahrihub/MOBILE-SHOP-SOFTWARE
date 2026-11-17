@@ -1,16 +1,20 @@
 // =====================================================
-// BM MOBILE ZONE - FULL WORKING SYSTEM (v15.0 - FINAL)
+// BM MOBILE ZONE - FULL WORKING SYSTEM (v16.0 - ULTIMATE)
 // =====================================================
 import { supabase } from './config.js';
 
-// --- 1. INITIAL SETUP ---
-document.getElementById('userName').textContent = 'BM MOBILE ZONE';
-document.getElementById('userRole').textContent = 'ADMIN';
-document.getElementById('welcomeName').textContent = 'Admin';
-document.getElementById('userAvatar').textContent = 'B';
+// --- 1. INITIAL SETUP & SESSION ---
+const SESSION = JSON.parse(localStorage.getItem('bm_staff') || '{}');
+const IS_ADMIN = !SESSION.staff_id || SESSION.staff_id === '01';
+
+document.getElementById('userName').textContent = SESSION.name || 'BM MOBILE ZONE';
+document.getElementById('userRole').textContent = SESSION.role ? SESSION.role.toUpperCase() : 'ADMIN';
+document.getElementById('welcomeName').textContent = SESSION.name || 'Admin';
+document.getElementById('userAvatar').textContent = SESSION.name ? SESSION.name[0].toUpperCase() : 'B';
 document.getElementById('todayDate').textContent = new Intl.DateTimeFormat('en-PK', { dateStyle: 'full' }).format(new Date());
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('bm_staff');
   window.location.replace('./login.html');
 });
 
@@ -18,12 +22,15 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 const $ = (id) => document.getElementById(id);
 const fmt = (n) => 'PKR ' + Number(n || 0).toLocaleString('en-PK', { maximumFractionDigits: 0 });
 const esc = (s) => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
 const SHOP_INFO = { name: 'BM MOBILE ZONE', address: 'Chohan Mobile Market, Zafarwal', phone1: '0345-6613232', phone2: '0307-6613232' };
 
-const playBeep = () => {
-  try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime); osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1); } catch (e) {}
-};
+function checkPermission(action) {
+  if (!SESSION.staff_id) return true; // No login means old mode, allow all
+  if (IS_ADMIN) return true;
+  if (action === 'edit' && !SESSION.can_edit) { toast('Aapko edit ki ijazat nahi hai!', 'error'); return false; }
+  if (action === 'delete' && !SESSION.can_delete) { toast('Aapko delete ki ijazat nahi hai!', 'error'); return false; }
+  return true;
+}
 
 function toast(msg, type = 'info') {
   const host = $('toastHost'); if (!host) return;
@@ -43,8 +50,7 @@ $('modalConfirm').onclick = async () => {
   if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } }
 };
 
-// --- 3. PREMIUM PRINTING FUNCTIONS (Thermal & A4) ---
-
+// --- 3. PREMIUM PRINTING FUNCTIONS ---
 function printThermal80mm(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=340,height=640');
   if (!w) { toast('Popup blocked — allow popups to print', 'error'); return; }
@@ -56,17 +62,23 @@ function printThermal80mm(data, type = 'sale') {
       <td style="text-align:right;font-size:11px">${Number(it.line_total || it.total || it.amount || 0).toLocaleString()}</td>
     </tr>`).join('');
 
+  let showTopLine = false;
+  if (type === 'repair' || type === 'sale') {
+    const urduLine = "ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔";
+    if (confirm(`Kya aap yeh line print karna chahte hain?\n\n"${urduLine}"\n\n(OK = Haan, Cancel = Nahi)`)) showTopLine = true;
+  }
+
   let urduTerms = '';
   if (type === 'repair' || type === 'sale') {
     urduTerms = `
     <hr style="border-top: 1px dashed #000; margin: 6px 0;">
     <div style="text-align:right; font-size:12px; font-family:'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', Arial, sans-serif; direction: rtl; line-height: 1.6;">
-      <div style="text-align:center; font-weight:bold; font-size:13px; margin-bottom:4px;">ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔</div>
+      ${showTopLine ? `<div style="text-align:center; font-weight:bold; font-size:13px; margin-bottom:4px;">ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔</div>` : ''}
       <div>• ﺑراه ِ ﮐرم ﻣﺎل ﮐﺎؤﻧﭨر ﭘر ﭼﯾﮏ ﮐرﯾں۔</div>
       <div>• ﭘﮭوﻟﯽ ﮨوﺋﯽ ﺑﯾﭨری ﮐﯽ ﮐوﺋﯽ وارﻧﭨﯽ ﻧﮩﯾں ﮨﮯ۔</div>
       <div>• ﺑﯾﭨری ﮐﯽ وارﻧﭨﯽ ﺻرف 2 دن ﮨوﮔﯽ۔</div>
       <div>• اﺳﭨرپ واﻟﯽ ﺑﯾﭨری ﮐﯽ ﮐوﺋﯽ وارﻧﭨﯽ ﻧﮩﯾں ﮨﮯ۔</div>
-      <div>• اﺳﺗﻌﻤﺎل ﺷده Accessories واﭘس ﯾﺎ ﺗﺑدﯾل ﻧﮩﯾں ﮨوں ﮔﯽ۔</div>
+      <div>• اﺳﺗﻌﻣﺎل ﺷده Accessories واﭘس ﯾﺎ ﺗﺑدﯾل ﻧﮩﯾں ﮨوں ﮔﯽ۔</div>
     </div>`;
   }
 
@@ -82,6 +94,7 @@ function printThermal80mm(data, type = 'sale') {
     .row { display: flex; justify-content: space-between; font-size: 11px; padding: 2px 0; }
     .bold { font-weight: 900; font-size: 13px; }
     .center { text-align: center; margin-top: 6px; font-size: 11px; }
+    .footer { text-align: center; margin-top: 10px; font-size: 10px; font-weight: normal; line-height: 1.4; }
   </style></head><body>
     <h2>BM MOBILE ZONE</h2>
     <div class="sub">Chohan Mobile Market, Zafarwal</div>
@@ -104,8 +117,11 @@ function printThermal80mm(data, type = 'sale') {
     <hr>
     <div class="center">Thank you for shopping!</div>
     <div class="center">Visit Again</div>
-    <div class="center" style="margin-top:10px;font-weight:900">Made by MS.Tech</div>
-    <div class="center">☎ 03099100546</div>
+    <div class="footer">
+      <div style="font-weight:bold;">Powered by MS.TECH</div>
+      <div>Smart Business Solutions | Software Developed by MS.TECH</div>
+      <div>☎ 03099100546</div>
+    </div>
     <script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script>
   </body></html>`;
   w.document.write(html); w.document.close();
@@ -124,11 +140,17 @@ function printA4Premium(data, type = 'sale') {
       <td style="text-align:right">PKR ${Number(it.total || it.line_total || it.amount || 0).toLocaleString()}</td>
     </tr>`).join('');
 
+  let showTopLine = false;
+  if (type === 'repair' || type === 'sale') {
+    const urduLine = "ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔";
+    if (confirm(`Kya aap yeh line print karna chahte hain?\n\n"${urduLine}"\n\n(OK = Haan, Cancel = Nahi)`)) showTopLine = true;
+  }
+
   let urduTerms = '';
   if (type === 'repair' || type === 'sale') {
     urduTerms = `
     <div style="margin-top: 30px; padding: 15px; background: #f8fafc; border-left: 4px solid #5b8def; text-align:right; font-family:'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', Arial, sans-serif; direction: rtl; font-size: 14px; color: #333; line-height: 1.8;">
-      <div style="font-weight:bold; margin-bottom:5px;">ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔</div>
+      ${showTopLine ? `<div style="font-weight:bold; margin-bottom:5px;">ﻣوﺑﺎﺋل ﻣرﻣت ﮐﮯ ﺑﻌد وﺻول ﮐرﻧﮯ ﮐﮯ ﻟﯾﮯ ﯾہ رﺳﯾد ﻻزﻣﯽ ﺳﺎﺗﮭ ﻻﺋﯾں۔</div>` : ''}
       <div>• ﺑراه ِ ﮐرم ﻣﺎل ﮐﺎؤﻧﭨر ﭘر ﭼﯾﮏ ﮐرﯾں۔</div>
       <div>• ﭘﮭوﻟﯽ ﮨوﺋﯽ ﺑﯾﭨری ﮐﯽ ﮐوﺋﯽ وارﻧﭨﯽ ﻧﮩﯾں ﮨﮯ۔</div>
       <div>• ﺑﯾﭨری ﮐﯽ وارﻧﭨﯽ ﺻرف 2 دن ﮨوﮔﯽ۔</div>
@@ -158,6 +180,7 @@ function printA4Premium(data, type = 'sale') {
     .totals-row.grand { font-size: 18px; color: #1b2436; font-weight: 800; border-top: 2px solid #5b8def; margin-top: 5px; padding-top: 10px; }
     .footer-bg { position: fixed; bottom: 0; left: 0; width: 100%; height: 120px; background: linear-gradient(135deg, #0f172a 0%, #5b8def 50%, #7c5cff 100%); clip-path: ellipse(150% 100% at 50% 100%); z-index: -1; }
     .clearfix::after { content: ""; clear: both; display: table; }
+    .footer-text { position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #fff; line-height: 1.4; }
   </style></head><body>
     <div class="header-bg"></div>
     <div class="header">
@@ -191,6 +214,11 @@ function printA4Premium(data, type = 'sale') {
     </div>
     ${urduTerms}
     <div class="footer-bg"></div>
+    <div class="footer-text">
+      <div style="font-weight:bold; font-size:12px;">Powered by MS.TECH</div>
+      <div>Smart Business Solutions | Software Developed by MS.TECH</div>
+      <div>☎ 03099100546</div>
+    </div>
     <script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script>
   </body></html>`;
   w.document.write(html); w.document.close();
@@ -212,12 +240,20 @@ if (handle) {
 }
 function resetSidebarTimer() { clearTimeout(sidebarTimeout); sidebarTimeout = setTimeout(() => { sidebar.classList.remove('show'); handle.classList.remove('open'); }, 15000); }
 
-const MODULE_TITLES = { overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Racks', repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers', suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses', profitloss: 'Profit & Loss', transactions: 'Transactions', reports: 'Reports', settings: 'Settings' };
+const MODULE_TITLES = { 
+  overview: 'Dashboard', products: 'Products', inventory: 'Inventory', racks: 'Racks', 
+  repairing: 'Repairing', sales: 'Sales / POS', purchases: 'Purchases', customers: 'Customers', 
+  suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses', 
+  reports: 'Reports & P&L', settings: 'Settings' 
+};
+
 document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
   btn.addEventListener('click', () => {
     const mod = btn.dataset.module;
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); btn.classList.add('active');
-    document.querySelectorAll('.module').forEach(m => m.classList.remove('active')); $('module-' + mod).classList.add('active');
+    document.querySelectorAll('.module').forEach(m => m.classList.remove('active')); 
+    const targetMod = $('module-' + mod) || $('module-profitloss'); // Fallback for profitloss
+    if(targetMod) targetMod.classList.add('active');
     $('pageTitle').textContent = MODULE_TITLES[mod] || mod; loadModule(mod);
     sidebar.classList.remove('show'); handle?.classList.remove('open');
   });
@@ -236,10 +272,9 @@ async function loadModule(mod) {
     case 'suppliers': return loadSuppliers();
     case 'credit': return loadCredit();
     case 'expenses': return loadExpenses();
-    case 'profitloss': return;
-    case 'transactions': return loadTransactions();
-    case 'reports': return;
-    case 'settings': return loadSettings();
+    case 'reports': return loadReports();
+    case 'profitloss': return loadReports(); // Redirect old link
+    case 'settings': return loadStaff();
   }
 }
 
@@ -266,12 +301,9 @@ async function loadOverview() {
   else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 }
 
-// --- 6. PRODUCTS (UPDATED WITH AUTO-SUGGESTIONS) ---
+// --- 6. PRODUCTS ---
 let ALL_PRODUCTS = [];
-const CATEGORIES = [
-  'Mobile Phones', 'Mobile Accessories', 'Chargers & Cables', 'Handsfree & Audio',
-  'Batteries', 'Memory & Storage', 'Mobile Parts', 'SIM & Network', 'Repairing Tools', 'Other Gadgets'
-];
+const CATEGORIES = ['Mobile Phones', 'Mobile Accessories', 'Chargers & Cables', 'Handsfree & Audio', 'Batteries', 'Memory & Storage', 'Mobile Parts', 'SIM & Network', 'Repairing Tools', 'Other Gadgets'];
 const CAT_ITEMS = {
   'Mobile Accessories': ['Glass Protector', 'Back Cover', 'Flip Cover', 'Camera Lens', 'Ring Holder', 'Phone Pouch', 'Selfie Stick', 'Car Mount', 'OTG Cable'],
   'Chargers & Cables': ['Fast Charger', 'Type-C Cable', 'Lightning Cable', 'Micro USB Cable', 'Car Charger', 'Power Bank', 'Wireless Charger', 'Adapter'],
@@ -298,15 +330,14 @@ async function loadProducts(filter = '') {
 }
 $('productSearch')?.addEventListener('input', e => loadProducts(e.target.value));
 $('btnAddProduct')?.addEventListener('click', () => openProductModal());
-window.editProduct = (id) => { const p = ALL_PRODUCTS.find(x => x.id === id); if (p) openProductModal(p); };
-window.deleteProduct = async (id) => { if (!confirm('Delete this product?')) return; const { error } = await supabase.from('products').delete().eq('id', id); if (error) return toast(error.message, 'error'); toast('Product deleted', 'success'); loadProducts(); };
+window.editProduct = (id) => { if(!checkPermission('edit')) return; const p = ALL_PRODUCTS.find(x => x.id === id); if (p) openProductModal(p); };
+window.deleteProduct = async (id) => { if(!checkPermission('delete')) return; if (!confirm('Delete this product?')) return; const { error } = await supabase.from('products').delete().eq('id', id); if (error) return toast(error.message, 'error'); toast('Product deleted', 'success'); loadProducts(); };
 
 async function openProductModal(p = null) {
   const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
   const body = `<div class="form-grid">
       <div class="field"><label>Product Name *</label><input id="pName" value="${esc(p?.name || '')}" placeholder="e.g. iPhone 11 Glass"></div>
       <div class="field"><label>Brand</label><input id="pBrand" value="${esc(p?.brand || '')}" placeholder="e.g. Apple, Samsung, Anker"></div>
-      
       <div class="field"><label>Category *</label>
         <select id="pCategory" onchange="updateSubCatOptions()">
           ${CATEGORIES.map(c => `<option value="${c}" ${p?.category === c ? 'selected' : ''}>${c}</option>`).join('')}
@@ -316,7 +347,6 @@ async function openProductModal(p = null) {
         <input id="pSubCategory" list="subCatList" placeholder="Select or type..." value="${esc(p?.sub_category || '')}">
         <datalist id="subCatList"></datalist>
       </div>
-
       <div class="field"><label>Purchase Price</label><input id="pPurchase" type="number" value="${p?.purchase_price || 0}"></div>
       <div class="field"><label>Sale Price</label><input id="pSale" type="number" value="${p?.sale_price || 0}"></div>
       <div class="field"><label>Stock Quantity</label><input id="pQty" type="number" value="${p?.quantity || 0}"></div>
@@ -325,27 +355,16 @@ async function openProductModal(p = null) {
       <div class="field"><label>Min Stock Alert</label><input id="pMin" type="number" value="${p?.min_stock || 5}"></div>
     </div>`;
   openModal(p ? 'Edit Product' : 'Add Product', body, async () => {
-    const payload = {
-      name: $('pName').value.trim(), brand: $('pBrand').value.trim() || null, category: $('pCategory').value, sub_category: $('pSubCategory').value.trim() || null,
-      barcode: $('pBarcode').value.trim() || null, purchase_price: Number($('pPurchase').value) || 0, sale_price: Number($('pSale').value) || 0,
-      quantity: Number($('pQty').value) || 0, rack_id: $('pRack').value || null, min_stock: Number($('pMin').value) || 5
-    };
+    const payload = { name: $('pName').value.trim(), brand: $('pBrand').value.trim() || null, category: $('pCategory').value, sub_category: $('pSubCategory').value.trim() || null, barcode: $('pBarcode').value.trim() || null, purchase_price: Number($('pPurchase').value) || 0, sale_price: Number($('pSale').value) || 0, quantity: Number($('pQty').value) || 0, rack_id: $('pRack').value || null, min_stock: Number($('pMin').value) || 5 };
     if (!payload.name) throw new Error('Product Name required');
     if (p) await supabase.from('products').update(payload).eq('id', p.id); else await supabase.from('products').insert(payload);
     toast('Saved', 'success'); closeModal(); loadProducts();
   });
   updateSubCatOptions(p?.sub_category);
 }
+window.updateSubCatOptions = (val = '') => { const cat = $('pCategory').value; const items = CAT_ITEMS[cat] || []; const dl = $('subCatList'); if (dl) dl.innerHTML = items.map(i => `<option value="${esc(i)}">`).join(''); if (val !== undefined && val !== '') $('pSubCategory').value = val; };
 
-window.updateSubCatOptions = (val = '') => {
-  const cat = $('pCategory').value;
-  const items = CAT_ITEMS[cat] || [];
-  const dl = $('subCatList');
-  if (dl) dl.innerHTML = items.map(i => `<option value="${esc(i)}">`).join('');
-  if (val !== undefined && val !== '') $('pSubCategory').value = val;
-};
-
-// --- 7. INVENTORY ---
+// --- 7. INVENTORY & RACKS ---
 async function loadInventory() {
   const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
   const rf = $('inventoryRackFilter'); if (rf && rf.options.length <= 1) rf.innerHTML = '<option value="">All Racks</option>' + (rackRows || []).map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
@@ -354,25 +373,14 @@ async function loadInventory() {
   const { data: low } = await iq.limit(100);
   const t = $('lowStockTable');
   if (!low || !low.length) t.innerHTML = '<div class="empty">No products.</div>';
-  else t.innerHTML = `<table class="data"><thead><tr><th>Product</th><th>Category</th><th>Rack</th><th class="num">Stock</th><th class="num">Min</th><th>Status</th></tr></thead><tbody>
-    ${low.map(p => `<tr><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}${p.sub_category ? ' / ' + esc(p.sub_category) : ''}</small></td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td class="num">${p.min_stock}</td>
-    <td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}</tbody></table>`;
+  else t.innerHTML = `<table class="data"><thead><tr><th>Product</th><th>Category</th><th>Rack</th><th class="num">Stock</th><th class="num">Min</th><th>Status</th></tr></thead><tbody>${low.map(p => `<tr><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}${p.sub_category ? ' / ' + esc(p.sub_category) : ''}</small></td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td class="num">${p.min_stock}</td><td>${p.quantity <= p.min_stock ? '<span class="pill red">Low Stock</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}</tbody></table>`;
 
-  const [{ data: saleItems }, { data: purchItems }] = await Promise.all([
-    supabase.from('sale_items').select('product_name,quantity,created_at, sales!inner(invoice_no)').order('created_at', { ascending: false }).limit(50),
-    supabase.from('purchase_items').select('product_name,quantity,created_at, purchases!inner(invoice_no)').order('created_at', { ascending: false }).limit(50)
-  ]);
-  const movements = [
-    ...(saleItems || []).map(m => ({ type: 'OUT', name: m.product_name, qty: m.quantity, ref: m.sales?.invoice_no, date: m.created_at })),
-    ...(purchItems || []).map(m => ({ type: 'IN', name: m.product_name, qty: m.quantity, ref: m.purchases?.invoice_no, date: m.created_at }))
-  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 60);
-  $('movementsTable').innerHTML = movements.length
-    ? `<table class="data"><thead><tr><th>Type</th><th>Product</th><th class="num">Qty</th><th>Ref</th><th>Date</th></tr></thead><tbody>${movements.map(m => `<tr><td><span class="pill ${m.type === 'IN' ? 'green' : 'orange'}">${m.type}</span></td><td>${esc(m.name)}</td><td class="num">${m.qty}</td><td><small>${esc(m.ref || '—')}</small></td><td><small>${new Date(m.date).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>`
-    : '<div class="empty">No stock movements yet.</div>';
+  const [{ data: saleItems }, { data: purchItems }] = await Promise.all([ supabase.from('sale_items').select('product_name,quantity,created_at, sales!inner(invoice_no)').order('created_at', { ascending: false }).limit(50), supabase.from('purchase_items').select('product_name,quantity,created_at, purchases!inner(invoice_no)').order('created_at', { ascending: false }).limit(50) ]);
+  const movements = [ ...(saleItems || []).map(m => ({ type: 'OUT', name: m.product_name, qty: m.quantity, ref: m.sales?.invoice_no, date: m.created_at })), ...(purchItems || []).map(m => ({ type: 'IN', name: m.product_name, qty: m.quantity, ref: m.purchases?.invoice_no, date: m.created_at })) ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 60);
+  $('movementsTable').innerHTML = movements.length ? `<table class="data"><thead><tr><th>Type</th><th>Product</th><th class="num">Qty</th><th>Ref</th><th>Date</th></tr></thead><tbody>${movements.map(m => `<tr><td><span class="pill ${m.type === 'IN' ? 'green' : 'orange'}">${m.type}</span></td><td>${esc(m.name)}</td><td class="num">${m.qty}</td><td><small>${esc(m.ref || '—')}</small></td><td><small>${new Date(m.date).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No stock movements yet.</div>';
 }
 $('inventoryRackFilter')?.addEventListener('change', loadInventory);
 
-// --- 8. RACKS ---
 async function loadRacks() {
   const { data: racks, error } = await supabase.from('racks').select('*').order('name');
   if (error) { $('racksTable').innerHTML = '<div class="empty">Rack tables not installed.</div>'; return; }
@@ -386,17 +394,11 @@ $('btnAddRack').onclick = () => openModal('Add Rack', `<div class="form-grid"><d
   const { error } = await supabase.from('racks').insert({ name, description: $('rackDesc').value.trim() || null });
   if (error) throw new Error(error.message); closeModal(); toast('Rack added', 'success'); loadRacks();
 });
-window.deleteRack = async id => { if (!confirm('Delete rack?')) return; const { error } = await supabase.from('racks').delete().eq('id', id); if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); } };
+window.deleteRack = async id => { if(!checkPermission('delete')) return; if (!confirm('Delete rack?')) return; const { error } = await supabase.from('racks').delete().eq('id', id); if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); } };
 
-// --- 9. SALES / POS (UPDATED) ---
+// --- 8. SALES / POS ---
 let CART = []; let POS_CUSTOMERS = []; let POS_PREVIOUS_DUE = 0; let POS_ALL_PRODS = [];
-
-async function loadPosCustomers() {
-  const { data } = await supabase.from('customers').select('id,name,phone').order('name');
-  POS_CUSTOMERS = data || [];
-  $('posCustomerOptions').innerHTML = POS_CUSTOMERS.map(c => `<option value="${esc(c.name)}">${esc(c.phone || '')}</option>`).join('');
-}
-
+async function loadPosCustomers() { const { data } = await supabase.from('customers').select('id,name,phone').order('name'); POS_CUSTOMERS = data || []; $('posCustomerOptions').innerHTML = POS_CUSTOMERS.map(c => `<option value="${esc(c.name)}">${esc(c.phone || '')}</option>`).join(''); }
 async function updatePosCustomerDue() {
   const name = $('saleCustName').value.trim(); const phone = $('saleCustPhone').value.trim();
   const match = POS_CUSTOMERS.find(c => (phone && c.phone === phone) || (name && c.name.toLowerCase() === name.toLowerCase()));
@@ -404,29 +406,22 @@ async function updatePosCustomerDue() {
   if (match.phone && !$('saleCustPhone').value) $('saleCustPhone').value = match.phone;
   const { data } = await supabase.from('sales').select('balance').eq('customer_id', match.id).gt('balance', 0);
   POS_PREVIOUS_DUE = (data || []).reduce((n, x) => n + Number(x.balance || 0), 0);
-  $('previousDueAmount').textContent = fmt(POS_PREVIOUS_DUE);
-  $('previousDueBox').style.display = POS_PREVIOUS_DUE > 0 ? 'block' : 'none';
+  $('previousDueAmount').textContent = fmt(POS_PREVIOUS_DUE); $('previousDueBox').style.display = POS_PREVIOUS_DUE > 0 ? 'block' : 'none';
 }
-$('saleCustName').addEventListener('change', updatePosCustomerDue);
-$('saleCustPhone').addEventListener('change', updatePosCustomerDue);
+$('saleCustName').addEventListener('change', updatePosCustomerDue); $('saleCustPhone').addEventListener('change', updatePosCustomerDue);
 
 async function loadSaleProducts() {
   await loadPosCustomers();
   const { data } = await supabase.from('products').select('*').gt('quantity', 0).order('name');
   POS_ALL_PRODS = data || [];
-  
   const cats = [...new Set(POS_ALL_PRODS.map(p => p.category).filter(Boolean))];
   $('saleCategoryFilter').innerHTML = '<option value="">— All Categories —</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
   filterPosProducts();
 }
-
 window.filterPosProducts = () => {
   const cat = $('saleCategoryFilter').value;
   const filtered = cat ? POS_ALL_PRODS.filter(p => p.category === cat) : POS_ALL_PRODS;
-  $('saleProductSelect').innerHTML = '<option value="">— Choose product —</option>' + filtered.map(p => {
-    const catDisplay = p.category ? `[${p.category}${p.sub_category ? ' - ' + p.sub_category : ''}]` : '';
-    return `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei_1 || '')}" data-cat="${esc(p.category)}" data-subcat="${esc(p.sub_category || '')}" data-stock="${p.quantity}">${esc(p.name)} ${catDisplay} — ${fmt(p.sale_price)} (${p.quantity} stock)</option>`;
-  }).join('');
+  $('saleProductSelect').innerHTML = '<option value="">— Choose product —</option>' + filtered.map(p => { const catDisplay = p.category ? `[${p.category}${p.sub_category ? ' - ' + p.sub_category : ''}]` : ''; return `<option value="${p.id}" data-price="${p.sale_price}" data-name="${esc(p.name)}" data-imei="${esc(p.imei_1 || '')}" data-cat="${esc(p.category)}" data-subcat="${esc(p.sub_category || '')}" data-stock="${p.quantity}">${esc(p.name)} ${catDisplay} — ${fmt(p.sale_price)} (${p.quantity} stock)</option>`; }).join('');
 };
 $('saleCategoryFilter').addEventListener('change', filterPosProducts);
 
@@ -436,23 +431,19 @@ $('btnAddToCart').onclick = () => {
   const existing = CART.find(c => c.product_id === opt.value);
   if (existing) { existing.quantity++; existing.line_total = existing.quantity * existing.unit_price; }
   else CART.push({ product_id: opt.value, product_name: opt.dataset.name, imei: opt.dataset.imei, category: opt.dataset.cat, sub_category: opt.dataset.subcat, unit_price: Number(opt.dataset.price), quantity: 1, line_total: Number(opt.dataset.price) });
-  playBeep(); renderCart();
+  renderCart();
 };
-
 function renderCart() {
   if (!CART.length) $('cartItems').innerHTML = '<div class="empty">Cart is empty</div>';
   else $('cartItems').innerHTML = `<table class="data cart-table"><thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Total</th><th></th></tr></thead><tbody>${CART.map((c, i) => `<tr><td>${esc(c.product_name)}<br><small>${esc(c.category)} ${esc(c.sub_category)}</small></td><td class="num">${c.quantity}</td><td class="num">${fmt(c.line_total)}</td><td><button class="btn btn-danger btn-sm" onclick="removeCart(${i})">×</button></td></tr>`).join('')}</tbody></table>`;
-  const sub = CART.reduce((s, c) => s + c.line_total, 0);
-  const disc = Number($('saleDiscount').value) || 0;
-  const total = Math.max(0, sub - disc);
+  const sub = CART.reduce((s, c) => s + c.line_total, 0); const disc = Number($('saleDiscount').value) || 0; const total = Math.max(0, sub - disc);
   $('cartSubtotal').textContent = fmt(sub); $('cartTotal').textContent = fmt(total);
   if (Number($('salePaid').value) === 0) $('salePaid').value = total;
   const udhar = total - (Number($('salePaid').value) || 0);
   $('udharWarning').style.display = udhar > 0 ? 'block' : 'none';
 }
 window.removeCart = (i) => { CART.splice(i, 1); renderCart(); };
-$('saleDiscount').addEventListener('input', renderCart);
-$('salePaid').addEventListener('input', renderCart);
+$('saleDiscount').addEventListener('input', renderCart); $('salePaid').addEventListener('input', renderCart);
 
 $('btnSaveSale').onclick = async () => {
   if (!CART.length) return toast('Cart empty', 'error');
@@ -465,10 +456,7 @@ $('btnSaveSale').onclick = async () => {
     let customerId = null;
     if (custName !== 'Walk-in Customer') {
       let found = POS_CUSTOMERS.find(c => (custPhone && c.phone === custPhone) || c.name.toLowerCase() === custName.toLowerCase());
-      if (!found) {
-        const { data: created, error: ce } = await supabase.from('customers').insert({ name: custName, phone: custPhone || null, opening_balance: 0 }).select('id,name,phone').single();
-        if (ce) throw new Error(ce.message); found = created; POS_CUSTOMERS.push(created);
-      }
+      if (!found) { const { data: created, error: ce } = await supabase.from('customers').insert({ name: custName, phone: custPhone || null, opening_balance: 0 }).select('id,name,phone').single(); if (ce) throw new Error(ce.message); found = created; POS_CUSTOMERS.push(created); }
       customerId = found.id;
     }
     const { data, error } = await supabase.rpc('create_sale', {
@@ -478,26 +466,19 @@ $('btnSaveSale').onclick = async () => {
       p_items: CART.map(c => ({ product_id: c.product_id, product_name: c.product_name, imei: c.imei, quantity: c.quantity, unit_price: c.unit_price, line_total: c.line_total, category: c.category, sub_category: c.sub_category }))
     });
     if (error) throw new Error(error.message);
-    
     const printOpt = confirm('Print Thermal Receipt (OK) ya A4 Premium Invoice (Cancel)?');
-    if (printOpt) {
-      printThermal80mm({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] }, 'sale');
-    } else {
-      printA4Premium({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] }, 'sale');
-    }
-    
-    toast('Sale Saved!', 'success'); CART = []; renderCart(); loadSaleProducts(); loadOverview();
+    if (printOpt) printThermal80mm({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] }, 'sale');
+    else printA4Premium({ invoice: data?.invoice_no || 'INV-'+Date.now(), customer: custName, phone: custPhone, subtotal: CART.reduce((s, c) => s + c.line_total, 0), discount: Number($('saleDiscount').value) || 0, total, paid, balance: total - paid, date: new Date(), items: [...CART] }, 'sale');
+    toast('Sale Saved!', 'success'); CART = []; renderCart(); loadSaleProducts(); loadOverview(); loadCredit();
     $('saleCustName').value = ''; $('saleCustPhone').value = ''; $('salePaid').value = 0; $('saleDiscount').value = 0; POS_PREVIOUS_DUE = 0; $('previousDueBox').style.display = 'none';
   } catch (e) { toast(e.message, 'error'); } finally { $('btnSaveSale').disabled = false; }
 };
 
 $('btnSalesHistory').onclick = () => { const box = $('salesHistoryBox'); box.hidden = !box.hidden; if (!box.hidden) loadSalesHistory(); };
 $('btnRefreshSales').onclick = () => loadSalesHistory();
-
 async function loadSalesHistory() {
   const { data, error } = await supabase.from('sales').select('*').order('created_at', { ascending: false }).limit(100);
-  const t = $('salesHistoryTable');
-  if (error) { t.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
+  const t = $('salesHistoryTable'); if (error) { t.innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No sales yet.</div>'; return; }
   t.innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Method</th><th>Date</th><th></th></tr></thead><tbody>${data.map(s => `<tr><td><b>${esc(s.invoice_no)}</b></td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${esc(s.payment_method || 'cash')}</td><td><small>${new Date(s.created_at).toLocaleString()}</small></td><td><button class="btn btn-ghost btn-sm" onclick="reprintSale('${s.id}')">🖨</button></td></tr>`).join('')}</tbody></table>`;
 }
@@ -510,25 +491,8 @@ window.reprintSale = async (id) => {
   if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'sale');
 };
 
-// --- 10. REPAIRING (UPDATED WITH WARRANTY & 100+ FAULTS) ---
-const COMMON_FAULTS = [
-  'Screen Broken', 'Touch Not Working', 'Battery Drain', 'Not Charging', 'No Power', 'No Display', 'Dead', 'Water Damage',
-  'Camera Not Working', 'Front Camera', 'Back Camera', 'Speaker Not Working', 'Mic Not Working', 'Earpiece Not Working',
-  'Vibrator Not Working', 'Network Issue', 'No Signal', 'WiFi Issue', 'Bluetooth Issue', 'Face ID Not Working', 'Fingerprint Issue',
-  'Software Update', 'Hanging Problem', 'Auto Restart', 'Bootloop', 'Fast Charging Issue', 'Slow Charging', 'Heating Issue',
-  'Headphone Jack', 'Charging Port', 'Data Cable Issue', 'Volume Button', 'Power Button', 'Home Button', 'Silent Switch',
-  'Back Glass Broken', 'Camera Glass', 'Lens Scratch', 'Bezel Damage', 'Frame Bend', 'Battery Swollen', 'Water Indicator',
-  'SIM Not Detected', 'Memory Card Slot', 'Speaker Crackling', 'Display Flicker', 'Screen Lines', 'Ghost Touch',
-  'LCD Burn', 'Backlight Issue', 'No Sound', 'Low Sound', 'Call Drops', 'Echo on Call', 'Proximity Sensor',
-  'Light Sensor', 'Gyro Sensor', 'Compass Sensor', 'IR Blaster', 'NFC Issue', 'Wireless Charging', 'Reverse Charging',
-  'Pop-up Camera', 'Slider Phone', 'Flip Phone Hinge', 'Screen Protector', 'Back Cover', 'Lens Protector',
-  'Board Repair', 'IC Replacement', 'CPU Issue', 'Power IC', 'Charging IC', 'Audio IC', 'Network IC',
-  'Memory IC', 'Display IC', 'BGA Rework', 'Jumper Wire', 'Track Repair', 'Water Clean', 'Corrosion Clean',
-  'Antenna Replace', 'Charging Flex', 'LCD Flex', 'Touch Flex', 'Digitizer', 'Glass Replacement',
-  'Software Flash', 'Firmware Update', 'FRP Lock', 'iCloud Lock', 'Google Lock', 'Pattern Lock', 'Bypass',
-  'Signal Booster', 'Battery Connector', 'Charging Port Replace', 'Speaker Replace', 'Mic Replace', 'Camera Module',
-  'Face ID Flex', 'Fingerprint Flex', 'Vibrator Motor', 'Haptic Engine', 'Taptic Engine', 'True Tone', 'Battery Health'
-];
+// --- 9. REPAIRING ---
+const COMMON_FAULTS = ['Screen Broken', 'Touch Not Working', 'Battery Drain', 'Not Charging', 'No Power', 'No Display', 'Dead', 'Water Damage', 'Camera Not Working', 'Front Camera', 'Back Camera', 'Speaker Not Working', 'Mic Not Working', 'Earpiece Not Working', 'Vibrator Not Working', 'Network Issue', 'No Signal', 'WiFi Issue', 'Bluetooth Issue', 'Face ID Not Working', 'Fingerprint Issue', 'Software Update', 'Hanging Problem', 'Auto Restart', 'Bootloop', 'Fast Charging Issue', 'Slow Charging', 'Heating Issue', 'Headphone Jack', 'Charging Port', 'Data Cable Issue', 'Volume Button', 'Power Button', 'Home Button', 'Silent Switch', 'Back Glass Broken', 'Camera Glass', 'Lens Scratch', 'Bezel Damage', 'Frame Bend', 'Battery Swollen', 'Water Indicator', 'SIM Not Detected', 'Memory Card Slot', 'Speaker Crackling', 'Display Flicker', 'Screen Lines', 'Ghost Touch', 'LCD Burn', 'Backlight Issue', 'No Sound', 'Low Sound', 'Call Drops', 'Echo on Call', 'Proximity Sensor', 'Light Sensor', 'Gyro Sensor', 'Compass Sensor', 'IR Blaster', 'NFC Issue', 'Wireless Charging', 'Reverse Charging', 'Pop-up Camera', 'Slider Phone', 'Flip Phone Hinge', 'Screen Protector', 'Back Cover', 'Lens Protector', 'Board Repair', 'IC Replacement', 'CPU Issue', 'Power IC', 'Charging IC', 'Audio IC', 'Network IC', 'Memory IC', 'Display IC', 'BGA Rework', 'Jumper Wire', 'Track Repair', 'Water Clean', 'Corrosion Clean', 'Antenna Replace', 'Charging Flex', 'LCD Flex', 'Touch Flex', 'Digitizer', 'Glass Replacement', 'Software Flash', 'Firmware Update', 'FRP Lock', 'iCloud Lock', 'Google Lock', 'Pattern Lock', 'Bypass', 'Signal Booster', 'Battery Connector', 'Charging Port Replace', 'Speaker Replace', 'Mic Replace', 'Camera Module', 'Face ID Flex', 'Fingerprint Flex', 'Vibrator Motor', 'Haptic Engine', 'Taptic Engine', 'True Tone', 'Battery Health'];
 
 async function loadRepairs() {
   const q = $('repairSearch')?.value?.trim() || ''; const st = $('repairStatusFilter')?.value || '';
@@ -536,8 +500,7 @@ async function loadRepairs() {
   if (st) query = query.eq('status', st);
   if (q) query = query.or(`customer_name.ilike.%${q}%,phone.ilike.%${q}%,mobile.ilike.%${q}%,imei.ilike.%${q}%,slip_no.ilike.%${q}%`);
   const { data, error } = await query;
-  const t = $('repairsTable');
-  if (error) { t.innerHTML = `<div class="empty">Error: ${esc(error.message)}</div>`; return; }
+  const t = $('repairsTable'); if (error) { t.innerHTML = `<div class="empty">Error: ${esc(error.message)}</div>`; return; }
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No repair jobs.</div>'; return; }
   t.innerHTML = `<table class="data"><thead><tr><th>Slip#</th><th>Customer</th><th>Mobile / IMEI</th><th>Issue</th><th class="num">Charge</th><th class="num">Advance</th><th class="num">Due</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>${data.map(r => {
     const due = Number(r.charge || 0) - Number(r.advance || 0);
@@ -545,11 +508,10 @@ async function loadRepairs() {
     return `<tr><td><b>${esc(r.slip_no || '—')}</b></td><td>${esc(r.customer_name)}<br><small>${esc(r.phone || '')}</small></td><td>${esc(r.mobile || '—')}<br><small>${esc(r.imei || '')}</small></td><td><small>${esc(r.issue || '—')}</small></td><td class="num">${fmt(r.charge)}</td><td class="num">${fmt(r.advance)}</td><td class="num">${due > 0 ? `<b style="color:#dc2626">${fmt(due)}</b>` : '<span class="pill green">Paid</span>'}</td><td><span class="pill ${pillClass}">${esc(r.status)}</span></td><td><small>${new Date(r.created_at).toLocaleDateString()}</small></td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="viewRepair('${r.id}')">View</button><button class="btn btn-ghost btn-sm" onclick="editRepair('${r.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteRepair('${r.id}')">Del</button></td></tr>`;
   }).join('')}</tbody></table>`;
 }
-$('repairSearch')?.addEventListener('input', () => loadRepairs());
-$('repairStatusFilter')?.addEventListener('change', () => loadRepairs());
+$('repairSearch')?.addEventListener('input', () => loadRepairs()); $('repairStatusFilter')?.addEventListener('change', () => loadRepairs());
 $('btnAddRepair').onclick = () => openRepairModal();
-window.editRepair = async (id) => { const { data: r } = await supabase.from('repairs').select('*').eq('id', id).single(); if (r) openRepairModal(r); };
-window.deleteRepair = async (id) => { if (!confirm('Delete this repair slip?')) return; const { error } = await supabase.from('repairs').delete().eq('id', id); if (error) return toast(error.message, 'error'); toast('Repair slip deleted'); loadRepairs(); };
+window.editRepair = async (id) => { if(!checkPermission('edit')) return; const { data: r } = await supabase.from('repairs').select('*').eq('id', id).single(); if (r) openRepairModal(r); };
+window.deleteRepair = async (id) => { if(!checkPermission('delete')) return; if (!confirm('Delete this repair slip?')) return; const { error } = await supabase.from('repairs').delete().eq('id', id); if (error) return toast(error.message, 'error'); toast('Repair slip deleted'); loadRepairs(); };
 window.viewRepair = async (id) => {
   const { data: r } = await supabase.from('repairs').select('*').eq('id', id).single();
   if (!r) return toast('Not found', 'error');
@@ -564,33 +526,18 @@ function openRepairModal(r = null) {
     <div class="field"><label>Phone</label><input id="rPhone" value="${esc(r?.phone || '')}"></div>
     <div class="field"><label>Mobile Model</label><input id="rMobile" value="${esc(r?.mobile || '')}"></div>
     <div class="field"><label>IMEI</label><input id="rImei" value="${esc(r?.imei || '')}"></div>
-    
-    <div class="field full">
-      <label>Fault / Issue (Auto-suggest)</label>
-      <input id="rIssue" list="faultsList" value="${esc(r?.issue || '')}" placeholder="Type to search 100+ faults...">
-      <datalist id="faultsList">${COMMON_FAULTS.map(f => `<option value="${esc(f)}">`).join('')}</datalist>
-    </div>
-    
+    <div class="field full"><label>Fault / Issue (Auto-suggest)</label><input id="rIssue" list="faultsList" value="${esc(r?.issue || '')}" placeholder="Type to search 100+ faults..."><datalist id="faultsList">${COMMON_FAULTS.map(f => `<option value="${esc(f)}">`).join('')}</datalist></div>
     <div class="field full" style="display:flex;gap:10px;align-items:center;background:rgba(0,0,0,0.02);padding:10px;border-radius:8px;">
-      <div style="flex:1"><label style="margin:0;font-size:12px;">Battery Warranty</label>
-        <select id="rBatWarranty" style="padding:6px"><option value="No" ${r?.battery_warranty === 'No' ? 'selected' : ''}>No</option><option value="Yes (2 Days)" ${r?.battery_warranty === 'Yes (2 Days)' ? 'selected' : ''}>Yes (2 Days)</option></select>
-      </div>
-      <div style="flex:1"><label style="margin:0;font-size:12px;">Dead Warranty</label>
-        <select id="rDeadWarranty" style="padding:6px"><option value="No" ${r?.dead_warranty === 'No' ? 'selected' : ''}>No</option><option value="Yes" ${r?.dead_warranty === 'Yes' ? 'selected' : ''}>Yes</option></select>
-      </div>
+      <div style="flex:1"><label style="margin:0;font-size:12px;">Battery Warranty</label><select id="rBatWarranty" style="padding:6px"><option value="No" ${r?.battery_warranty === 'No' ? 'selected' : ''}>No</option><option value="Yes (2 Days)" ${r?.battery_warranty === 'Yes (2 Days)' ? 'selected' : ''}>Yes (2 Days)</option></select></div>
+      <div style="flex:1"><label style="margin:0;font-size:12px;">Dead Warranty</label><select id="rDeadWarranty" style="padding:6px"><option value="No" ${r?.dead_warranty === 'No' ? 'selected' : ''}>No</option><option value="Yes" ${r?.dead_warranty === 'Yes' ? 'selected' : ''}>Yes</option></select></div>
     </div>
-    
     <div class="field"><label>Charge (PKR)</label><input id="rCharge" type="number" value="${r?.charge || 0}"></div>
     <div class="field"><label>Advance (PKR)</label><input id="rAdvance" type="number" value="${r?.advance || 0}"></div>
     <div class="field"><label>Status</label><select id="rStatus">${['Received','In Progress','Ready','Delivered'].map(s => `<option ${r?.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
     <div class="field full"><label>Notes</label><textarea id="rNotes" rows="2">${esc(r?.notes || '')}</textarea></div>
   </div>`;
   openModal(r ? 'Edit Repair Slip' : 'New Repair Slip', body, async () => {
-    const payload = { 
-      customer_name: $('rCust').value.trim(), phone: $('rPhone').value.trim() || null, mobile: $('rMobile').value.trim() || null, imei: $('rImei').value.trim() || null, 
-      issue: $('rIssue').value.trim() || null, battery_warranty: $('rBatWarranty').value, dead_warranty: $('rDeadWarranty').value, 
-      charge: Number($('rCharge').value) || 0, advance: Number($('rAdvance').value) || 0, status: $('rStatus').value, notes: $('rNotes').value.trim() || null 
-    };
+    const payload = { customer_name: $('rCust').value.trim(), phone: $('rPhone').value.trim() || null, mobile: $('rMobile').value.trim() || null, imei: $('rImei').value.trim() || null, issue: $('rIssue').value.trim() || null, battery_warranty: $('rBatWarranty').value, dead_warranty: $('rDeadWarranty').value, charge: Number($('rCharge').value) || 0, advance: Number($('rAdvance').value) || 0, status: $('rStatus').value, notes: $('rNotes').value.trim() || null };
     if (!payload.customer_name) throw new Error('Customer name required');
     if (r) { if (payload.status === 'Delivered' && r.status !== 'Delivered') payload.delivered_at = new Date().toISOString(); await supabase.from('repairs').update(payload).eq('id', r.id); }
     else await supabase.from('repairs').insert(payload);
@@ -598,27 +545,19 @@ function openRepairModal(r = null) {
   });
 }
 
-// --- 11. PURCHASES (WITH A4 PRINT) ---
+// --- 10. PURCHASES ---
 async function loadPurchases() {
   const { data, error } = await supabase.from('purchases').select('*, suppliers(name)').order('created_at', { ascending: false });
-  const t = $('purchasesTable');
-  if (error) { t.innerHTML = `<div class="empty">Purchases table not installed: ${esc(error.message)}</div>`; return; }
+  const t = $('purchasesTable'); if (error) { t.innerHTML = `<div class="empty">Purchases table not installed: ${esc(error.message)}</div>`; return; }
   if (!data || !data.length) { t.innerHTML = '<div class="empty">No purchases yet.</div>'; return; }
   t.innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Supplier</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th><th></th></tr></thead><tbody>${data.map(p => `<tr><td><b>${esc(p.invoice_no || p.id.slice(0,6))}</b></td><td>${esc(p.suppliers?.name || '—')}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td class="num">${fmt(p.total - (p.paid||0))}</td><td><small>${new Date(p.created_at).toLocaleDateString()}</small></td><td><button class="btn btn-ghost btn-sm" onclick="editPurchase('${p.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deletePurchase('${p.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
 }
-window.deletePurchase = async (id) => { if (!confirm('Delete purchase?')) return; await supabase.from('purchases').delete().eq('id', id); toast('Deleted'); loadPurchases(); };
-window.editPurchase = async (id) => { const { data: p } = await supabase.from('purchases').select('*').eq('id', id).single(); if (p) openPurchaseModal(p); };
+window.deletePurchase = async (id) => { if(!checkPermission('delete')) return; if (!confirm('Delete purchase?')) return; await supabase.from('purchases').delete().eq('id', id); toast('Deleted'); loadPurchases(); };
+window.editPurchase = async (id) => { if(!checkPermission('edit')) return; const { data: p } = await supabase.from('purchases').select('*').eq('id', id).single(); if (p) openPurchaseModal(p); };
 $('btnNewPurchase').onclick = () => openPurchaseModal();
-
 async function openPurchaseModal(p = null) {
   const { data: sups } = await supabase.from('suppliers').select('id,name').order('name');
-  const body = `<div class="form-grid">
-    <div class="field"><label>Supplier</label><select id="puSup"><option value="">— None —</option>${(sups || []).map(s => `<option value="${s.id}" ${p?.supplier_id === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></div>
-    <div class="field"><label>Invoice No</label><input id="puInv" value="${esc(p?.invoice_no || '')}"></div>
-    <div class="field"><label>Total (PKR)</label><input id="puTotal" type="number" value="${p?.total || 0}"></div>
-    <div class="field"><label>Paid (PKR)</label><input id="puPaid" type="number" value="${p?.paid || 0}"></div>
-    <div class="field full"><label>Notes</label><textarea id="puNotes">${esc(p?.notes || '')}</textarea></div>
-  </div>`;
+  const body = `<div class="form-grid"><div class="field"><label>Supplier</label><select id="puSup"><option value="">— None —</option>${(sups || []).map(s => `<option value="${s.id}" ${p?.supplier_id === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></div><div class="field"><label>Invoice No</label><input id="puInv" value="${esc(p?.invoice_no || '')}"></div><div class="field"><label>Total (PKR)</label><input id="puTotal" type="number" value="${p?.total || 0}"></div><div class="field"><label>Paid (PKR)</label><input id="puPaid" type="number" value="${p?.paid || 0}"></div><div class="field full"><label>Notes</label><textarea id="puNotes">${esc(p?.notes || '')}</textarea></div></div>`;
   openModal(p ? 'Edit Purchase' : 'New Purchase', body, async () => {
     const payload = { supplier_id: $('puSup').value || null, invoice_no: $('puInv').value.trim() || null, total: Number($('puTotal').value) || 0, paid: Number($('puPaid').value) || 0, notes: $('puNotes').value.trim() || null };
     if (p) await supabase.from('purchases').update(payload).eq('id', p.id); else await supabase.from('purchases').insert(payload);
@@ -626,90 +565,66 @@ async function openPurchaseModal(p = null) {
   });
 }
 
-// --- 12. CUSTOMERS ---
-let ALL_CUST = [];
+// --- 11. CUSTOMERS & SUPPLIERS ---
+let ALL_CUST = []; let ALL_SUP = [];
 async function loadCustomers(filter = '') {
-  let q = supabase.from('customers').select('*').order('created_at', { ascending: false });
-  if (filter) q = q.ilike('name', `%${filter}%`);
-  const { data } = await q; ALL_CUST = data || [];
-  const t = $('customersTable');
+  let q = supabase.from('customers').select('*').order('created_at', { ascending: false }); if (filter) q = q.ilike('name', `%${filter}%`);
+  const { data } = await q; ALL_CUST = data || []; const t = $('customersTable');
   if (!ALL_CUST.length) { t.innerHTML = '<div class="empty">No customers.</div>'; return; }
   t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="actions">Actions</th></tr></thead><tbody>${ALL_CUST.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="editCustomer('${c.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
 }
-$('custSearch')?.addEventListener('input', e => loadCustomers(e.target.value));
-$('btnAddCustomer').onclick = () => openCustomerModal();
-window.editCustomer = (id) => openCustomerModal(ALL_CUST.find(c => c.id === id));
-window.deleteCustomer = async (id) => { if (!confirm('Delete?')) return; await supabase.from('customers').delete().eq('id', id); toast('Deleted'); loadCustomers(); };
+$('custSearch')?.addEventListener('input', e => loadCustomers(e.target.value)); $('btnAddCustomer').onclick = () => openCustomerModal();
+window.editCustomer = (id) => { if(!checkPermission('edit')) return; openCustomerModal(ALL_CUST.find(c => c.id === id)); };
+window.deleteCustomer = async (id) => { if(!checkPermission('delete')) return; if (!confirm('Delete?')) return; await supabase.from('customers').delete().eq('id', id); toast('Deleted'); loadCustomers(); };
 function openCustomerModal(c = null) {
   const body = `<div class="form-grid"><div class="field full"><label>Name *</label><input id="cName" value="${esc(c?.name || '')}"></div><div class="field"><label>Phone</label><input id="cPhone" value="${esc(c?.phone || '')}"></div><div class="field"><label>Opening Balance</label><input id="cBal" type="number" value="${c?.opening_balance || 0}"></div><div class="field full"><label>Address</label><textarea id="cAddr">${esc(c?.address || '')}</textarea></div></div>`;
-  openModal(c ? 'Edit Customer' : 'Add Customer', body, async () => {
-    const payload = { name: $('cName').value.trim(), phone: $('cPhone').value.trim() || null, address: $('cAddr').value.trim() || null, opening_balance: Number($('cBal').value) || 0 };
-    if (!payload.name) throw new Error('Name required');
-    if (c) await supabase.from('customers').update(payload).eq('id', c.id); else await supabase.from('customers').insert(payload);
-    toast('Saved', 'success'); closeModal(); loadCustomers();
-  });
+  openModal(c ? 'Edit Customer' : 'Add Customer', body, async () => { const payload = { name: $('cName').value.trim(), phone: $('cPhone').value.trim() || null, address: $('cAddr').value.trim() || null, opening_balance: Number($('cBal').value) || 0 }; if (!payload.name) throw new Error('Name required'); if (c) await supabase.from('customers').update(payload).eq('id', c.id); else await supabase.from('customers').insert(payload); toast('Saved', 'success'); closeModal(); loadCustomers(); });
 }
 
-// --- 13. SUPPLIERS ---
-let ALL_SUP = [];
 async function loadSuppliers() {
-  const { data } = await supabase.from('suppliers').select('*').order('name');
-  ALL_SUP = data || [];
-  const t = $('suppliersTable');
+  const { data } = await supabase.from('suppliers').select('*').order('name'); ALL_SUP = data || []; const t = $('suppliersTable');
   if (!ALL_SUP.length) { t.innerHTML = '<div class="empty">No suppliers.</div>'; return; }
   t.innerHTML = `<table class="data"><thead><tr><th>Name</th><th>Category (Supplies)</th><th>Phone</th><th>Address</th><th class="actions">Actions</th></tr></thead><tbody>${ALL_SUP.map(s => `<tr><td>${esc(s.name)}</td><td><span class="pill blue">${esc(s.category || 'General')}</span></td><td>${esc(s.phone || '—')}</td><td>${esc(s.address || '—')}</td><td class="actions"><button class="btn btn-ghost btn-sm" onclick="editSupplier('${s.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteSupplier('${s.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
 }
 $('btnAddSupplier').onclick = () => openSupplierModal();
-window.editSupplier = (id) => openSupplierModal(ALL_SUP.find(s => s.id === id));
-window.deleteSupplier = async (id) => { if (!confirm('Delete?')) return; await supabase.from('suppliers').delete().eq('id', id); toast('Deleted'); loadSuppliers(); };
+window.editSupplier = (id) => { if(!checkPermission('edit')) return; openSupplierModal(ALL_SUP.find(s => s.id === id)); };
+window.deleteSupplier = async (id) => { if(!checkPermission('delete')) return; if (!confirm('Delete?')) return; await supabase.from('suppliers').delete().eq('id', id); toast('Deleted'); loadSuppliers(); };
 function openSupplierModal(s = null) {
-  const body = `<div class="form-grid"><div class="field full"><label>Name *</label><input id="sName" value="${esc(s?.name || '')}"></div><div class="field"><label>Supplies Category (e.g. Mobile Accessories, Glass)</label><input id="sCategory" value="${esc(s?.category || '')}" placeholder="Mobile Accessories, Glass, Covers"></div><div class="field"><label>Phone</label><input id="sPhone" value="${esc(s?.phone || '')}"></div><div class="field full"><label>Address</label><textarea id="sAddr">${esc(s?.address || '')}</textarea></div></div>`;
-  openModal(s ? 'Edit Supplier' : 'Add Supplier', body, async () => {
-    const payload = { name: $('sName').value.trim(), category: $('sCategory').value.trim() || null, phone: $('sPhone').value.trim() || null, address: $('sAddr').value.trim() || null };
-    if (!payload.name) throw new Error('Name required');
-    if (s) await supabase.from('suppliers').update(payload).eq('id', s.id); else await supabase.from('suppliers').insert(payload);
-    toast('Saved', 'success'); closeModal(); loadSuppliers();
-  });
+  const body = `<div class="form-grid"><div class="field full"><label>Name *</label><input id="sName" value="${esc(s?.name || '')}"></div><div class="field"><label>Supplies Category</label><input id="sCategory" value="${esc(s?.category || '')}" placeholder="Mobile Accessories, Glass"></div><div class="field"><label>Phone</label><input id="sPhone" value="${esc(s?.phone || '')}"></div><div class="field full"><label>Address</label><textarea id="sAddr">${esc(s?.address || '')}</textarea></div></div>`;
+  openModal(s ? 'Edit Supplier' : 'Add Supplier', body, async () => { const payload = { name: $('sName').value.trim(), category: $('sCategory').value.trim() || null, phone: $('sPhone').value.trim() || null, address: $('sAddr').value.trim() || null }; if (!payload.name) throw new Error('Name required'); if (s) await supabase.from('suppliers').update(payload).eq('id', s.id); else await supabase.from('suppliers').insert(payload); toast('Saved', 'success'); closeModal(); loadSuppliers(); });
 }
 
-// --- 14. CREDIT / UDHAR ---
+// --- 12. CREDIT / UDHAR (AUTO-SYNCED) ---
 async function loadCredit() {
   const [{ data: sales }, { data: recov }] = await Promise.all([
     supabase.from('sales').select('customer_id,customer_name,customer_phone,balance,invoice_no,created_at').gt('balance', 0).order('created_at', { ascending: false }),
     supabase.from('credit_recoveries').select('*, customers(name,phone)').order('created_at', { ascending: false }).limit(100)
   ]);
-  const map = {};
-  (sales || []).forEach(s => { const key = s.customer_id || s.customer_name || 'walkin'; if (!map[key]) map[key] = { name: s.customer_name || 'Walk-in', phone: s.customer_phone, total: 0, count: 0 }; map[key].total += Number(s.balance || 0); map[key].count++; });
+  const map = {}; (sales || []).forEach(s => { const key = s.customer_id || s.customer_name || 'walkin'; if (!map[key]) map[key] = { name: s.customer_name || 'Walk-in', phone: s.customer_phone, total: 0, count: 0 }; map[key].total += Number(s.balance || 0); map[key].count++; });
   const summary = Object.values(map).sort((a, b) => b.total - a.total);
   $('creditSummaryTable').innerHTML = summary.length ? `<table class="data"><thead><tr><th>Customer</th><th>Phone</th><th class="num">Invoices</th><th class="num">Outstanding</th></tr></thead><tbody>${summary.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.phone || '—')}</td><td class="num">${s.count}</td><td class="num"><b>${fmt(s.total)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding credit. 🎉</div>';
   $('creditTable').innerHTML = (sales || []).length ? `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Balance</th><th>Date</th><th></th></tr></thead><tbody>${sales.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}<br><small>${esc(s.customer_phone || '')}</small></td><td class="num">${fmt(s.balance)}</td><td><small>${new Date(s.created_at).toLocaleDateString()}</small></td><td><button class="btn btn-primary btn-sm" onclick="recoverCredit('${s.invoice_no}')">Recover</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding invoices.</div>';
   $('recoveriesTable').innerHTML = (recov || []).length ? `<table class="data"><thead><tr><th>Customer</th><th class="num">Amount</th><th>Method</th><th>Date</th></tr></thead><tbody>${recov.map(r => `<tr><td>${esc(r.customers?.name || '—')}</td><td class="num">${fmt(r.amount)}</td><td>${esc(r.method || 'cash')}</td><td><small>${new Date(r.created_at).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No recoveries yet.</div>';
 }
 window.recoverCredit = async (invoice) => {
-  const amountStr = prompt(`Recovery amount for invoice ${invoice}:`, '');
-  if (!amountStr) return; const amount = Number(amountStr); if (!amount || amount <= 0) return toast('Invalid amount', 'error');
+  const amountStr = prompt(`Recovery amount for invoice ${invoice}:`, ''); if (!amountStr) return;
+  const amount = Number(amountStr); if (!amount || amount <= 0) return toast('Invalid amount', 'error');
   const { data: s } = await supabase.from('sales').select('*').eq('invoice_no', invoice).single();
   if (!s) return toast('Invoice not found', 'error');
   const newPaid = Number(s.paid || 0) + amount; const newBal = Math.max(0, Number(s.total || 0) - newPaid);
-  const { error: ue } = await supabase.from('sales').update({ paid: newPaid, balance: newBal }).eq('id', s.id);
-  if (ue) return toast(ue.message, 'error');
+  const { error: ue } = await supabase.from('sales').update({ paid: newPaid, balance: newBal }).eq('id', s.id); if (ue) return toast(ue.message, 'error');
   await supabase.from('credit_recoveries').insert({ customer_id: s.customer_id, sale_id: s.id, invoice_no: invoice, amount, method: 'cash' });
-  toast('Recovery recorded', 'success'); loadCredit();
+  toast('Recovery recorded', 'success'); loadCredit(); loadOverview();
 };
 $('btnPrintCreditAll').onclick = () => {
   const rows = $('creditSummaryTable').querySelectorAll('tbody tr'); if (!rows.length) return toast('Nothing to print', 'error');
   const printOpt = confirm('Print Thermal Report (OK) ya A4 Premium (Cancel)?');
-  if (printOpt) {
-    let html = '<h2>BM MOBILE ZONE</h2><div class="sub">Udhar Report</div><hr><table><thead><tr><th>Customer</th><th style="text-align:right">Amount</th></tr></thead><tbody>';
-    rows.forEach(r => { const cols = r.querySelectorAll('td'); html += `<tr><td>${cols[0].innerText}</td><td style="text-align:right">${cols[3].innerText}</td></tr>`; });
-    html += '</tbody></table><hr><div class="center">Made by MS.Tech</div>';
-    const w = window.open('', '_blank'); w.document.write(`<html><head><style>body{font-family:'Courier New',monospace;font-weight:bold;padding:10px;font-size:12px}table{width:100%}th{text-align:left;border-bottom:2px dashed #000}td{padding:2px 0;border-bottom:1px dashed #ccc}.center{text-align:center;margin-top:10px}</style></head><body>${html}<script>window.print();setTimeout(()=>window.close(),500);<\/script></body></html>`); w.document.close();
-  } else {
-    printA4Premium({ invoice: 'UDHAR-ALL', customer: 'All Customers', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from(rows).map(r => { const cols = r.querySelectorAll('td'); return { description: cols[0].innerText, price: 0, qty: 1, total: Number(cols[3].innerText.replace(/[^0-9]/g, '')) }; }) }, 'sale');
-  }
+  const payload = { invoice: 'UDHAR-ALL', customer: 'All Customers', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from(rows).map(r => { const cols = r.querySelectorAll('td'); return { description: cols[0].innerText, price: 0, qty: 1, total: Number(cols[3].innerText.replace(/[^0-9]/g, '')) }; }) };
+  if (printOpt) { /* For thermal, reuse sales style */ printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); }
+  else printA4Premium(payload, 'sale');
 };
 
-// --- 15. EXPENSES ---
+// --- 13. EXPENSES ---
 const EXPENSE_CATEGORIES = ['Rent', 'Utilities', 'Salary', 'Transport', 'Repair Parts', 'Tea/Food', 'Marketing', 'Other'];
 async function loadExpenses() {
   const catSel = $('expFilterCat'); if (catSel && catSel.options.length <= 1) catSel.innerHTML = '<option value="">All</option>' + EXPENSE_CATEGORIES.map(c => `<option>${c}</option>`).join('');
@@ -727,78 +642,103 @@ $('btnAddExpense').onclick = () => {
   const body = `<div class="form-grid"><div class="field"><label>Date *</label><input type="date" id="exDate" value="${new Date().toISOString().slice(0,10)}"></div><div class="field"><label>Category</label><select id="exCat">${EXPENSE_CATEGORIES.map(c => `<option>${c}</option>`).join('')}</select></div><div class="field"><label>Amount (PKR) *</label><input type="number" id="exAmount" value="0"></div><div class="field full"><label>Description</label><input id="exDesc"></div></div>`;
   openModal('Add Expense', body, async () => { const amount = Number($('exAmount').value) || 0; if (amount <= 0) throw new Error('Amount must be > 0'); await supabase.from('expenses').insert({ expense_date: $('exDate').value, category: $('exCat').value, amount, description: $('exDesc').value.trim() || null }); closeModal(); toast('Expense added', 'success'); loadExpenses(); loadOverview(); });
 };
-window.deleteExpense = async (id) => { if (!confirm('Delete expense?')) return; await supabase.from('expenses').delete().eq('id', id); toast('Deleted'); loadExpenses(); };
+window.deleteExpense = async (id) => { if(!checkPermission('delete')) return; if (!confirm('Delete expense?')) return; await supabase.from('expenses').delete().eq('id', id); toast('Deleted'); loadExpenses(); };
 $('btnFilterExpenses').onclick = () => loadExpenses();
 
-// --- 16. PROFIT & LOSS ---
-$('btnRunPL').onclick = runPL;
-$('btnPrintPL').onclick = () => { const printOpt = confirm('Print Thermal Report (OK) ya A4 Premium (Cancel)?'); if (printOpt) { printThermal80mm({ invoice: 'P&L', customer: 'Item-wise Report', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('plTable').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { name: c[0].innerText, qty: c[1].innerText, total: c[4].innerText }; }) }, 'sale'); } else { printA4Premium({ invoice: 'P&L', customer: 'Profit & Loss Report', subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('plTable').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0].innerText, price: 0, qty: c[1].innerText, total: c[4].innerText }; }) }, 'sale'); } };
-
-async function runPL() {
-  const from = $('plFrom').value; const to = $('plTo').value;
-  let q = supabase.from('sale_items').select('product_id,product_name,quantity,unit_price,line_total,created_at');
-  if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-  const { data: items, error } = await q; if (error) { $('plTable').innerHTML = `<div class="empty">${esc(error.message)}</div>`; return; }
-  const { data: prods } = await supabase.from('products').select('id,purchase_price');
-  const costMap = Object.fromEntries((prods || []).map(p => [p.id, Number(p.purchase_price || 0)]));
-  const map = {};
-  (items || []).forEach(it => { const key = it.product_id || it.product_name; if (!map[key]) map[key] = { name: it.product_name, qty: 0, revenue: 0, cost: 0 }; map[key].qty += Number(it.quantity || 0); map[key].revenue += Number(it.line_total || 0); map[key].cost += Number(it.quantity || 0) * (costMap[it.product_id] || 0); });
-  const rows = Object.values(map).map(r => ({ ...r, profit: r.revenue - r.cost }));
-  const totalRev = rows.reduce((s, r) => s + r.revenue, 0); const totalCost = rows.reduce((s, r) => s + r.cost, 0); const totalProfit = totalRev - totalCost;
-  $('plSummary').innerHTML = `<div class="stat clay"><div class="stat-icon green">↗</div><div><strong>${fmt(totalRev)}</strong><small>Total Revenue</small></div></div><div class="stat clay"><div class="stat-icon orange">↙</div><div><strong>${fmt(totalCost)}</strong><small>Total Cost</small></div></div><div class="stat clay"><div class="stat-icon purple">▨</div><div><strong>${fmt(totalProfit)}</strong><small>Gross Profit</small></div></div>`;
-  $('plTable').innerHTML = rows.length ? `<table class="data"><thead><tr><th>Product</th><th class="num">Qty Sold</th><th class="num">Revenue</th><th class="num">Cost</th><th class="num">Profit</th></tr></thead><tbody>${rows.sort((a,b)=>b.profit-a.profit).map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.qty}</td><td class="num">${fmt(r.revenue)}</td><td class="num">${fmt(r.cost)}</td><td class="num" style="color:${r.profit>=0?'#22a06b':'#dc2626'}"><b>${fmt(r.profit)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No sales in this period.</div>';
-}
-
-// --- 17. TRANSACTIONS ---
-async function loadTransactions() {
-  const [salesR, purchR, expR, recovR] = await Promise.all([
-    supabase.from('sales').select('invoice_no,total,paid,created_at,customer_name').order('created_at', { ascending: false }).limit(100),
-    supabase.from('purchases').select('invoice_no,total,paid,created_at').order('created_at', { ascending: false }).limit(100),
-    supabase.from('expenses').select('*').order('created_at', { ascending: false }).limit(100),
-    supabase.from('credit_recoveries').select('*').order('created_at', { ascending: false }).limit(100)
-  ]);
-  const tx = [...(salesR.data || []).map(s => ({ date: s.created_at, type: 'SALE', desc: `${s.invoice_no} — ${s.customer_name || 'Walk-in'}`, in: Number(s.paid || 0), out: 0 })), ...(purchR.data || []).map(p => ({ date: p.created_at, type: 'PURCHASE', desc: p.invoice_no || 'Purchase', in: 0, out: Number(p.paid || 0) })), ...(expR.data || []).map(e => ({ date: e.created_at, type: 'EXPENSE', desc: `${e.category || 'Expense'} — ${e.description || ''}`, in: 0, out: Number(e.amount || 0) })), ...(recovR.data || []).map(r => ({ date: r.created_at, type: 'RECOVERY', desc: `Recovery — ${r.invoice_no || ''}`, in: Number(r.amount || 0), out: 0 }))].sort((a, b) => new Date(b.date) - new Date(a.date));
-  $('transactionsTable').innerHTML = tx.length ? `<table class="data"><thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="num">In</th><th class="num">Out</th></tr></thead><tbody>${tx.map(t => `<tr><td><small>${new Date(t.date).toLocaleString()}</small></td><td><span class="pill ${t.type === 'SALE' || t.type === 'RECOVERY' ? 'green' : 'orange'}">${t.type}</span></td><td>${esc(t.desc)}</td><td class="num" style="color:#22a06b">${t.in ? fmt(t.in) : '—'}</td><td class="num" style="color:#dc2626">${t.out ? fmt(t.out) : '—'}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">No transactions.</div>';
-}
-
-// --- 18. REPORTS ---
+// --- 14. COMBINED REPORTS & P&L ---
 $('btnRunReport').onclick = runReport;
-$('btnPrintReport').onclick = () => { const printOpt = confirm('Print Thermal (OK) ya A4 Premium (Cancel)?'); if (printOpt) { printThermal80mm({ invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { name: c[0]?.innerText + ' ' + (c[1]?.innerText||''), qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) }, 'sale'); } else { printA4Premium({ invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0]?.innerText + ' ' + (c[1]?.innerText||''), price: 0, qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) }, 'sale'); } };
+$('btnPrintReport').onclick = () => {
+  const printOpt = confirm('Print Thermal (OK) ya A4 Premium (Cancel)?');
+  const payload = { invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0]?.innerText + ' ' + (c[1]?.innerText||''), price: 0, qty: 1, total: c[c.length-1]?.innerText || c[c.length-2]?.innerText }; }) };
+  if (printOpt) printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); else printA4Premium(payload, 'sale');
+};
 
 async function runReport() {
-  const type = $('reportType').value; let from = $('reportFrom').value; let to = $('reportTo').value;
-  if (!from || !to) { const now = new Date(); if ($('reportPeriod').value === 'daily') { from = to = now.toISOString().slice(0, 10); } else if ($('reportPeriod').value === 'weekly') { const w = new Date(); w.setDate(w.getDate() - 7); from = w.toISOString().slice(0, 10); to = now.toISOString().slice(0, 10); } else if ($('reportPeriod').value === 'monthly') { from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10); to = now.toISOString().slice(0, 10); } }
+  const type = $('reportType').value; 
+  const from = $('reportFrom').value; const to = $('reportTo').value;
+  const search = $('reportSearch')?.value?.trim().toLowerCase() || '';
   const out = $('reportOutput'); out.innerHTML = '<div class="empty">Loading…</div>';
+  
   try {
     if (type === 'sales') {
-      let q = supabase.from('sales').select('*').order('created_at', { ascending: false }); if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q; const total = (data || []).reduce((s, r) => s + Number(r.total || 0), 0);
-      out.innerHTML = `<h3 style="margin-bottom:12px">Sales Report — ${esc(from)} to ${esc(to)} (Total: ${fmt(total)})</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>${(data || []).map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'purchases') {
-      let q = supabase.from('purchases').select('*').order('created_at', { ascending: false }); if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q; out.innerHTML = `<h3 style="margin-bottom:12px">Purchase Report</h3><table class="data"><thead><tr><th>Invoice</th><th class="num">Total</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${(data || []).map(p => `<tr><td>${esc(p.invoice_no || '—')}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'credit') {
-      const { data } = await supabase.from('sales').select('*').gt('balance', 0); out.innerHTML = `<h3 style="margin-bottom:12px">Credit Report</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Balance</th></tr></thead><tbody>${(data || []).map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || '—')}</td><td class="num">${fmt(s.balance)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'expenses') {
-      let q = supabase.from('expenses').select('*').order('expense_date', { ascending: false }); if (from) q = q.gte('expense_date', from); if (to) q = q.lte('expense_date', to);
-      const { data } = await q; out.innerHTML = `<h3 style="margin-bottom:12px">Expense Report</h3><table class="data"><thead><tr><th>Date</th><th>Category</th><th class="num">Amount</th></tr></thead><tbody>${(data || []).map(e => `<tr><td>${esc(e.expense_date)}</td><td>${esc(e.category || '')}</td><td class="num">${fmt(e.amount)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'customer') {
-      const { data } = await supabase.from('customers').select('*'); out.innerHTML = `<h3 style="margin-bottom:12px">Customer Report</h3><table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th></tr></thead><tbody>${(data || []).map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'repairing') {
-      const { data } = await supabase.from('repairs').select('*'); out.innerHTML = `<h3 style="margin-bottom:12px">Repairing Report</h3><table class="data"><thead><tr><th>Slip</th><th>Customer</th><th class="num">Charge</th><th class="num">Advance</th><th>Status</th></tr></thead><tbody>${(data || []).map(r => `<tr><td>${esc(r.slip_no || '')}</td><td>${esc(r.customer_name)}</td><td class="num">${fmt(r.charge)}</td><td class="num">${fmt(r.advance)}</td><td>${esc(r.status)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'pl') { await runPL(); out.innerHTML = $('plTable').innerHTML; }
+      let q = supabase.from('sales').select('*').order('created_at', { ascending: false });
+      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
+      const { data } = await q;
+      let filtered = data || [];
+      if (search) filtered = filtered.filter(s => (s.customer_name||'').toLowerCase().includes(search) || (s.invoice_no||'').toLowerCase().includes(search));
+      const total = filtered.reduce((s, r) => s + Number(r.total || 0), 0);
+      out.innerHTML = `<h3 style="margin-bottom:12px">Sales Report — Total: ${fmt(total)}</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>${filtered.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
+    } 
+    else if (type === 'purchases') {
+      let q = supabase.from('purchases').select('*, suppliers(name)').order('created_at', { ascending: false });
+      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
+      const { data } = await q;
+      let filtered = data || [];
+      if (search) filtered = filtered.filter(p => (p.suppliers?.name||'').toLowerCase().includes(search) || (p.invoice_no||'').toLowerCase().includes(search));
+      out.innerHTML = `<h3 style="margin-bottom:12px">Purchase Report</h3><table class="data"><thead><tr><th>Invoice</th><th>Supplier</th><th class="num">Total</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${filtered.map(p => `<tr><td>${esc(p.invoice_no || '—')}</td><td>${esc(p.suppliers?.name || '—')}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
+    } 
+    else if (type === 'expenses') {
+      let q = supabase.from('expenses').select('*').order('expense_date', { ascending: false });
+      if (from) q = q.gte('expense_date', from); if (to) q = q.lte('expense_date', to);
+      const { data } = await q;
+      let filtered = data || [];
+      if (search) filtered = filtered.filter(e => (e.description||'').toLowerCase().includes(search) || (e.category||'').toLowerCase().includes(search));
+      out.innerHTML = `<h3 style="margin-bottom:12px">Expense Report</h3><table class="data"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th></tr></thead><tbody>${filtered.map(e => `<tr><td>${esc(e.expense_date)}</td><td>${esc(e.category || '')}</td><td>${esc(e.description || '')}</td><td class="num">${fmt(e.amount)}</td></tr>`).join('')}</tbody></table>`;
+    }
+    else if (type === 'pl') {
+      let q = supabase.from('sale_items').select('product_id,product_name,quantity,unit_price,line_total,created_at');
+      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
+      const { data: items } = await q;
+      let filtered = items || [];
+      if (search) filtered = filtered.filter(i => (i.product_name||'').toLowerCase().includes(search));
+      const { data: prods } = await supabase.from('products').select('id,purchase_price');
+      const costMap = Object.fromEntries((prods || []).map(p => [p.id, Number(p.purchase_price || 0)]));
+      const map = {};
+      filtered.forEach(it => { const key = it.product_id || it.product_name; if (!map[key]) map[key] = { name: it.product_name, qty: 0, revenue: 0, cost: 0 }; map[key].qty += Number(it.quantity || 0); map[key].revenue += Number(it.line_total || 0); map[key].cost += Number(it.quantity || 0) * (costMap[it.product_id] || 0); });
+      const rows = Object.values(map).map(r => ({ ...r, profit: r.revenue - r.cost }));
+      const totalRev = rows.reduce((s, r) => s + r.revenue, 0); const totalCost = rows.reduce((s, r) => s + r.cost, 0); const totalProfit = totalRev - totalCost;
+      $('plSummary').innerHTML = `<div class="stat clay"><div class="stat-icon green">↗</div><div><strong>${fmt(totalRev)}</strong><small>Total Revenue</small></div></div><div class="stat clay"><div class="stat-icon orange">↙</div><div><strong>${fmt(totalCost)}</strong><small>Total Cost</small></div></div><div class="stat clay"><div class="stat-icon purple">▨</div><div><strong>${fmt(totalProfit)}</strong><small>Gross Profit</small></div></div>`;
+      out.innerHTML = `<h3 style="margin-bottom:12px">Profit & Loss (Item-wise)</h3>` + (rows.length ? `<table class="data"><thead><tr><th>Product</th><th class="num">Qty Sold</th><th class="num">Revenue</th><th class="num">Cost</th><th class="num">Profit</th></tr></thead><tbody>${rows.sort((a,b)=>b.profit-a.profit).map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.qty}</td><td class="num">${fmt(r.revenue)}</td><td class="num">${fmt(r.cost)}</td><td class="num" style="color:${r.profit>=0?'#22a06b':'#dc2626'}"><b>${fmt(r.profit)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No data found.</div>');
+    }
+    else if (type === 'customer') {
+      const { data } = await supabase.from('customers').select('*'); let filtered = data || [];
+      if (search) filtered = filtered.filter(c => (c.name||'').toLowerCase().includes(search) || (c.phone||'').includes(search));
+      out.innerHTML = `<h3 style="margin-bottom:12px">Customer Report</h3><table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th></tr></thead><tbody>${filtered.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td></tr>`).join('')}</tbody></table>`;
+    }
+    else if (type === 'repairing') {
+      const { data } = await supabase.from('repairs').select('*'); let filtered = data || [];
+      if (search) filtered = filtered.filter(r => (r.customer_name||'').toLowerCase().includes(search) || (r.mobile||'').toLowerCase().includes(search) || (r.issue||'').toLowerCase().includes(search));
+      out.innerHTML = `<h3 style="margin-bottom:12px">Repairing Report</h3><table class="data"><thead><tr><th>Slip</th><th>Customer</th><th>Mobile</th><th>Issue</th><th class="num">Charge</th><th>Status</th></tr></thead><tbody>${filtered.map(r => `<tr><td>${esc(r.slip_no || '')}</td><td>${esc(r.customer_name)}</td><td>${esc(r.mobile || '')}</td><td>${esc(r.issue || '')}</td><td class="num">${fmt(r.charge)}</td><td>${esc(r.status)}</td></tr>`).join('')}</tbody></table>`;
+    }
   } catch (e) { out.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
 }
 
-// --- 19. SETTINGS ---
-async function loadSettings() {
-  const { data } = await supabase.from('settings').select('*').eq('id', 1).maybeSingle();
-  $('setShopName').value = data?.shop_name || SHOP_INFO.name; $('setOwner').value = data?.owner_name || ''; $('setAddress').value = data?.address || SHOP_INFO.address; $('setPhone').value = data?.phone || SHOP_INFO.phone1; $('setCurrency').value = data?.currency || 'PKR'; $('setFooter').value = data?.footer_text || 'Powered by MS.TECH';
+// --- 15. STAFF / SETTINGS ---
+async function loadStaff() {
+  const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: false });
+  const t = $('staffTable');
+  if (error) { t.innerHTML = `<div class="empty">Staff table not installed: ${esc(error.message)}</div>`; return; }
+  if (!data || !data.length) { t.innerHTML = '<div class="empty">No staff members.</div>'; return; }
+  t.innerHTML = `<table class="data"><thead><tr><th>Staff ID</th><th>Name</th><th>Role</th><th>Permissions</th><th>Actions</th></tr></thead><tbody>${data.map(s => `<tr><td><b>${esc(s.staff_id)}</b></td><td>${esc(s.name)}</td><td>${esc(s.role)}</td><td><small>Edit: ${s.can_edit?'✅':'❌'} | Delete: ${s.can_delete?'✅':'❌'}</small></td><td><button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
 }
-$('btnSaveSettings').onclick = async () => {
-  const payload = { id: 1, shop_name: $('setShopName').value.trim(), owner_name: $('setOwner').value.trim(), address: $('setAddress').value.trim(), phone: $('setPhone').value.trim(), currency: $('setCurrency').value.trim() || 'PKR', footer_text: $('setFooter').value.trim() };
-  const { error } = await supabase.from('settings').upsert(payload); if (error) return toast(error.message, 'error'); toast('Settings saved', 'success');
+$('btnAddStaff').onclick = () => {
+  const body = `<div class="form-grid">
+    <div class="field"><label>Staff ID (e.g. 02)</label><input id="stId" placeholder="02"></div>
+    <div class="field"><label>Name</label><input id="stName" placeholder="Staff Name"></div>
+    <div class="field"><label>Password</label><input id="stPass" type="password" placeholder="****"></div>
+    <div class="field"><label>Role</label><select id="stRole"><option value="Staff">Staff</option><option value="Manager">Manager</option><option value="Admin">Admin (Full Access)</option></select></div>
+    <div class="field full" style="display:flex;gap:20px;margin-top:10px;">
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;font-size:13px;"><input type="checkbox" id="stEdit"> Can Edit Records</label>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;font-size:13px;"><input type="checkbox" id="stDelete"> Can Delete Records</label>
+    </div>
+  </div>`;
+  openModal('Generate Staff ID', body, async () => {
+    const payload = { staff_id: $('stId').value.trim(), name: $('stName').value.trim(), password: $('stPass').value.trim(), role: $('stRole').value, can_edit: $('stEdit').checked, can_delete: $('stDelete').checked };
+    if (!payload.staff_id || !payload.name || !payload.password) throw new Error('All fields required');
+    await supabase.from('staff').insert(payload); closeModal(); toast('Staff ID Generated', 'success'); loadStaff();
+  });
 };
+window.deleteStaff = async (id) => { if(!checkPermission('delete')) return; if (!confirm('Delete this staff?')) return; await supabase.from('staff').delete().eq('id', id); toast('Deleted'); loadStaff(); };
 
 // INITIAL LOAD
 renderCart();
