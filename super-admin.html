@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Admin | BM System</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #0f172a; color: #fff; padding: 20px; display: flex; justify-content: center; }
+  .container { width: 100%; max-width: 800px; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+  h1, h2 { text-align: center; color: #38bdf8; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+  input, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #475569; background: #334155; color: #fff; box-sizing: border-box; }
+  button { width: 100%; padding: 12px; background: #38bdf8; color: #0f172a; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+  button:hover { background: #0ea5e9; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+  th { background: #334155; color: #94a3b8; }
+  .status-active { color: #10b981; font-weight: bold; }
+  .status-inactive { color: #ef4444; font-weight: bold; }
+  #login-section, #dashboard-section { display: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- LOGIN SECTION -->
+  <div id="login-section">
+    <h1>Super Admin Login</h1>
+    <div style="max-width: 300px; margin: 0 auto;">
+      <input type="text" id="saUsername" placeholder="Username" style="margin-bottom: 10px;">
+      <input type="password" id="saPassword" placeholder="Password" style="margin-bottom: 20px;">
+      <button onclick="loginSuperAdmin()">Login</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD SECTION -->
+  <div id="dashboard-section">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h1>Super Admin Dashboard</h1>
+      <button onclick="logout()" style="width: auto; padding: 8px 16px; background: #ef4444; color: white;">Logout</button>
+    </div>
+    
+    <div style="background: #0f172a; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+      <h2>Create New Shop Login</h2>
+      <div class="grid">
+        <input type="text" id="shopName" placeholder="Shop Name (e.g. BM Mobile)">
+        <input type="text" id="ownerName" placeholder="Owner Name">
+        <input type="text" id="shopPhone" placeholder="Phone Number">
+        <input type="text" id="shopUsername" placeholder="Login Username (e.g. bmzafarwal)">
+        <input type="password" id="shopPassword" placeholder="Password">
+      </div>
+      <button onclick="createShop()">Create Shop Account</button>
+    </div>
+
+    <h2>All Registered Shops</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Shop Name</th>
+          <th>Username</th>
+          <th>Password</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="shopsTableBody">
+        <!-- Shops will load here -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Supabase Library -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // APNI SUPABASE CREDENTIALS YAHAN DAALEIN
+  const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+  const SUPABASE_KEY = 'YOUR_ANON_KEY';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Check if logged in as Super Admin
+  window.onload = () => {
+    if (localStorage.getItem('isSuperAdmin') === 'true') {
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('dashboard-section').style.display = 'block';
+      loadShops();
+    } else {
+      document.getElementById('login-section').style.display = 'block';
+    }
+  };
+
+  async function loginSuperAdmin() {
+    const u = document.getElementById('saUsername').value;
+    const p = document.getElementById('saPassword').value;
+    const { data, error } = await supabase.from('shops').select('*').eq('username', u).eq('password', p).single();
+    
+    if (error || !data) return alert('Invalid Credentials!');
+    if (data.shop_name !== 'SUPER ADMIN') return alert('You are not a Super Admin!');
+    
+    localStorage.setItem('isSuperAdmin', 'true');
+    location.reload();
+  }
+
+  function logout() {
+    localStorage.removeItem('isSuperAdmin');
+    location.reload();
+  }
+
+  async function createShop() {
+    const shopName = document.getElementById('shopName').value;
+    const ownerName = document.getElementById('ownerName').value;
+    const phone = document.getElementById('shopPhone').value;
+    const username = document.getElementById('shopUsername').value;
+    const password = document.getElementById('shopPassword').value;
+
+    if (!shopName || !username || !password) return alert('Shop Name, Username, Password required!');
+
+    const { data, error } = await supabase.from('shops').insert([{
+      shop_name: shopName, owner_name: ownerName, phone: phone, username: username, password: password
+    }]);
+
+    if (error) return alert('Error: ' + error.message);
+    alert('Shop Created Successfully!');
+    loadShops();
+    document.getElementById('shopName').value = '';
+    document.getElementById('shopUsername').value = '';
+    document.getElementById('shopPassword').value = '';
+  }
+
+  async function loadShops() {
+    const { data, error } = await supabase.from('shops').select('*').order('created_at', { ascending: false });
+    if (error) return console.error(error);
+    
+    const tbody = document.getElementById('shopsTableBody');
+    tbody.innerHTML = data.map(s => `
+      <tr>
+        <td>${s.shop_name}</td>
+        <td>${s.username}</td>
+        <td>${s.password}</td>
+        <td class="${s.is_active ? 'status-active' : 'status-inactive'}">${s.is_active ? 'Active' : 'Inactive'}</td>
+        <td>
+          <button onclick="toggleShop('${s.id}', ${s.is_active})" style="width: auto; padding: 5px 10px; font-size: 12px; background: ${s.is_active ? '#ef4444' : '#10b981'}; color: white;">
+            ${s.is_active ? 'Disable' : 'Enable'}
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function toggleShop(id, currentStatus) {
+    const { error } = await supabase.from('shops').update({ is_active: !currentStatus }).eq('id', id);
+    if (error) return alert(error.message);
+    loadShops();
+  }
+</script>
+</body>
+</html>
