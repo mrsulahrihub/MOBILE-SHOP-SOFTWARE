@@ -22,7 +22,6 @@
   button{font-family:inherit;cursor:pointer;border:none;background:none}
   input,select,textarea{font-family:inherit;font-size:14px}
 
-  /* Layout */
   .dashboard{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
   .sidebar{background:#0f172a;color:#cbd5e1;padding:20px 0;overflow-y:auto;position:sticky;top:0;height:100vh;transition:transform .3s}
   .sidebar .side-logo{font-size:17px;font-weight:800;color:#fff;padding:0 20px 24px;letter-spacing:.5px}
@@ -59,7 +58,6 @@
   .module-head h2{font-size:19px;font-weight:800;margin:0;letter-spacing:-.4px}
   .module-head p{font-size:12px;color:var(--muted);margin:4px 0 0}
 
-  /* Buttons */
   .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;transition:.15s;white-space:nowrap}
   .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 4px 12px rgba(79,124,255,.3)}
   .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(79,124,255,.4)}
@@ -75,7 +73,6 @@
   .search-bar{display:flex;align-items:center;padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:10px;min-width:220px}
   .search-bar input{border:none;outline:none;background:transparent;width:100%;color:var(--text);font-size:13px}
 
-  /* Stats */
   .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
   .stat{display:flex;align-items:center;gap:12px;padding:16px;border-radius:var(--radius);background:#fff;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
   .stat-icon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:18px;color:#fff;flex-shrink:0}
@@ -87,7 +84,6 @@
   .stat strong{display:block;font-size:18px;font-weight:800;letter-spacing:-.3px}
   .stat small{font-size:11px;color:var(--muted);font-weight:600}
 
-  /* Tables */
   .table-wrap{overflow-x:auto;border-radius:var(--radius);background:#fff;border:1px solid var(--border)}
   table.data{width:100%;border-collapse:collapse;font-size:13px}
   table.data th{padding:12px 14px;text-align:left;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;background:#fafbfd;border-bottom:1px solid var(--border);white-space:nowrap}
@@ -104,7 +100,6 @@
   .pill.orange{background:#fff4e0;color:#c2740a}
   .pill.blue{background:#e8eeff;color:#4f7cff}
 
-  /* Forms */
   .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
   .field{display:flex;flex-direction:column;gap:6px}
   .field.full{grid-column:1/-1}
@@ -113,39 +108,31 @@
   .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,124,255,.1)}
   .field textarea{resize:vertical;min-height:70px}
 
-  /* Bulk bar */
   .bulk-bar{display:flex;gap:12px;align-items:center;padding:10px 14px;background:#fff4e0;border:1px solid #fbbf24;border-radius:10px;margin-bottom:12px;font-size:13px}
   .bulk-bar .count{font-weight:800;color:#c2740a}
 
-  /* Filter tabs */
   .filter-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
   .filter-tabs button{padding:8px 14px;border-radius:8px;background:#fff;border:1px solid var(--border);font-size:12px;font-weight:700;color:var(--muted);transition:.15s}
   .filter-tabs button:hover{color:var(--text)}
   .filter-tabs button.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border-color:transparent}
 
-  /* POS Grid */
   .pos-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
   @media(max-width:900px){.pos-grid{grid-template-columns:1fr}}
   .cart-total{display:flex;justify-content:space-between;padding:10px 0;font-size:14px;font-weight:700;border-top:1px solid var(--border);margin-top:10px}
   .cart-total.grand{font-size:18px;color:var(--primary);padding-top:14px;margin-top:6px}
 
-  /* Cart mini table */
   .cart-mini{width:100%;border-collapse:collapse;font-size:12px}
   .cart-mini th{padding:6px 8px;text-align:left;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;background:#fafbfd;border-bottom:1px solid var(--border)}
   .cart-mini td{padding:6px 8px;border-bottom:1px solid #f0f2f7;vertical-align:middle}
-  .cart-mini input.qty-in{width:42px;padding:3px;text-align:center;border:1px solid var(--border);border-radius:5px;font-size:11px}
-  .cart-mini input.price-in{width:64px;padding:3px;text-align:right;border:1px solid var(--border);border-radius:5px;font-size:11px}
   .cart-mini .qty-btn{padding:2px 6px;border-radius:4px;background:var(--bg);border:1px solid var(--border);font-size:11px;font-weight:800;cursor:pointer}
   .cart-mini .qty-btn:hover{background:var(--primary);color:#fff}
 
-  /* Modal */
   .modal-backdrop{position:fixed;inset:0;background:rgba(10,16,30,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
   .modal-backdrop.open{display:flex}
   .modal{background:#fff;border-radius:var(--radius-lg);padding:26px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
   .modal h3{margin:0 0 16px;font-size:18px;font-weight:800}
   .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
 
-  /* Toast */
   .toast-host{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:2000;pointer-events:none}
   .toast{padding:12px 18px;border-radius:11px;background:#1a1f36;color:#fff;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);animation:slideIn .3s;pointer-events:auto}
   .toast.success{background:#22a06b}
@@ -153,25 +140,20 @@
   .toast.info{background:#4f7cff}
   @keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
 
-  /* Notification panel */
   .notif-panel{position:fixed;top:74px;right:32px;width:360px;max-height:70vh;overflow-y:auto;background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);z-index:999;display:none;padding:16px;border:1px solid var(--border)}
   .notif-panel.open{display:block}
   .notif-item{padding:10px;border-bottom:1px solid var(--border);font-size:13px}
   .notif-item:last-child{border-bottom:none}
 
-  /* Activity log */
   .log-row{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;display:grid;grid-template-columns:160px 120px 100px 1fr;gap:12px;align-items:center}
   .log-row:last-child{border-bottom:none}
 
-  /* Purchase items row */
   .purchase-item-row{display:grid;grid-template-columns:2fr 1.2fr 1fr 60px 80px 80px 120px 120px 36px;gap:6px;margin-bottom:8px;align-items:center;padding:10px;background:#fafbfd;border-radius:9px;border:1px solid var(--border)}
   @media(max-width:900px){.purchase-item-row{grid-template-columns:1fr 1fr;gap:8px}.purchase-item-row button{grid-column:span 2}}
   .purchase-item-row input,.purchase-item-row select{padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:#fff;width:100%}
 
-  /* KBD styling */
   .kbd{display:inline-block;padding:2px 6px;border-radius:4px;background:#f0f2f7;border:1px solid var(--border);font-family:monospace;font-size:10px;font-weight:700;color:var(--text)}
 
-  /* Sidebar mobile */
   .sidebar-handle{display:none;position:fixed;top:50%;left:0;transform:translateY(-50%);background:var(--primary);color:#fff;padding:14px 8px;border-radius:0 10px 10px 0;z-index:200;cursor:pointer;font-size:16px}
   @media(max-width:900px){
     .dashboard{grid-template-columns:1fr}
@@ -181,7 +163,6 @@
     .topbar,.content{padding-left:16px;padding-right:16px}
   }
 
-  /* No print */
   @media print{
     .sidebar,.topbar,.sidebar-handle,.no-print,.notif-bell,.logout{display:none !important}
     .dashboard{grid-template-columns:1fr}
@@ -239,7 +220,6 @@
     <div class="notif-panel" id="notifPanel"></div>
 
     <div class="content">
-      <!-- OVERVIEW -->
       <section class="module active" id="module-overview">
         <div class="clay" style="padding:24px;background:linear-gradient(135deg,#4f7cff,#7c5cff);color:#fff;border:none">
           <h2 style="margin:0 0 6px;font-size:22px">Welcome, <span id="welcomeName">Admin</span> 👋</h2>
@@ -261,7 +241,6 @@
         </div>
       </section>
 
-      <!-- INVENTORY -->
       <section class="module" id="module-inventory">
         <div class="module-head"><div><h2>Inventory</h2><p>Stock levels & movement history</p></div></div>
         <div class="clay" style="padding:20px">
@@ -276,14 +255,12 @@
         </div>
       </section>
 
-      <!-- RACKS -->
       <section class="module" id="module-racks">
         <div class="module-head"><div><h2>Rack Management</h2><p>Create racks and see rack-wise stock</p></div><button class="btn btn-primary" id="btnAddRack">+ Add Rack</button></div>
         <div class="clay" style="padding:20px"><div class="table-wrap" id="racksTable"><div class="empty">Loading…</div></div></div>
         <div class="clay" style="padding:20px"><h3 style="font-size:14px;margin:0 0 14px">Rack-wise Inventory</h3><div class="table-wrap" id="rackStockTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- PURCHASES / PRODUCTS -->
       <section class="module" id="module-purchases">
         <div class="module-head"><div><h2>Purchases / Products</h2><p>Single source of truth — auto-syncs to inventory</p></div>
           <div style="display:flex;gap:10px">
@@ -305,7 +282,6 @@
         </div>
       </section>
 
-      <!-- SALES / POS -->
       <section class="module" id="module-sales">
         <div class="module-head">
           <div><h2>New Sale</h2><p>Point of sale billing — F2 add, F4 save, Esc cancel</p></div>
@@ -349,7 +325,6 @@
         </div>
       </section>
 
-      <!-- REPAIRING -->
       <section class="module" id="module-repairing">
         <div class="module-head"><div><h2>Repairing</h2><p>Repair jobs, advance / due payments and Urdu receipts</p></div><button class="btn btn-primary" id="btnAddRepair">+ New Repair Slip</button></div>
         <div class="clay" style="padding:20px">
@@ -361,7 +336,6 @@
         </div>
       </section>
 
-      <!-- CUSTOMERS -->
       <section class="module" id="module-customers">
         <div class="module-head"><div><h2>Customers</h2><p>All registered customers</p></div><div style="display:flex;gap:10px;align-items:center"><div class="search-bar"><input id="custSearch" placeholder="Search customers…"></div><button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button></div></div>
         <div class="clay" style="padding:20px">
@@ -370,7 +344,6 @@
         </div>
       </section>
 
-      <!-- SUPPLIERS -->
       <section class="module" id="module-suppliers">
         <div class="module-head">
           <div><h2>Suppliers</h2><p>Vendors, payable balances & purchase history</p></div>
@@ -385,7 +358,6 @@
         </div>
       </section>
 
-      <!-- CREDIT -->
       <section class="module" id="module-credit">
         <div class="module-head"><div><h2>Credit / Udhar Management</h2><p>Customer-wise outstanding, recovery & printing</p></div><button class="btn btn-ghost" id="btnPrintCreditAll">🖨 Print All Udhar</button></div>
         <div class="filter-tabs" id="creditDateTabs">
@@ -410,7 +382,6 @@
         <div class="clay" style="padding:20px"><h3 style="font-size:14px;margin:0 0 14px">Recent Credit Recoveries</h3><div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- EXPENSES -->
       <section class="module" id="module-expenses">
         <div class="module-head"><div><h2>Expenses</h2><p>Date-wise expense tracking with categories</p></div><button class="btn btn-primary" id="btnAddExpense">+ Add Expense <span class="kbd">F9</span></button></div>
         <div class="stats-row">
@@ -430,7 +401,6 @@
         </div>
       </section>
 
-      <!-- REPORTS -->
       <section class="module" id="module-reports">
         <div class="module-head"><div><h2>Reports & Profit / Loss</h2><p>Verify sales, purchases, and item-wise profit</p></div></div>
         <div class="clay" style="padding:22px">
@@ -456,13 +426,11 @@
         <div class="clay" style="padding:20px;margin-top:20px"><div id="reportOutput"><div class="empty">Select a report type and click "Run Report".</div></div></div>
       </section>
 
-      <!-- TRANSACTIONS -->
       <section class="module" id="module-transactions">
         <div class="module-head"><div><h2>Transactions</h2><p>Unified money-in / money-out ledger</p></div></div>
         <div class="clay" style="padding:20px"><div class="table-wrap" id="transactionsTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- SETTINGS -->
       <section class="module" id="module-settings">
         <div class="module-head"><div><h2>Staff Management</h2><p>Generate Staff ID, edit permissions & view activity logs</p></div><button class="btn btn-primary" id="btnAddStaff">+ Generate Staff ID</button></div>
         <div class="clay" style="padding:20px">
