@@ -1,6 +1,6 @@
 // =====================================================
-// BISMILLAH MOBILE ZONE — Dashboard Controller v30.0
-// Urdu Receipts + Admin Override + Supplier Fix + 30 Features
+// BISMILLAH MOBILE ZONE — Dashboard Controller v30.1 (Final)
+// Urdu Receipts + Admin Override + Supplier Fix + Stock Merge
 // =====================================================
 import { supabase } from './config.js';
 
@@ -40,7 +40,6 @@ const esc = s => (s ?? '').toString().replace(/[&<>"']/g, c => ({ '&': '&amp;', 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 const monthStartISO = () => new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
 
-// ✅ ADMIN OVERRIDE — admin har cheez kar sakta hai
 function checkPermission(action) {
   if (IS_ADMIN) return true;
   if (action === 'edit' && !SESSION.can_edit) { toast('You do not have edit permission!', 'error'); return false; }
@@ -69,21 +68,17 @@ async function logActivity(action, module, details = '') {
 }
 
 // =====================================================
-// ✅ URDU TERMS — CENTRAL FUNCTION (easy to edit)
-// Sale + Repair dono pe print hoga (picture wali lines)
+// ✅ URDU TERMS — CENTRAL FUNCTION (Sale + Repair)
 // =====================================================
 function urduTermsBlock(type = 'sale') {
-  // Picture wali lines — dono pe lagao
   const common = `
     <div>• براہِ کرم مال کاؤنٹر پر چیک کریں۔</div>
     <div>• پھولی ہوئی بیٹری کی کوئی وارنٹی نہیں ہے۔</div>
     <div>• بیٹری کی وارنٹی صرف 2 دن ہوگی۔</div>
     <div>• استعمال شدہ Accessories واپس یا تبدیل نہیں ہوں گی۔</div>`;
-
   const saleExtra = `
     <div>• سیل شدہ مال واپس یا تبدیل نہیں ہوگا۔</div>
     <div>• وارنٹی کے لیے رسید لازمی پیش کریں۔</div>`;
-
   const repairExtra = `
     <div>• موبائل مرمت کے بعد وصول کرنے کے لیے یہ رسید لازمی ساتھ لائیں۔</div>
     <div>• مرمت شدہ موبائل کی وارنٹی صرف 7 دن ہوگی۔</div>`;
@@ -149,7 +144,7 @@ async function loadShopSettings() {
 }
 
 // =====================================================
-// ✅ PRINT — THERMAL 80mm (SALE + REPAIR — DONO ME URDU)
+// PRINT — THERMAL 80mm (SALE + REPAIR — DONO ME URDU)
 // =====================================================
 function printThermal80mm(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=340,height=680');
@@ -171,7 +166,6 @@ function printThermal80mm(data, type = 'sale') {
       <td style="text-align:right;font-size:11px">${Number(it.line_total || it.total || it.amount || 0).toLocaleString()}</td>
     </tr>`).join('');
 
-  // ✅ Urdu block ab DONO ke liye
   const urduBlock = urduTermsBlock(type);
 
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title>
@@ -218,7 +212,7 @@ function printThermal80mm(data, type = 'sale') {
 window.printThermal80mm = printThermal80mm;
 
 // =====================================================
-// ✅ PRINT — A4 PREMIUM (URDU SIRF REPAIR PE)
+// PRINT — A4 PREMIUM (URDU SIRF REPAIR PE)
 // =====================================================
 function printA4Premium(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=920,height=1020');
@@ -241,7 +235,6 @@ function printA4Premium(data, type = 'sale') {
   const isReport = type === 'report';
   const title = isReport ? 'REPORT' : 'INVOICE';
 
-  // ✅ Urdu sirf repair ke A4 pe (picture wali lines)
   const urduA4 = type === 'repair' ? `
     <div style="margin-top:20px;padding:15px;background:#fafbfd;border-radius:8px;direction:rtl;font-family:'Jameel Noori Nastaleeq','Noto Nastaliq Urdu',Arial,sans-serif;font-size:13px;line-height:1.9;color:#333;border:1px solid #e6e9f2">
       <div style="text-align:center;font-weight:bold;margin-bottom:8px">مرمت کی شرائط</div>
@@ -374,9 +367,6 @@ async function loadModule(mod) {
   }
 }
 
-// ---------------------------------------------------
-// KEYBOARD SHORTCUTS
-// ---------------------------------------------------
 document.addEventListener('keydown', e => {
   const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
   if (e.key === 'Escape') { closeModal(); $('notifPanel')?.classList.remove('open'); return; }
@@ -453,7 +443,7 @@ async function loadOverview() {
 }
 
 // =====================================================
-// ✅ PRODUCTS — EDIT + DELETE (Admin override)
+// PRODUCTS — EDIT + DELETE (Admin override)
 // =====================================================
 let ALL_PRODUCTS = [];
 const CATEGORIES = ['Mobile Phones', 'Mobile Accessories', 'Chargers & Cables', 'Handsfree & Audio', 'Batteries', 'Memory & Storage', 'Mobile Parts', 'SIM & Network', 'Repairing Tools', 'Other Gadgets'];
@@ -494,7 +484,6 @@ function updateProductBulk() {
   $('productSelCount').textContent = n;
 }
 
-// ✅ PRODUCT EDIT — fully working
 window.editProduct = async id => {
   if (!checkPermission('edit')) return;
   const p = ALL_PRODUCTS.find(x => x.id === id);
@@ -672,14 +661,23 @@ async function openPurchaseModal(p = null) {
       
       await supabase.from('purchase_items').insert({ purchase_id: purchaseId, product_name: name, category, quantity: qty, unit_price: pprice, line_total: qty * pprice, imei_1: imei1, imei_2: imei2 });
       
+      // ✅ STOCK MERGE FIX: Same Name + Category + Brand check karega (IMEI ignore)
       let q = supabase.from('products').select('*').eq('name', name).eq('category', category);
       if (brand) q = q.eq('brand', brand); else q = q.is('brand', null);
       const { data: existing } = await q;
       
       if (existing && existing.length) {
+        // Agar pehle se hai toh Stock update karega
         const old = existing[0];
-        await supabase.from('products').update({ quantity: Number(old.quantity || 0) + qty, purchase_price: pprice || old.purchase_price, sale_price: sprice || old.sale_price, imei_1: imei1 || old.imei_1, imei_2: imei2 || old.imei_2 }).eq('id', old.id);
+        await supabase.from('products').update({ 
+          quantity: Number(old.quantity || 0) + qty, 
+          purchase_price: pprice || old.purchase_price, 
+          sale_price: sprice || old.sale_price, 
+          imei_1: imei1 || old.imei_1, 
+          imei_2: imei2 || old.imei_2 
+        }).eq('id', old.id);
       } else {
+        // Agar naya hai toh nayi entry
         await supabase.from('products').insert({ name, category, brand: brand || null, quantity: qty, purchase_price: pprice, sale_price: sprice, min_stock: 3, imei_1: imei1, imei_2: imei2 });
       }
     }
@@ -722,7 +720,7 @@ window.updatePurchaseTotal = () => {
 };
 
 // =====================================================
-// ✅ SALES / POS — Premium Build with Hold + Item Edit/Delete
+// SALES / POS — Premium Build
 // =====================================================
 let CART = [];
 let POS_CUSTOMERS = [];
@@ -779,26 +777,27 @@ $('btnAddToCart').onclick = () => {
   renderCart();
 };
 
-// ✅ Cart render — with +/− buttons + inline price edit
 function renderCart() {
   if (!CART.length) {
     $('cartItems').innerHTML = '<div class="empty">Cart is empty</div>';
   } else {
-    $('cartItems').innerHTML = `<table class="data"><thead><tr><th>Item</th><th class="num">Price</th><th class="num">Qty</th><th class="num">Total</th><th></th></tr></thead><tbody>${CART.map((c, i) => `
+    $('cartItems').innerHTML = `<table class="cart-mini"><thead><tr><th>Item</th><th class="num">Price</th><th class="num">Qty</th><th class="num">Total</th><th></th></tr></thead><tbody>${CART.map((c, i) => `
       <tr>
         <td>${esc(c.product_name)}</td>
-        <td class="num"><input type="number" value="${c.unit_price}" style="width:80px;padding:4px;border:1px solid #ddd;border-radius:4px" onchange="updateCartPrice(${i},this.value)"></td>
+        <td class="num"><input type="number" value="${c.unit_price}" style="width:64px;padding:3px;text-align:right;border:1px solid var(--border);border-radius:5px;font-size:11px" onchange="updateCartPrice(${i},this.value)"></td>
         <td class="num" style="white-space:nowrap">
-          <button class="btn btn-ghost btn-sm" onclick="decCartQty(${i})">−</button>
+          <button class="qty-btn" onclick="decCartQty(${i})">−</button>
           <b style="margin:0 6px">${c.quantity}</b>
-          <button class="btn btn-ghost btn-sm" onclick="incCartQty(${i})">+</button>
+          <button class="qty-btn" onclick="incCartQty(${i})">+</button>
         </td>
         <td class="num">${fmt(c.line_total)}</td>
         <td><button class="btn btn-danger btn-sm" onclick="removeCart(${i})">×</button></td>
       </tr>`).join('')}</tbody></table>`;
   }
   const sub = CART.reduce((s, c) => s + c.line_total, 0);
-  const disc = Number($('saleDiscount').value) || 0;
+  let disc = Number($('saleDiscount').value) || 0;
+  const discType = $('saleDiscountType').value;
+  if (discType === 'pct') disc = (sub * disc) / 100;
   const finalTotal = Math.max(0, sub - disc) + POS_PREVIOUS_DUE;
   $('cartSubtotal').textContent = fmt(sub);
   $('cartTotal').textContent = fmt(finalTotal);
@@ -813,14 +812,17 @@ window.decCartQty = i => { const c = CART[i]; if (c.quantity <= 1) return window
 window.updateCartPrice = (i, val) => { const c = CART[i]; c.unit_price = Number(val) || 0; c.line_total = c.quantity * c.unit_price; renderCart(); };
 
 $('saleDiscount').addEventListener('input', renderCart);
+$('saleDiscountType').addEventListener('change', renderCart);
 $('salePaid').addEventListener('input', () => {
   const sub = CART.reduce((s, c) => s + c.line_total, 0);
-  const disc = Number($('saleDiscount').value) || 0;
+  let disc = Number($('saleDiscount').value) || 0;
+  const discType = $('saleDiscountType').value;
+  if (discType === 'pct') disc = (sub * disc) / 100;
   const finalTotal = Math.max(0, sub - disc) + POS_PREVIOUS_DUE;
   $('udharWarning').style.display = finalTotal - (Number($('salePaid').value) || 0) > 0 ? 'block' : 'none';
 });
 
-// ✅ HOLD SALE
+// HOLD SALE
 $('btnHoldSale')?.addEventListener('click', () => {
   if (!CART.length) return toast('Cart empty', 'error');
   const name = $('saleCustName').value.trim() || prompt('Hold name (optional):', 'Held Sale');
@@ -845,7 +847,8 @@ $('btnResumeSale')?.addEventListener('click', () => {
 $('btnSaveSale').onclick = async () => {
   if (!CART.length) return toast('Cart is empty', 'error');
   const subtotal = CART.reduce((s, c) => s + c.line_total, 0);
-  const discount = Number($('saleDiscount').value) || 0;
+  let discount = Number($('saleDiscount').value) || 0;
+  if ($('saleDiscountType').value === 'pct') discount = (subtotal * discount) / 100;
   const totalSale = Math.max(0, subtotal - discount);
   const paid = Number($('salePaid').value) || 0;
   const custName = $('saleCustName').value.trim() || 'Walk-in Customer';
@@ -906,7 +909,6 @@ $('btnSaveSale').onclick = async () => {
   }
 };
 
-// ✅ DELETE SALE (Admin override — reverse stock + delete)
 window.deleteSale = async id => {
   if (!IS_ADMIN) return toast('Only Admin can delete sales!', 'error');
   if (!confirm('DELETE this sale? Stock will be reversed.')) return;
@@ -942,7 +944,7 @@ window.reprintSale = async id => {
 };
 
 // =====================================================
-// REPAIRING — with Delivery Payment Check + Warranty Print
+// REPAIRING — with Delivery Payment Check
 // =====================================================
 const COMMON_FAULTS = ['Screen Broken', 'Touch Not Working', 'Battery Drain', 'Not Charging', 'No Power', 'No Display', 'Dead', 'Water Damage', 'Camera Not Working', 'Speaker Not Working', 'Mic Not Working', 'Network Issue', 'Face ID Not Working', 'Software Update'];
 
@@ -1067,7 +1069,7 @@ function openCustomerModal(c = null) {
 }
 
 // =====================================================
-// ✅ SUPPLIERS — FIXED + PREMIUM (add/edit/delete working)
+// SUPPLIERS — FIXED + PREMIUM
 // =====================================================
 let ALL_SUP = [];
 let SUP_FILTER = { search: '', cat: '' };
@@ -1077,14 +1079,12 @@ async function loadSuppliers() {
   if (error) { $('suppliersTable').innerHTML = `<div class="empty">Error: ${esc(error.message)}</div>`; return; }
   ALL_SUP = data || [];
 
-  // Build category filter options
   const catFilter = $('supplierCategoryFilter');
   if (catFilter) {
     const cats = [...new Set(ALL_SUP.map(s => s.category).filter(Boolean))];
     catFilter.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${esc(c)}" ${SUP_FILTER.cat === c ? 'selected' : ''}>${esc(c)}</option>`).join('');
   }
 
-  // Apply filters
   let filtered = [...ALL_SUP];
   if (SUP_FILTER.search) {
     const q = SUP_FILTER.search.toLowerCase();
@@ -1098,7 +1098,6 @@ async function loadSuppliers() {
     return;
   }
 
-  // ✅ Premium supplier table with call/wa/history/pay buttons
   t.innerHTML = `<table class="data"><thead><tr>
     <th>Name</th><th>Category</th><th>Phone</th><th>Address</th><th class="num">Purchases</th><th>Actions</th>
   </tr></thead><tbody>${filtered.map(s => `
@@ -1118,13 +1117,11 @@ async function loadSuppliers() {
     </tr>`).join('')}</tbody></table>`;
 }
 
-// ✅ Supplier search + filter listeners
 $('supplierSearch')?.addEventListener('input', e => { SUP_FILTER.search = e.target.value; loadSuppliers(); });
 $('supplierCategoryFilter')?.addEventListener('change', e => { SUP_FILTER.cat = e.target.value; loadSuppliers(); });
 
 $('btnAddSupplier').onclick = () => openSupplierModal();
 
-// ✅ FIXED Supplier Modal
 function openSupplierModal(s = null) {
   const body = `<div class="form-grid">
     <div class="field full"><label>Supplier Name *</label><input id="sName" value="${esc(s?.name || '')}" placeholder="e.g. Ali Mobile Parts"></div>
@@ -1170,7 +1167,6 @@ window.deleteSupplier = async id => {
   } catch (e) { toast(e.message, 'error'); }
 };
 
-// ✅ Supplier History
 window.viewSupplierHistory = async (id, name) => {
   const { data } = await supabase.from('purchases').select('*').eq('supplier_id', id).order('created_at', { ascending: false });
   if (!data?.length) return toast('No purchases from this supplier', 'error');
@@ -1185,7 +1181,6 @@ window.viewSupplierHistory = async (id, name) => {
   openModal(`Supplier History — ${name}`, body, async () => closeModal(), 'Close');
 };
 
-// ✅ Supplier Ledger (payment view)
 window.viewSupplierLedger = async (id, name) => {
   const { data } = await supabase.from('purchases').select('total,paid').eq('supplier_id', id);
   const total = (data || []).reduce((s, p) => s + Number(p.total || 0), 0);
