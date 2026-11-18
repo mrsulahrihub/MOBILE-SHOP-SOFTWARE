@@ -6,56 +6,218 @@
 <meta name="robots" content="noindex,nofollow">
 <title>Dashboard | BISMILLAH MOBILE ZONE</title>
 <link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  .search-bar input { border: none; background: transparent; outline: none; width: 100%; color: var(--text); }
-  .bulk-bar { display:flex; gap:10px; align-items:center; padding:10px 14px; background:rgba(239,68,68,.08); border-radius:8px; margin-bottom:12px; }
-  .bulk-bar .count { font-weight:700; color:#dc2626; }
-  .table-wrap table.data th input[type=checkbox], .table-wrap table.data td input[type=checkbox] { width:16px; height:16px; cursor:pointer; }
-  .notif-bell { position:relative; cursor:pointer; margin-right:14px; font-size:20px; }
-  .notif-bell .badge { position:absolute; top:-4px; right:-6px; background:#dc2626; color:#fff; font-size:10px; font-weight:700; padding:1px 5px; border-radius:10px; }
-  .notif-panel { position:fixed; top:70px; right:20px; width:340px; max-height:70vh; overflow-y:auto; background:#fff; border-radius:14px; box-shadow:0 10px 40px rgba(0,0,0,.15); z-index:9999; display:none; padding:16px; }
-  .notif-panel.open { display:block; }
-  .notif-item { padding:10px; border-bottom:1px solid #eee; font-size:13px; }
-  .notif-item b { color:#dc2626; }
-  .filter-tabs { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
-  .filter-tabs button { padding:8px 14px; border:none; border-radius:8px; background:rgba(0,0,0,.05); cursor:pointer; font-size:13px; font-weight:600; }
-  .filter-tabs button.active { background:#5b8def; color:#fff; }
+  :root{
+    --bg:#f5f6fa; --panel:#ffffff; --text:#1a1f36; --muted:#6b7896;
+    --primary:#4f7cff; --primary-2:#7c5cff; --success:#22a06b;
+    --danger:#e53950; --warning:#f59e0b; --border:#e6e9f2;
+    --shadow-sm:0 1px 3px rgba(20,30,60,.06);
+    --shadow-md:0 4px 16px rgba(20,30,60,.08);
+    --shadow-lg:0 20px 60px rgba(20,30,60,.12);
+    --radius:14px; --radius-lg:20px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  input,select,textarea{font-family:inherit;font-size:14px}
+
+  /* Layout */
+  .dashboard{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  .sidebar{background:#0f172a;color:#cbd5e1;padding:20px 0;overflow-y:auto;position:sticky;top:0;height:100vh;transition:transform .3s}
+  .sidebar .side-logo{font-size:17px;font-weight:800;color:#fff;padding:0 20px 24px;letter-spacing:.5px}
+  .sidebar .side-logo span{color:var(--primary)}
+  .nav-label{padding:14px 20px 6px;font-size:10px;font-weight:800;letter-spacing:1.5px;color:#64748b;text-transform:uppercase}
+  .nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:11px 20px;color:#cbd5e1;font-size:13px;font-weight:600;text-align:left;border-left:3px solid transparent;transition:.15s}
+  .nav-item:hover{background:rgba(255,255,255,.05);color:#fff}
+  .nav-item.active{background:rgba(79,124,255,.15);color:#fff;border-left-color:var(--primary)}
+  .nav-item .kbd-badge{margin-left:auto;font-size:9px;padding:2px 6px;background:rgba(255,255,255,.1);border-radius:4px;font-family:monospace;opacity:.7}
+  .sidebar-foot{padding:20px;font-size:10px;color:#475569;border-top:1px solid rgba(255,255,255,.08);margin-top:20px}
+
+  .main{display:flex;flex-direction:column;min-width:0}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:18px 32px;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+  .topbar h1{font-size:22px;font-weight:800;margin:0;letter-spacing:-.5px}
+  .topbar .sub{font-size:12px;color:var(--muted);margin:4px 0 0}
+  .user-info{display:flex;align-items:center;gap:14px}
+  .notif-bell{position:relative;padding:10px;border-radius:10px;background:var(--bg);cursor:pointer;font-size:16px;transition:.15s}
+  .notif-bell:hover{background:#e8ecf5}
+  .notif-bell .badge{position:absolute;top:4px;right:4px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:10px;min-width:16px;text-align:center}
+  .avatar{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;display:grid;place-items:center;font-weight:800;font-size:16px}
+  .user-text{line-height:1.3}
+  .user-text strong{display:block;font-size:13px}
+  .user-text small{display:block;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px}
+  .logout{padding:9px 16px;border-radius:10px;background:var(--bg);font-size:12px;font-weight:700;color:var(--danger);transition:.15s}
+  .logout:hover{background:#ffe8ec}
+
+  .content{padding:24px 32px 60px;max-width:100%}
+  .module{display:none;animation:fadeIn .25s}
+  .module.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .clay{background:var(--panel);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);margin-bottom:20px;border:1px solid var(--border)}
+  .module-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+  .module-head h2{font-size:19px;font-weight:800;margin:0;letter-spacing:-.4px}
+  .module-head p{font-size:12px;color:var(--muted);margin:4px 0 0}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;transition:.15s;white-space:nowrap}
+  .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;box-shadow:0 4px 12px rgba(79,124,255,.3)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(79,124,255,.4)}
+  .btn-ghost{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+  .btn-ghost:hover{background:#e8ecf5}
+  .btn-danger{background:#ffe8ec;color:var(--danger)}
+  .btn-danger:hover{background:var(--danger);color:#fff}
+  .btn-sm{padding:6px 10px;font-size:11px;border-radius:7px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .search-bar{display:flex;align-items:center;padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:10px;min-width:220px}
+  .search-bar input{border:none;outline:none;background:transparent;width:100%;color:var(--text);font-size:13px}
+
+  /* Stats */
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+  .stat{display:flex;align-items:center;gap:12px;padding:16px;border-radius:var(--radius);background:#fff;box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+  .stat-icon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:18px;color:#fff;flex-shrink:0}
+  .stat-icon.blue{background:linear-gradient(135deg,#4f7cff,#7c5cff)}
+  .stat-icon.green{background:linear-gradient(135deg,#22a06b,#32d69a)}
+  .stat-icon.orange{background:linear-gradient(135deg,#f59e0b,#fbbf24)}
+  .stat-icon.purple{background:linear-gradient(135deg,#7c5cff,#a855f7)}
+  .stat-icon.red{background:linear-gradient(135deg,#e53950,#f43f5e)}
+  .stat strong{display:block;font-size:18px;font-weight:800;letter-spacing:-.3px}
+  .stat small{font-size:11px;color:var(--muted);font-weight:600}
+
+  /* Tables */
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);background:#fff;border:1px solid var(--border)}
+  table.data{width:100%;border-collapse:collapse;font-size:13px}
+  table.data th{padding:12px 14px;text-align:left;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;background:#fafbfd;border-bottom:1px solid var(--border);white-space:nowrap}
+  table.data td{padding:12px 14px;border-bottom:1px solid #f0f2f7;vertical-align:middle}
+  table.data tr:last-child td{border-bottom:none}
+  table.data tr:hover td{background:#fafbfd}
+  table.data .num{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  table.data .actions{text-align:right;white-space:nowrap}
+  .empty{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.3px}
+  .pill.green{background:#e6f7ef;color:#22a06b}
+  .pill.red{background:#ffe8ec;color:#e53950}
+  .pill.orange{background:#fff4e0;color:#c2740a}
+  .pill.blue{background:#e8eeff;color:#4f7cff}
+
+  /* Forms */
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field.full{grid-column:1/-1}
+  .field label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .field input,.field select,.field textarea{padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:#fff;outline:none;font-size:13px;transition:.15s}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,124,255,.1)}
+  .field textarea{resize:vertical;min-height:70px}
+
+  /* Bulk bar */
+  .bulk-bar{display:flex;gap:12px;align-items:center;padding:10px 14px;background:#fff4e0;border:1px solid #fbbf24;border-radius:10px;margin-bottom:12px;font-size:13px}
+  .bulk-bar .count{font-weight:800;color:#c2740a}
+
+  /* Filter tabs */
+  .filter-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+  .filter-tabs button{padding:8px 14px;border-radius:8px;background:#fff;border:1px solid var(--border);font-size:12px;font-weight:700;color:var(--muted);transition:.15s}
+  .filter-tabs button:hover{color:var(--text)}
+  .filter-tabs button.active{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;border-color:transparent}
+
+  /* POS Grid */
+  .pos-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:900px){.pos-grid{grid-template-columns:1fr}}
+  .cart-total{display:flex;justify-content:space-between;padding:10px 0;font-size:14px;font-weight:700;border-top:1px solid var(--border);margin-top:10px}
+  .cart-total.grand{font-size:18px;color:var(--primary);padding-top:14px;margin-top:6px}
+
+  /* Modal */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(10,16,30,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+  .modal-backdrop.open{display:flex}
+  .modal{background:#fff;border-radius:var(--radius-lg);padding:26px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+  .modal h3{margin:0 0 16px;font-size:18px;font-weight:800}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
+
+  /* Toast */
+  .toast-host{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:2000;pointer-events:none}
+  .toast{padding:12px 18px;border-radius:11px;background:#1a1f36;color:#fff;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);animation:slideIn .3s;pointer-events:auto}
+  .toast.success{background:#22a06b}
+  .toast.error{background:#e53950}
+  .toast.info{background:#4f7cff}
+  @keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+
+  /* Notification panel */
+  .notif-panel{position:fixed;top:74px;right:32px;width:360px;max-height:70vh;overflow-y:auto;background:#fff;border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);z-index:999;display:none;padding:16px;border:1px solid var(--border)}
+  .notif-panel.open{display:block}
+  .notif-item{padding:10px;border-bottom:1px solid var(--border);font-size:13px}
+  .notif-item:last-child{border-bottom:none}
+
+  /* Activity log */
+  .log-row{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;display:grid;grid-template-columns:160px 120px 100px 1fr;gap:12px;align-items:center}
+  .log-row:last-child{border-bottom:none}
+
+  /* Purchase items row */
+  .purchase-item-row{display:grid;grid-template-columns:2fr 1.2fr 1fr 60px 80px 80px 120px 120px 36px;gap:6px;margin-bottom:8px;align-items:center;padding:10px;background:#fafbfd;border-radius:9px;border:1px solid var(--border)}
+  @media(max-width:900px){.purchase-item-row{grid-template-columns:1fr 1fr;gap:8px}.purchase-item-row button{grid-column:span 2}}
+  .purchase-item-row input,.purchase-item-row select{padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:#fff;width:100%}
+
+  /* KBD styling */
+  .kbd{display:inline-block;padding:2px 6px;border-radius:4px;background:#f0f2f7;border:1px solid var(--border);font-family:monospace;font-size:10px;font-weight:700;color:var(--text)}
+
+  /* Sidebar mobile */
+  .sidebar-handle{display:none;position:fixed;top:50%;left:0;transform:translateY(-50%);background:var(--primary);color:#fff;padding:14px 8px;border-radius:0 10px 10px 0;z-index:200;cursor:pointer;font-size:16px}
+  @media(max-width:900px){
+    .dashboard{grid-template-columns:1fr}
+    .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%);z-index:300;width:260px;height:100vh}
+    .sidebar.show{transform:translateX(0)}
+    .sidebar-handle{display:block}
+    .topbar,.content{padding-left:16px;padding-right:16px}
+  }
+
+  /* No print */
+  @media print{
+    .sidebar,.topbar,.sidebar-handle,.no-print,.notif-bell,.logout{display:none !important}
+    .dashboard{grid-template-columns:1fr}
+    .content{padding:0}
+    .module{display:none !important}
+    .module.active{display:block !important}
+  }
 </style>
 </head>
-<body class="theme-clay">
+<body>
 
-<div id="sidebarHandle" class="sidebar-handle"><span class="arrow-icon">›</span></div>
+<div class="sidebar-handle" id="sidebarHandle">›</div>
 
 <div class="dashboard">
   <aside class="sidebar" id="mainSidebar">
     <div class="side-logo">BM <span>MOBILE ZONE</span></div>
-    <p class="nav-label">WORKSPACE</p>
-    <button class="nav-item active" data-module="overview">▦ Overview</button>
-    <button class="nav-item" data-module="inventory">▤ Inventory</button>
-    <button class="nav-item" data-module="racks">▦ Rack Management</button>
-    <button class="nav-item" data-module="purchases">↙ Purchases / Products</button>
-    <button class="nav-item" data-module="sales">↗ Sales / POS</button>
-    <button class="nav-item" data-module="repairing">🔧 Repairing</button>
 
-    <p class="nav-label">PEOPLE</p>
-    <button class="nav-item" data-module="customers">♙ Customers</button>
-    <button class="nav-item" data-module="suppliers">♧ Suppliers</button>
-    <button class="nav-item" data-module="credit">₹ Credit / Udhar</button>
+    <p class="nav-label">Workspace</p>
+    <button class="nav-item active" data-module="overview">▦ Overview <span class="kbd-badge">Alt+O</span></button>
+    <button class="nav-item" data-module="inventory">▤ Inventory <span class="kbd-badge">Alt+I</span></button>
+    <button class="nav-item" data-module="racks">▦ Racks <span class="kbd-badge">Alt+K</span></button>
+    <button class="nav-item" data-module="purchases">↙ Purchases / Products <span class="kbd-badge">Alt+U</span></button>
+    <button class="nav-item" data-module="sales">↗ Sales / POS <span class="kbd-badge">Alt+L</span></button>
+    <button class="nav-item" data-module="repairing">🔧 Repairing <span class="kbd-badge">Alt+R</span></button>
 
-    <p class="nav-label">FINANCE</p>
-    <button class="nav-item" data-module="expenses">▥ Expenses</button>
-    <button class="nav-item" data-module="reports">📈 Reports & P&L</button>
-    <button class="nav-item" data-module="transactions">⇄ Transactions</button>
+    <p class="nav-label">People</p>
+    <button class="nav-item" data-module="customers">♙ Customers <span class="kbd-badge">Alt+C</span></button>
+    <button class="nav-item" data-module="suppliers">♧ Suppliers <span class="kbd-badge">Alt+S</span></button>
+    <button class="nav-item" data-module="credit">₹ Credit / Udhar <span class="kbd-badge">Alt+D</span></button>
 
-    <p class="nav-label">SYSTEM</p>
-    <button class="nav-item" data-module="settings">⚙ Staff & Logs</button>
+    <p class="nav-label">Finance</p>
+    <button class="nav-item" data-module="expenses">▥ Expenses <span class="kbd-badge">Alt+E</span></button>
+    <button class="nav-item" data-module="reports">📈 Reports & P&L <span class="kbd-badge">Alt+P</span></button>
+    <button class="nav-item" data-module="transactions">⇄ Transactions <span class="kbd-badge">Alt+T</span></button>
 
-    <div class="sidebar-foot">v23.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
+    <p class="nav-label">System</p>
+    <button class="nav-item" data-module="settings">⚙ Staff & Logs <span class="kbd-badge">Alt+,</span></button>
+
+    <div class="sidebar-foot">v24.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
   </aside>
 
   <main class="main">
     <header class="topbar no-print">
-      <div><h1 id="pageTitle">Dashboard</h1><p class="sub" id="todayDate"></p></div>
+      <div>
+        <h1 id="pageTitle">Dashboard</h1>
+        <p class="sub" id="todayDate"></p>
+      </div>
       <div class="user-info">
         <div class="notif-bell" id="notifBell">🔔<span class="badge" id="notifBadge" style="display:none">0</span></div>
         <div class="avatar" id="userAvatar">B</div>
@@ -63,22 +225,24 @@
         <button class="logout" id="logoutBtn">Logout</button>
       </div>
     </header>
-
     <div class="notif-panel" id="notifPanel"></div>
 
     <div class="content">
       <!-- OVERVIEW -->
       <section class="module active" id="module-overview">
-        <div class="welcome clay"><h2>Welcome, <span id="welcomeName">Admin</span> 👋</h2><p>BM MOBILE ZONE — Chohan Mobile Market Zafarwal · 0345-6613232</p></div>
-        <div class="stats-row" id="dashStats">
-          <div class="stat clay"><div class="stat-icon blue">▣</div><div><strong id="stProducts">—</strong><small>Total Products</small></div></div>
-          <div class="stat clay"><div class="stat-icon green">▤</div><div><strong id="stStock">—</strong><small>Stock Units</small></div></div>
-          <div class="stat clay"><div class="stat-icon orange">↗</div><div><strong id="stTodaySales">—</strong><small>Today's Sales</small></div></div>
-          <div class="stat clay"><div class="stat-icon purple">▨</div><div><strong id="stMonthSales">—</strong><small>Monthly Sales</small></div></div>
-          <div class="stat clay"><div class="stat-icon blue">↙</div><div><strong id="stPurchases">—</strong><small>Total Purchases</small></div></div>
-          <div class="stat clay"><div class="stat-icon purple">♙</div><div><strong id="stCustomers">—</strong><small>Customers</small></div></div>
-          <div class="stat clay"><div class="stat-icon red">₹</div><div><strong id="stOutstanding">—</strong><small>Outstanding Credit</small></div></div>
-          <div class="stat clay"><div class="stat-icon orange">▥</div><div><strong id="stExpenses">—</strong><small>Total Expenses</small></div></div>
+        <div class="clay" style="padding:24px;background:linear-gradient(135deg,#4f7cff,#7c5cff);color:#fff;border:none">
+          <h2 style="margin:0 0 6px;font-size:22px">Welcome, <span id="welcomeName">Admin</span> 👋</h2>
+          <p style="margin:0;opacity:.9;font-size:13px">BM MOBILE ZONE · Chohan Mobile Market, Zafarwal · 0345-6613232</p>
+        </div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-icon blue">▣</div><div><strong id="stProducts">—</strong><small>Total Products</small></div></div>
+          <div class="stat"><div class="stat-icon green">▤</div><div><strong id="stStock">—</strong><small>Stock Units</small></div></div>
+          <div class="stat"><div class="stat-icon orange">↗</div><div><strong id="stTodaySales">—</strong><small>Today's Sales</small></div></div>
+          <div class="stat"><div class="stat-icon purple">▨</div><div><strong id="stMonthSales">—</strong><small>Monthly Sales</small></div></div>
+          <div class="stat"><div class="stat-icon blue">↙</div><div><strong id="stPurchases">—</strong><small>Total Purchases</small></div></div>
+          <div class="stat"><div class="stat-icon purple">♙</div><div><strong id="stCustomers">—</strong><small>Customers</small></div></div>
+          <div class="stat"><div class="stat-icon red">₹</div><div><strong id="stOutstanding">—</strong><small>Outstanding</small></div></div>
+          <div class="stat"><div class="stat-icon orange">▥</div><div><strong id="stExpenses">—</strong><small>Expenses</small></div></div>
         </div>
         <div class="clay" style="padding:24px">
           <div class="module-head"><div><h2>Recent Sales</h2><p>Last 5 sale transactions</p></div></div>
@@ -90,31 +254,34 @@
       <section class="module" id="module-inventory">
         <div class="module-head"><div><h2>Inventory</h2><p>Stock levels & movement history</p></div></div>
         <div class="clay" style="padding:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Low Stock Alerts</h3>
+          <div class="module-head" style="margin-bottom:14px"><h3 style="font-size:14px;margin:0">Low Stock Alerts</h3></div>
           <div class="form-grid" style="margin-bottom:14px"><div class="field"><label>Rack Filter</label><select id="inventoryRackFilter"><option value="">All Racks</option></select></div></div>
           <div class="bulk-bar" id="inventoryBulkBar" style="display:none"><span class="count" id="inventorySelCount">0</span> selected <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()">Delete Selected</button></div>
           <div class="table-wrap" id="lowStockTable"><div class="empty">Loading…</div></div>
         </div>
-        <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Stock Movements</h3><div class="table-wrap" id="movementsTable"><div class="empty">Loading…</div></div></div>
+        <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;margin:0 0 14px">Recent Stock Movements</h3>
+          <div class="table-wrap" id="movementsTable"><div class="empty">Loading…</div></div>
+        </div>
       </section>
 
       <!-- RACKS -->
       <section class="module" id="module-racks">
         <div class="module-head"><div><h2>Rack Management</h2><p>Create racks and see rack-wise stock</p></div><button class="btn btn-primary" id="btnAddRack">+ Add Rack</button></div>
         <div class="clay" style="padding:20px"><div class="table-wrap" id="racksTable"><div class="empty">Loading…</div></div></div>
-        <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Rack-wise Inventory</h3><div class="table-wrap" id="rackStockTable"><div class="empty">Loading…</div></div></div>
+        <div class="clay" style="padding:20px"><h3 style="font-size:14px;margin:0 0 14px">Rack-wise Inventory</h3><div class="table-wrap" id="rackStockTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- PURCHASES / PRODUCTS (SINGLE SOURCE) -->
+      <!-- PURCHASES / PRODUCTS -->
       <section class="module" id="module-purchases">
-        <div class="module-head"><div><h2>Purchases / Products</h2><p>Add products & stock here — auto-syncs to inventory</p></div>
+        <div class="module-head"><div><h2>Purchases / Products</h2><p>Single source of truth — auto-syncs to inventory</p></div>
           <div style="display:flex;gap:10px">
             <button class="btn btn-ghost" id="btnPurchasesHistory">📋 Purchase History</button>
-            <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase (F8)</button>
+            <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase <span class="kbd">F8</span></button>
           </div>
         </div>
         <div class="clay" style="padding:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Current Products (auto-synced from purchases)</h3>
+          <div class="module-head" style="margin-bottom:14px"><h3 style="font-size:14px;margin:0">Current Products</h3></div>
           <div style="display:flex;gap:10px;margin-bottom:14px">
             <div class="search-bar" style="flex:1"><input id="productSearch" placeholder="Search products…"></div>
           </div>
@@ -135,22 +302,22 @@
             <div class="form-grid">
               <div class="field"><label>Customer Name</label><input id="saleCustName" list="posCustomerOptions" placeholder="Search / add customer"><datalist id="posCustomerOptions"></datalist></div>
               <div class="field"><label>Customer Phone</label><input id="saleCustPhone" placeholder="03xx-xxxxxxx"></div>
-              <div class="field full" id="previousDueBox" style="display:none;padding:10px;background:rgba(245,158,66,.12);border-radius:8px"><b>Previous Pending Payment:</b> <span id="previousDueAmount">PKR 0</span></div>
+              <div class="field full" id="previousDueBox" style="display:none;padding:10px;background:#fff4e0;border-radius:8px;font-size:13px"><b>Previous Due:</b> <span id="previousDueAmount">PKR 0</span></div>
               <div class="field full"><label>Filter Category</label><select id="saleCategoryFilter" onchange="filterPosProducts()"><option value="">— All Categories —</option></select></div>
               <div class="field full"><label>Select Product</label><select id="saleProductSelect"><option value="">— Choose product —</option></select></div>
             </div>
-            <button class="btn btn-primary" style="margin-top:14px" id="btnAddToCart">+ Add to Cart (F2)</button>
+            <button class="btn btn-primary" style="margin-top:14px;width:100%;justify-content:center" id="btnAddToCart">+ Add to Cart <span class="kbd">F2</span></button>
           </div>
           <div class="clay" style="padding:22px">
-            <h3 style="font-size:14px;font-weight:800;margin-bottom:12px">Cart</h3>
+            <h3 style="font-size:14px;margin:0 0 12px">Cart</h3>
             <div id="cartItems" style="max-height:260px;overflow-y:auto"><div class="empty">Cart is empty</div></div>
             <div class="cart-total"><span>Subtotal</span><strong id="cartSubtotal">0</strong></div>
             <div class="field" style="margin-top:8px"><label>Discount</label><input id="saleDiscount" type="number" value="0" min="0"></div>
             <div class="cart-total grand"><span>Total</span><span id="cartTotal">0</span></div>
             <div class="field" style="margin-top:8px"><label>Paid Amount</label><input id="salePaid" type="number" value="0" min="0"></div>
             <div class="field"><label>Payment Method</label><select id="salePaymentMethod"><option value="cash">Cash</option><option value="bank">Bank Transfer</option><option value="other">Other</option></select></div>
-            <div id="udharWarning" style="display:none;margin-top:10px;padding:10px;background:rgba(245,158,66,0.1);border-left:3px solid #f59e0b;border-radius:6px;font-size:12px;color:#b45309">⚠️ Due amount will be auto-saved to Credit / Udhar section.</div>
-            <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" id="btnSaveSale">💾 Save Sale (F4)</button>
+            <div id="udharWarning" style="display:none;margin-top:10px;padding:10px;background:#fff4e0;border-left:3px solid #f59e0b;border-radius:6px;font-size:12px;color:#b45309">⚠️ Due amount will be saved to Credit / Udhar.</div>
+            <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" id="btnSaveSale">💾 Save Sale <span class="kbd">F4</span></button>
           </div>
         </div>
         <div class="clay" style="padding:22px;margin-top:20px" id="salesHistoryBox" hidden>
@@ -174,7 +341,10 @@
       <!-- CUSTOMERS -->
       <section class="module" id="module-customers">
         <div class="module-head"><div><h2>Customers</h2><p>All registered customers</p></div><div style="display:flex;gap:10px;align-items:center"><div class="search-bar"><input id="custSearch" placeholder="Search customers…"></div><button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button></div></div>
-        <div class="clay" style="padding:20px"><div class="bulk-bar" id="custBulkBar" style="display:none"><span class="count" id="custSelCount">0</span> selected <button class="btn btn-danger btn-sm" onclick="bulkDeleteCustomers()">Delete Selected</button></div><div class="table-wrap" id="customersTable"><div class="empty">Loading…</div></div></div>
+        <div class="clay" style="padding:20px">
+          <div class="bulk-bar" id="custBulkBar" style="display:none"><span class="count" id="custSelCount">0</span> selected <button class="btn btn-danger btn-sm" onclick="bulkDeleteCustomers()">Delete Selected</button></div>
+          <div class="table-wrap" id="customersTable"><div class="empty">Loading…</div></div>
+        </div>
       </section>
 
       <!-- SUPPLIERS -->
@@ -183,12 +353,9 @@
         <div class="clay" style="padding:20px"><div class="table-wrap" id="suppliersTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- CREDIT / UDHAR -->
+      <!-- CREDIT -->
       <section class="module" id="module-credit">
-        <div class="module-head">
-          <div><h2>Credit / Udhar Management</h2><p>Customer-wise outstanding, recovery & printing</p></div>
-          <button class="btn btn-ghost" id="btnPrintCreditAll">🖨 Print All Udhar</button>
-        </div>
+        <div class="module-head"><div><h2>Credit / Udhar Management</h2><p>Customer-wise outstanding, recovery & printing</p></div><button class="btn btn-ghost" id="btnPrintCreditAll">🖨 Print All Udhar</button></div>
         <div class="filter-tabs" id="creditDateTabs">
           <button data-range="all" class="active">All</button>
           <button data-range="today">Today</button>
@@ -201,24 +368,24 @@
           <button data-status="received">Received</button>
         </div>
         <div class="clay" style="padding:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Customer-wise Udhar Summary</h3>
+          <h3 style="font-size:14px;margin:0 0 14px">Customer-wise Udhar Summary</h3>
           <div class="table-wrap" id="creditSummaryTable"><div class="empty">Loading…</div></div>
         </div>
         <div class="clay" style="padding:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Outstanding Invoices</h3>
+          <h3 style="font-size:14px;margin:0 0 14px">Outstanding Invoices</h3>
           <div class="table-wrap" id="creditTable"><div class="empty">Loading…</div></div>
         </div>
-        <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Credit Recoveries</h3><div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div></div>
+        <div class="clay" style="padding:20px"><h3 style="font-size:14px;margin:0 0 14px">Recent Credit Recoveries</h3><div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div></div>
       </section>
 
       <!-- EXPENSES -->
       <section class="module" id="module-expenses">
-        <div class="module-head"><div><h2>Expenses</h2><p>Date-wise expense tracking with categories</p></div><button class="btn btn-primary" id="btnAddExpense">+ Add Expense (F9)</button></div>
-        <div class="stats-row" id="expenseStats">
-          <div class="stat clay"><div class="stat-icon orange">▥</div><div><strong id="expToday">—</strong><small>Today</small></div></div>
-          <div class="stat clay"><div class="stat-icon purple">▨</div><div><strong id="expWeek">—</strong><small>This Week</small></div></div>
-          <div class="stat clay"><div class="stat-icon blue">▣</div><div><strong id="expMonth">—</strong><small>This Month</small></div></div>
-          <div class="stat clay"><div class="stat-icon red">₹</div><div><strong id="expTotal">—</strong><small>All Time</small></div></div>
+        <div class="module-head"><div><h2>Expenses</h2><p>Date-wise expense tracking with categories</p></div><button class="btn btn-primary" id="btnAddExpense">+ Add Expense <span class="kbd">F9</span></button></div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-icon orange">▥</div><div><strong id="expToday">—</strong><small>Today</small></div></div>
+          <div class="stat"><div class="stat-icon purple">▨</div><div><strong id="expWeek">—</strong><small>This Week</small></div></div>
+          <div class="stat"><div class="stat-icon blue">▣</div><div><strong id="expMonth">—</strong><small>This Month</small></div></div>
+          <div class="stat"><div class="stat-icon red">₹</div><div><strong id="expTotal">—</strong><small>All Time</small></div></div>
         </div>
         <div class="clay" style="padding:20px">
           <div class="form-grid" style="margin-bottom:14px">
@@ -237,14 +404,23 @@
         <div class="clay" style="padding:22px">
           <div class="form-grid">
             <div class="field"><label>Report Type</label><select id="reportType">
-              <option value="sales">Sales Report</option><option value="purchases">Purchase Report</option><option value="expenses">Expense Report</option><option value="pl">Profit & Loss (Item-wise)</option><option value="customer">Customer Report</option><option value="repairing">Repairing Report</option></select></div>
+              <option value="sales">Sales Report</option>
+              <option value="purchases">Purchase Report</option>
+              <option value="expenses">Expense Report</option>
+              <option value="pl">Profit & Loss (Item-wise)</option>
+              <option value="customer">Customer Report</option>
+              <option value="repairing">Repairing Report</option>
+            </select></div>
             <div class="field"><label>From Date</label><input type="date" id="reportFrom"></div>
             <div class="field"><label>To Date</label><input type="date" id="reportTo"></div>
             <div class="field full"><label>Search</label><input id="reportSearch" placeholder="Type to filter..."></div>
-            <div class="field full" style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-primary" id="btnRunReport">Run Report</button><button class="btn btn-ghost" id="btnPrintReport">🖨 Print Report</button></div>
+            <div class="field full" style="display:flex;gap:10px;justify-content:flex-end">
+              <button class="btn btn-primary" id="btnRunReport">Run Report</button>
+              <button class="btn btn-ghost" id="btnPrintReport">🖨 Print Report</button>
+            </div>
           </div>
         </div>
-        <div id="plSummary" class="stats-row" style="margin-top:20px; display:none;"></div>
+        <div id="plSummary" class="stats-row" style="margin-top:20px;display:none"></div>
         <div class="clay" style="padding:20px;margin-top:20px"><div id="reportOutput"><div class="empty">Select a report type and click "Run Report".</div></div></div>
       </section>
 
@@ -254,28 +430,18 @@
         <div class="clay" style="padding:20px"><div class="table-wrap" id="transactionsTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- STAFF / SETTINGS -->
+      <!-- SETTINGS -->
       <section class="module" id="module-settings">
         <div class="module-head"><div><h2>Staff Management</h2><p>Generate Staff ID, edit permissions & view activity logs</p></div><button class="btn btn-primary" id="btnAddStaff">+ Generate Staff ID</button></div>
         <div class="clay" style="padding:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Staff Members</h3>
+          <h3 style="font-size:14px;margin:0 0 14px">Staff Members</h3>
           <div class="table-wrap" id="staffTable"><div class="empty">Loading…</div></div>
         </div>
         <div class="clay" style="padding:20px;margin-top:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">📜 Activity Logs (Kon sa staff kya kar raha hai)</h3>
-          <div class="table-wrap" id="activityLogTable"><div class="empty">Loading…</div></div>
-        </div>
-        <div class="clay" style="padding:22px; margin-top:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:10px">💡 Staff Permissions Guide</h3>
-          <ul style="font-size:13px; color:var(--muted); line-height:1.6; padding-left:20px;">
-            <li><b>Staff ID 01 (Admin):</b> Full Access.</li>
-            <li><b>Can Edit:</b> Modify existing records.</li>
-            <li><b>Can Delete:</b> Delete records.</li>
-            <li>If both unchecked, staff can only add new records.</li>
-          </ul>
+          <h3 style="font-size:14px;margin:0 0 14px">📜 Activity Logs (Kon sa staff kya kar raha hai)</h3>
+          <div id="activityLogTable"><div class="empty">Loading…</div></div>
         </div>
       </section>
-
     </div>
   </main>
 </div>
