@@ -1,5 +1,5 @@
 // =====================================================
-// BISMILLAH MOBILE ZONE — Dashboard Controller v24.0
+// BISMILLAH MOBILE ZONE — Dashboard Controller v25.0 (Ultimate Fix)
 // =====================================================
 import { supabase } from './config.js';
 
@@ -43,10 +43,7 @@ function toast(msg, type = 'info') {
 
 async function logActivity(action, module, details = '') {
   try {
-    await supabase.from('activity_log').insert({
-      staff_id: SESSION.staff_id || '01', staff_name: SESSION.name || 'Admin',
-      action, module, details: String(details).slice(0, 500)
-    });
+    await supabase.from('activity_log').insert({ staff_id: SESSION.staff_id || '01', staff_name: SESSION.name || 'Admin', action, module, details: String(details).slice(0, 500) });
   } catch (e) { console.warn('log fail', e); }
 }
 
@@ -60,14 +57,12 @@ function closeModal() { $('modalBackdrop').classList.remove('open'); MODAL_ON_CO
 $('modalCancel').onclick = closeModal;
 $('modalConfirm').onclick = async () => { if (MODAL_ON_CONFIRM) { try { await MODAL_ON_CONFIRM(); } catch (e) { toast(e.message || 'Error', 'error'); } } };
 
-// =====================================================
-// SHOP SETTINGS (global for print)
-// =====================================================
+// --- SHOP SETTINGS ---
 let SHOP = { name: 'BM MOBILE ZONE', address: 'Chohan Mobile Market, Zafarwal', phone1: '0345-6613232', phone2: '0307-6613232', tagline: 'Your Trusted Mobile Shop' };
 async function loadShopSettings() {
   try {
     const { data } = await supabase.from('shop_settings').select('*').limit(1).maybeSingle();
-    if (data) SHOP = { name: data.shop_name || SHOP.name, address: data.address || SHOP.address, phone1: data.phone1 || SHOP.phone1, phone2: data.phone2 || SHOP.phone2, tagline: data.tagline || SHOP.tagline, logo_url: data.logo_url };
+    if (data) SHOP = { name: data.shop_name || SHOP.name, address: data.address || SHOP.address, phone1: data.phone1 || SHOP.phone1, phone2: data.phone2 || SHOP.phone2, tagline: data.tagline || SHOP.tagline };
   } catch (e) { console.warn('shop settings fail', e); }
 }
 
@@ -90,14 +85,13 @@ function printThermal80mm(data, type = 'sale') {
     </tr>`).join('');
   let showTopLine = false;
   if (type === 'repair' || type === 'sale') {
-    const urduLine = "موبائل مرمت کے بعد وصول کرنے کے لیے یہ رسید لازمی ساتھ لائیں۔";
-    if (confirm(`Do you want to print this line?\n\n"${urduLine}"\n\n(OK = Yes, Cancel = No)`)) showTopLine = true;
+    if (confirm(`Do you want to print the Urdu warning line?\n\nموبائل مرمت کے بعد وصول کرنے کے لیے یہ رسید لازمی ساتھ لائیں۔\n\n(OK = Yes, Cancel = No)`)) showTopLine = true;
   }
   let urduTerms = '';
   if (type === 'repair' || type === 'sale') {
     urduTerms = `<hr style="border-top:1px dashed #000;margin:6px 0;">
     <div style="text-align:right;font-size:12px;font-family:'Jameel Noori Nastaleeq','Noto Nastaliq Urdu',Arial,sans-serif;direction:rtl;line-height:1.6">
-      ${showTopLine ? `<div style="text-align:center;font-weight:bold;font-size:13px;margin-bottom:4px">${urduLine}</div>` : ''}
+      ${showTopLine ? `<div style="text-align:center;font-weight:bold;font-size:13px;margin-bottom:4px">موبائل مرمت کے بعد وصول کرنے کے لیے یہ رسید لازمی ساتھ لائیں۔</div>` : ''}
       <div>• براہِ کرم مال کاؤنٹر پر چیک کریں۔</div>
       <div>• پھولی ہوئی بیٹری کی کوئی وارنٹی نہیں ہے۔</div>
       <div>• بیٹری کی وارنٹی صرف 2 دن ہوگی۔</div>
@@ -259,25 +253,21 @@ async function loadModule(mod) {
     case 'suppliers': return loadSuppliers();
     case 'credit': return loadCredit();
     case 'expenses': return loadExpenses();
-    case 'reports': return;
     case 'transactions': return loadTransactions();
     case 'settings': return loadStaff();
   }
 }
 
 // =====================================================
-// KEYBOARD SHORTCUTS (comprehensive)
+// KEYBOARD SHORTCUTS
 // =====================================================
 document.addEventListener('keydown', (e) => {
   const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
-  // Global
   if (e.key === 'Escape') { closeModal(); document.getElementById('notifPanel')?.classList.remove('open'); return; }
-  // Alt + letter navigation
   if (e.altKey && !e.ctrlKey && !e.metaKey) {
     const k = e.key.toLowerCase();
     if (MODULE_KEYS[k]) { e.preventDefault(); navTo(MODULE_KEYS[k]); return; }
   }
-  // Function keys
   if (!isTyping) {
     if (e.key === 'F1') { e.preventDefault(); showShortcutHelp(); }
     if (e.key === 'F2') { e.preventDefault(); $('btnAddToCart')?.click(); }
@@ -286,50 +276,19 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'F8') { e.preventDefault(); $('btnNewPurchase')?.click(); }
     if (e.key === 'F9') { e.preventDefault(); $('btnAddExpense')?.click(); }
     if (e.key === 'F10') { e.preventDefault(); $('btnAddRepair')?.click(); }
-    // Ctrl shortcuts
-    if (e.ctrlKey) {
-      if (e.key.toLowerCase() === 'k') { e.preventDefault(); document.querySelector('.search-bar input')?.focus(); }
-      if (e.key.toLowerCase() === 'p') { e.preventDefault(); window.print(); }
-    }
+    if (e.ctrlKey && e.key.toLowerCase() === 'k') { e.preventDefault(); document.querySelector('.search-bar input')?.focus(); }
   }
 });
 
 function showShortcutHelp() {
   const body = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:13px">
-      <div>
-        <h4 style="margin:0 0 8px;font-size:13px">Navigation (Alt + key)</h4>
-        <div style="line-height:1.9">
-          <div><span class="kbd">Alt+O</span> Dashboard</div>
-          <div><span class="kbd">Alt+I</span> Inventory</div>
-          <div><span class="kbd">Alt+K</span> Racks</div>
-          <div><span class="kbd">Alt+U</span> Purchases/Products</div>
-          <div><span class="kbd">Alt+L</span> Sales/POS</div>
-          <div><span class="kbd">Alt+R</span> Repairing</div>
-          <div><span class="kbd">Alt+C</span> Customers</div>
-          <div><span class="kbd">Alt+S</span> Suppliers</div>
-          <div><span class="kbd">Alt+D</span> Credit/Udhar</div>
-          <div><span class="kbd">Alt+E</span> Expenses</div>
-          <div><span class="kbd">Alt+P</span> Reports</div>
-          <div><span class="kbd">Alt+T</span> Transactions</div>
-          <div><span class="kbd">Alt+,</span> Settings</div>
-        </div>
-      </div>
-      <div>
-        <h4 style="margin:0 0 8px;font-size:13px">Actions</h4>
-        <div style="line-height:1.9">
-          <div><span class="kbd">F1</span> Shortcut Help</div>
-          <div><span class="kbd">F2</span> Add to Cart</div>
-          <div><span class="kbd">F4</span> Save Sale</div>
-          <div><span class="kbd">F5</span> Refresh Current Module</div>
-          <div><span class="kbd">F8</span> New Purchase</div>
-          <div><span class="kbd">F9</span> Add Expense</div>
-          <div><span class="kbd">F10</span> New Repair Slip</div>
-          <div><span class="kbd">Ctrl+K</span> Focus Search</div>
-          <div><span class="kbd">Ctrl+P</span> Print Page</div>
-          <div><span class="kbd">Esc</span> Close Modal</div>
-        </div>
-      </div>
+      <div><h4 style="margin:0 0 8px">Navigation (Alt + key)</h4><div style="line-height:1.9">
+        <div><span class="kbd">Alt+O</span> Dashboard</div><div><span class="kbd">Alt+I</span> Inventory</div><div><span class="kbd">Alt+U</span> Purchases</div><div><span class="kbd">Alt+L</span> Sales/POS</div><div><span class="kbd">Alt+R</span> Repairing</div><div><span class="kbd">Alt+C</span> Customers</div><div><span class="kbd">Alt+D</span> Udhar</div><div><span class="kbd">Alt+E</span> Expenses</div><div><span class="kbd">Alt+P</span> Reports</div><div><span class="kbd">Alt+,</span> Settings</div>
+      </div></div>
+      <div><h4 style="margin:0 0 8px">Actions</h4><div style="line-height:1.9">
+        <div><span class="kbd">F1</span> Help</div><div><span class="kbd">F2</span> Add to Cart</div><div><span class="kbd">F4</span> Save Sale</div><div><span class="kbd">F8</span> New Purchase</div><div><span class="kbd">F9</span> Add Expense</div><div><span class="kbd">F10</span> Repair Slip</div><div><span class="kbd">Esc</span> Close Modal</div>
+      </div></div>
     </div>`;
   openModal('⌨ Keyboard Shortcuts', body, async () => closeModal(), 'Close');
 }
@@ -341,8 +300,7 @@ async function loadOverview() {
   const [sales, prods, custs, purch, exp, salesToday, salesMonth] = await Promise.all([
     supabase.from('sales').select('balance'), supabase.from('products').select('quantity,is_active,name,min_stock'),
     supabase.from('customers').select('id', { count: 'exact', head: true }), supabase.from('purchases').select('total'),
-    supabase.from('expenses').select('amount'),
-    supabase.from('sales').select('total').gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+    supabase.from('expenses').select('amount'), supabase.from('sales').select('total').gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
     supabase.from('sales').select('total').gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString())
   ]);
   const sum = (arr, key) => (arr.data || []).reduce((s, r) => s + Number(r[key] || 0), 0);
@@ -359,7 +317,6 @@ async function loadOverview() {
   if (!recent || !recent.length) $('recentSales').innerHTML = '<div class="empty">No sales yet.</div>';
   else $('recentSales').innerHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>${recent.map(s => `<tr><td><b>${esc(s.invoice_no)}</b></td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
 
-  // Auto notification
   const { data: dueSales } = await supabase.from('sales').select('customer_name,balance').gt('balance', 0);
   if (dueSales && dueSales.length) {
     const totalDue = dueSales.reduce((s, x) => s + Number(x.balance || 0), 0);
@@ -376,7 +333,6 @@ async function loadOverview() {
 // =====================================================
 let ALL_PRODUCTS = [];
 const CATEGORIES = ['Mobile Phones', 'Mobile Accessories', 'Chargers & Cables', 'Handsfree & Audio', 'Batteries', 'Memory & Storage', 'Mobile Parts', 'SIM & Network', 'Repairing Tools', 'Other Gadgets'];
-const CAT_ITEMS = { 'Mobile Accessories': ['Glass Protector', 'Back Cover', 'Flip Cover', 'Camera Lens'], 'Chargers & Cables': ['Fast Charger', 'Type-C Cable', 'Lightning Cable', 'Power Bank'], 'Handsfree & Audio': ['Handsfree', 'Earbuds', 'Bluetooth Headset'], 'Batteries': ['Mobile Battery'], 'Memory & Storage': ['Memory Card 32GB', 'Memory Card 64GB'], 'Mobile Parts': ['LCD Panel', 'Charging Port', 'Camera Module'], 'SIM & Network': ['SIM Ejector'], 'Repairing Tools': ['Screwdriver Kit'], 'Other Gadgets': ['Smart Watch'] };
 
 async function loadProducts(filter = '') {
   let q = supabase.from('products').select('*,racks!fk_products_racks(name)').order('created_at', { ascending: false });
@@ -393,29 +349,45 @@ async function loadProducts(filter = '') {
 $('productSearch')?.addEventListener('input', e => loadProducts(e.target.value));
 window.toggleAllProducts = (cb) => { document.querySelectorAll('.prod-check').forEach(c => c.checked = cb.checked); updateProductBulk(); };
 function updateProductBulk() { const n = document.querySelectorAll('.prod-check:checked').length; $('productBulkBar').style.display = n ? 'flex' : 'none'; $('productSelCount').textContent = n; }
+
+// ** BULK DELETE FIXED (No foreign key errors) **
 window.bulkDeleteProducts = async () => {
   if (!checkPermission('delete')) return;
   const ids = [...document.querySelectorAll('.prod-check:checked')].map(c => c.value);
   if (!ids.length) return;
-  if (!confirm(`Delete ${ids.length} products?`)) return;
-  for (const id of ids) {
-    await supabase.from('sale_items').update({ product_id: null }).eq('product_id', id);
-    await supabase.from('purchase_items').update({ product_id: null }).eq('product_id', id);
+  if (!confirm(`Delete ${ids.length} products? Sales history will be preserved.`)) return;
+  
+  try {
+    // Step 1: Unlink from sale_items and purchase_items
+    await supabase.from('sale_items').update({ product_id: null }).in('product_id', ids);
+    await supabase.from('purchase_items').update({ product_id: null }).in('product_id', ids);
+    
+    // Step 2: Delete products
+    const { error } = await supabase.from('products').delete().in('id', ids);
+    if (error) throw error;
+    
+    await logActivity('BULK_DELETE', 'products', `Deleted ${ids.length} products`);
+    toast(`Deleted ${ids.length} products successfully`, 'success'); 
+    loadProducts();
+  } catch (err) {
+    toast(err.message, 'error');
   }
-  const { error } = await supabase.from('products').delete().in('id', ids);
-  if (error) return toast(error.message, 'error');
-  await logActivity('BULK_DELETE', 'products', `Deleted ${ids.length}`);
-  toast(`Deleted ${ids.length} products`, 'success'); loadProducts();
 };
+
 window.deleteProduct = async (id) => {
   if (!checkPermission('delete')) return;
   if (!confirm('Delete this product? Sales history preserved.')) return;
-  await supabase.from('sale_items').update({ product_id: null }).eq('product_id', id);
-  await supabase.from('purchase_items').update({ product_id: null }).eq('product_id', id);
-  const { error } = await supabase.from('products').delete().eq('id', id);
-  if (error) return toast(error.message, 'error');
-  await logActivity('DELETE', 'products', id);
-  toast('Product deleted', 'success'); loadProducts();
+  try {
+    await supabase.from('sale_items').update({ product_id: null }).eq('product_id', id);
+    await supabase.from('purchase_items').update({ product_id: null }).eq('product_id', id);
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) throw error;
+    await logActivity('DELETE', 'products', id);
+    toast('Product deleted', 'success'); 
+    loadProducts();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
 };
 
 // =====================================================
@@ -431,6 +403,7 @@ async function loadInventory() {
   const t = $('lowStockTable');
   if (!low || !low.length) t.innerHTML = '<div class="empty">No products.</div>';
   else t.innerHTML = `<table class="data"><thead><tr><th><input type="checkbox" onchange="toggleAllInv(this)"></th><th>Product</th><th>Category</th><th>IMEI</th><th>Rack</th><th class="num">Stock</th><th>Status</th></tr></thead><tbody>${low.map(p => `<tr><td><input type="checkbox" class="inv-check" value="${p.id}" onchange="updateInvBulk()"></td><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}</small></td><td><small>${esc(p.imei_1 || '—')}</small></td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td>${p.quantity <= p.min_stock ? '<span class="pill red">Low</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}</tbody></table>`;
+  
   const [{ data: saleItems }, { data: purchItems }] = await Promise.all([
     supabase.from('sale_items').select('product_name,quantity,created_at,sales!inner(invoice_no)').order('created_at', { ascending: false }).limit(50),
     supabase.from('purchase_items').select('product_name,quantity,created_at,purchases!inner(invoice_no)').order('created_at', { ascending: false }).limit(50)
@@ -461,7 +434,7 @@ $('btnAddRack').onclick = () => openModal('Add Rack', `<div class="form-grid"><d
 window.deleteRack = async id => { if (!checkPermission('delete')) return; if (!confirm('Delete rack?')) return; const { error } = await supabase.from('racks').delete().eq('id', id); if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); } };
 
 // =====================================================
-// PURCHASES MODULE (with IMEI 1&2, auto-sync)
+// PURCHASES MODULE (With Auto Total, Headers & IMEI)
 // =====================================================
 async function loadPurchasesModule() {
   loadProducts();
@@ -482,18 +455,38 @@ async function openPurchaseModal(p = null) {
     <div class="form-grid">
       <div class="field"><label>Supplier</label><select id="puSup"><option value="">— None —</option>${(sups || []).map(s => `<option value="${s.id}" ${p?.supplier_id === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></div>
       <div class="field"><label>Invoice No</label><input id="puInv" value="${esc(p?.invoice_no || '')}"></div>
-      <div class="field"><label>Total (PKR)</label><input id="puTotal" type="number" value="${p?.total || 0}"></div>
+      <div class="field"><label>Total (PKR) <small>(Auto)</small></label><input id="puTotal" type="number" value="${p?.total || 0}" readonly style="background:#f0f2f7;cursor:not-allowed"></div>
       <div class="field"><label>Paid (PKR)</label><input id="puPaid" type="number" value="${p?.paid || 0}"></div>
       <div class="field full"><label>Notes</label><textarea id="puNotes">${esc(p?.notes || '')}</textarea></div>
     </div>
-    <h4 style="margin:16px 0 8px;font-size:13px">Products / Items <button type="button" class="btn btn-primary btn-sm" onclick="addPurchaseItemRow()">+ Add Item</button></h4>
-    <div id="purchaseItemsHost"></div>
+    <div style="margin-top:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h4 style="margin:0;font-size:14px">Products / Items</h4>
+        <button type="button" class="btn btn-primary btn-sm" onclick="addPurchaseItemRow()">+ Add Item</button>
+      </div>
+      <div class="purchase-item-row" style="background:transparent;border:none;font-size:11px;font-weight:800;color:#6b7896;padding:0 10px;margin-bottom:6px">
+        <div>Product Name</div><div>Category</div><div>Brand</div><div>Qty</div><div>Buy Price</div><div>Sale Price</div><div>IMEI 1</div><div>IMEI 2</div><div></div>
+      </div>
+      <div id="purchaseItemsHost"></div>
+    </div>
   `;
   openModal(p ? 'Edit Purchase' : 'New Purchase', body, async () => {
-    const payload = { supplier_id: $('puSup').value || null, invoice_no: $('puInv').value.trim() || null, total: Number($('puTotal').value) || 0, paid: Number($('puPaid').value) || 0, notes: $('puNotes').value.trim() || null };
+    const total = Number($('puTotal').value) || 0;
+    const payload = { supplier_id: $('puSup').value || null, invoice_no: $('puInv').value.trim() || null, total, paid: Number($('puPaid').value) || 0, notes: $('puNotes').value.trim() || null };
     let purchaseId = p?.id;
-    if (p) { await supabase.from('purchases').update(payload).eq('id', p.id); }
-    else { const { data: created, error } = await supabase.from('purchases').insert(payload).select().single(); if (error) throw new Error(error.message); purchaseId = created.id; }
+    
+    if (p) { 
+      const { error } = await supabase.from('purchases').update(payload).eq('id', p.id); 
+      if (error) throw new Error(error.message);
+      // Delete old items to prevent duplication (Optional: better to just update, but easier to delete+insert)
+      await supabase.from('purchase_items').delete().eq('purchase_id', p.id);
+    }
+    else { 
+      const { data: created, error } = await supabase.from('purchases').insert(payload).select().single(); 
+      if (error) throw new Error(error.message); 
+      purchaseId = created.id; 
+    }
+
     const itemRows = document.querySelectorAll('#purchaseItemsHost .purchase-item-row');
     for (const row of itemRows) {
       const name = row.querySelector('.pi-name').value.trim(); if (!name) continue;
@@ -504,10 +497,14 @@ async function openPurchaseModal(p = null) {
       const sprice = Number(row.querySelector('.pi-sprice').value) || 0;
       const imei1 = row.querySelector('.pi-imei1').value.trim() || null;
       const imei2 = row.querySelector('.pi-imei2').value.trim() || null;
+      
       await supabase.from('purchase_items').insert({ purchase_id: purchaseId, product_name: name, category, quantity: qty, unit_price: pprice, line_total: qty * pprice, imei_1: imei1, imei_2: imei2 });
+      
+      // Auto-Sync to Products
       let q = supabase.from('products').select('*').eq('name', name).eq('category', category);
       if (brand) q = q.eq('brand', brand); else q = q.is('brand', null);
       const { data: existing } = await q;
+      
       if (existing && existing.length) {
         const old = existing[0];
         await supabase.from('products').update({ quantity: Number(old.quantity || 0) + qty, purchase_price: pprice || old.purchase_price, sale_price: sprice || old.sale_price, imei_1: imei1 || old.imei_1, imei_2: imei2 || old.imei_2 }).eq('id', old.id);
@@ -518,7 +515,12 @@ async function openPurchaseModal(p = null) {
     await logActivity(p ? 'EDIT' : 'CREATE', 'purchases', `Purchase ${payload.invoice_no || purchaseId}`);
     closeModal(); toast('Purchase saved & products synced!', 'success'); loadPurchasesModule();
   });
-  setTimeout(() => addPurchaseItemRow(), 50);
+  
+  // Add first row
+  setTimeout(() => { 
+    addPurchaseItemRow(); 
+    updatePurchaseTotal(); 
+  }, 50);
 }
 
 window.addPurchaseItemRow = () => {
@@ -526,17 +528,27 @@ window.addPurchaseItemRow = () => {
   const div = document.createElement('div');
   div.className = 'purchase-item-row';
   div.innerHTML = `
-    <input class="pi-name" placeholder="Product Name">
+    <input class="pi-name" placeholder="Product Name" oninput="updatePurchaseTotal()">
     <select class="pi-category">${CATEGORIES.map(c => `<option>${c}</option>`).join('')}</select>
     <input class="pi-brand" placeholder="Brand">
-    <input class="pi-qty" type="number" value="1" placeholder="Qty">
-    <input class="pi-pprice" type="number" value="0" placeholder="Buy">
+    <input class="pi-qty" type="number" value="1" placeholder="Qty" oninput="updatePurchaseTotal()">
+    <input class="pi-pprice" type="number" value="0" placeholder="Buy" oninput="updatePurchaseTotal()">
     <input class="pi-sprice" type="number" value="0" placeholder="Sale">
     <input class="pi-imei1" placeholder="IMEI 1">
     <input class="pi-imei2" placeholder="IMEI 2">
-    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentNode.remove()">×</button>
+    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentNode.remove(); updatePurchaseTotal();">×</button>
   `;
   host.appendChild(div);
+};
+
+window.updatePurchaseTotal = () => {
+  let total = 0;
+  document.querySelectorAll('#purchaseItemsHost .purchase-item-row').forEach(row => {
+    const qty = Number(row.querySelector('.pi-qty').value) || 0;
+    const pprice = Number(row.querySelector('.pi-pprice').value) || 0;
+    total += qty * pprice;
+  });
+  if($('puTotal')) $('puTotal').value = total;
 };
 
 // =====================================================
@@ -632,7 +644,7 @@ window.reprintSale = async (id) => {
 };
 
 // =====================================================
-// REPAIRING
+// REPAIRING (With Warranty Fields)
 // =====================================================
 const COMMON_FAULTS = ['Screen Broken', 'Touch Not Working', 'Battery Drain', 'Not Charging', 'No Power', 'No Display', 'Dead', 'Water Damage', 'Camera Not Working', 'Speaker Not Working', 'Mic Not Working', 'Network Issue', 'Face ID Not Working', 'Software Update'];
 async function loadRepairs() {
@@ -662,13 +674,35 @@ function openRepairModal(r = null) {
     <div class="field"><label>Mobile Model</label><input id="rMobile" value="${esc(r?.mobile || '')}"></div>
     <div class="field"><label>IMEI</label><input id="rImei" value="${esc(r?.imei || '')}"></div>
     <div class="field full"><label>Fault</label><input id="rIssue" list="faultsList" value="${esc(r?.issue || '')}"><datalist id="faultsList">${COMMON_FAULTS.map(f => `<option value="${esc(f)}">`).join('')}</datalist></div>
+    
+    <div class="field full" style="display:flex;gap:20px;padding:10px;background:#fafbfd;border-radius:8px;border:1px solid #e6e9f2">
+      <label style="font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="rBatWarranty" ${r?.battery_warranty === 'Yes' ? 'checked' : ''}> Battery Warranty (Yes/No)
+      </label>
+      <label style="font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="rDeadWarranty" ${r?.dead_warranty === 'Yes' ? 'checked' : ''}> Dead Warranty (Yes/No)
+      </label>
+    </div>
+
     <div class="field"><label>Charge</label><input id="rCharge" type="number" value="${r?.charge || 0}"></div>
     <div class="field"><label>Advance</label><input id="rAdvance" type="number" value="${r?.advance || 0}"></div>
     <div class="field"><label>Status</label><select id="rStatus">${['Received', 'In Progress', 'Ready', 'Delivered'].map(s => `<option ${r?.status === s ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
     <div class="field full"><label>Notes</label><textarea id="rNotes">${esc(r?.notes || '')}</textarea></div>
   </div>`;
   openModal(r ? 'Edit Repair' : 'New Repair', body, async () => {
-    const payload = { customer_name: $('rCust').value.trim(), phone: $('rPhone').value.trim() || null, mobile: $('rMobile').value.trim() || null, imei: $('rImei').value.trim() || null, issue: $('rIssue').value.trim() || null, charge: Number($('rCharge').value) || 0, advance: Number($('rAdvance').value) || 0, status: $('rStatus').value, notes: $('rNotes').value.trim() || null };
+    const payload = { 
+      customer_name: $('rCust').value.trim(), 
+      phone: $('rPhone').value.trim() || null, 
+      mobile: $('rMobile').value.trim() || null, 
+      imei: $('rImei').value.trim() || null, 
+      issue: $('rIssue').value.trim() || null, 
+      charge: Number($('rCharge').value) || 0, 
+      advance: Number($('rAdvance').value) || 0, 
+      status: $('rStatus').value, 
+      notes: $('rNotes').value.trim() || null,
+      battery_warranty: $('rBatWarranty').checked ? 'Yes' : 'No',
+      dead_warranty: $('rDeadWarranty').checked ? 'Yes' : 'No'
+    };
     if (!payload.customer_name) throw new Error('Customer required');
     if (r) await supabase.from('repairs').update(payload).eq('id', r.id); else await supabase.from('repairs').insert(payload);
     await logActivity(r ? 'EDIT' : 'CREATE', 'repairs', payload.customer_name);
@@ -677,7 +711,7 @@ function openRepairModal(r = null) {
 }
 
 // =====================================================
-// CUSTOMERS
+// CUSTOMERS (With Fixed Bulk Delete)
 // =====================================================
 let ALL_CUST = [];
 async function loadCustomers(filter = '') {
@@ -691,16 +725,34 @@ async function loadCustomers(filter = '') {
 $('custSearch')?.addEventListener('input', e => loadCustomers(e.target.value));
 $('btnAddCustomer').onclick = () => openCustomerModal();
 window.editCustomer = (id) => { if (!checkPermission('edit')) return; openCustomerModal(ALL_CUST.find(c => c.id === id)); };
-window.deleteCustomer = async (id) => { if (!checkPermission('delete')) return; if (!confirm('Delete?')) return; await supabase.from('customers').delete().eq('id', id); await logActivity('DELETE', 'customers', id); toast('Deleted'); loadCustomers(); };
+window.deleteCustomer = async (id) => { 
+  if (!checkPermission('delete')) return; 
+  if (!confirm('Delete?')) return; 
+  try {
+    await supabase.from('sales').update({ customer_id: null }).eq('customer_id', id);
+    const { error } = await supabase.from('customers').delete().eq('id', id); 
+    if(error) throw error;
+    await logActivity('DELETE', 'customers', id); 
+    toast('Deleted'); 
+    loadCustomers(); 
+  } catch(e) { toast(e.message, 'error'); }
+};
 window.toggleAllCust = (cb) => { document.querySelectorAll('.cust-check').forEach(c => c.checked = cb.checked); updateCustBulk(); };
 function updateCustBulk() { const n = document.querySelectorAll('.cust-check:checked').length; $('custBulkBar').style.display = n ? 'flex' : 'none'; $('custSelCount').textContent = n; }
+
 window.bulkDeleteCustomers = async () => {
   if (!checkPermission('delete')) return;
   const ids = [...document.querySelectorAll('.cust-check:checked')].map(c => c.value);
-  if (!ids.length || !confirm(`Delete ${ids.length} customers?`)) return;
-  const { error } = await supabase.from('customers').delete().in('id', ids);
-  if (error) return toast(error.message, 'error'); toast(`Deleted ${ids.length}`); loadCustomers();
+  if (!ids.length || !confirm(`Delete ${ids.length} customers? Sales history will be preserved.`)) return;
+  try {
+    await supabase.from('sales').update({ customer_id: null }).in('customer_id', ids);
+    const { error } = await supabase.from('customers').delete().in('id', ids);
+    if (error) throw error;
+    toast(`Deleted ${ids.length} customers successfully`); 
+    loadCustomers();
+  } catch(e) { toast(e.message, 'error'); }
 };
+
 function openCustomerModal(c = null) {
   const body = `<div class="form-grid"><div class="field full"><label>Name *</label><input id="cName" value="${esc(c?.name || '')}"></div><div class="field"><label>Phone</label><input id="cPhone" value="${esc(c?.phone || '')}"></div><div class="field"><label>Opening Balance</label><input id="cBal" type="number" value="${c?.opening_balance || 0}"></div><div class="field full"><label>Address</label><textarea id="cAddr">${esc(c?.address || '')}</textarea></div></div>`;
   openModal(c ? 'Edit Customer' : 'Add Customer', body, async () => {
