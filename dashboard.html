@@ -4,33 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Dashboard | BM MOBILE ZONE</title>
+<title>Dashboard | BISMILLAH MOBILE ZONE</title>
 <link rel="stylesheet" href="css/dashboard.css">
 <style>
-  /* Extra styles for Staff & Reports sections */
-  .staff-perm { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
-  .staff-perm label { margin: 0; text-transform: none; font-size: 13px; display: flex; align-items: center; gap: 5px; cursor: pointer; }
   .search-bar input { border: none; background: transparent; outline: none; width: 100%; color: var(--text); }
+  .bulk-bar { display:flex; gap:10px; align-items:center; padding:10px 14px; background:rgba(239,68,68,.08); border-radius:8px; margin-bottom:12px; }
+  .bulk-bar .count { font-weight:700; color:#dc2626; }
+  .table-wrap table.data th input[type=checkbox], .table-wrap table.data td input[type=checkbox] { width:16px; height:16px; cursor:pointer; }
+  .notif-bell { position:relative; cursor:pointer; margin-right:14px; font-size:20px; }
+  .notif-bell .badge { position:absolute; top:-4px; right:-6px; background:#dc2626; color:#fff; font-size:10px; font-weight:700; padding:1px 5px; border-radius:10px; }
+  .notif-panel { position:fixed; top:70px; right:20px; width:340px; max-height:70vh; overflow-y:auto; background:#fff; border-radius:14px; box-shadow:0 10px 40px rgba(0,0,0,.15); z-index:9999; display:none; padding:16px; }
+  .notif-panel.open { display:block; }
+  .notif-item { padding:10px; border-bottom:1px solid #eee; font-size:13px; }
+  .notif-item b { color:#dc2626; }
+  .filter-tabs { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .filter-tabs button { padding:8px 14px; border:none; border-radius:8px; background:rgba(0,0,0,.05); cursor:pointer; font-size:13px; font-weight:600; }
+  .filter-tabs button.active { background:#5b8def; color:#fff; }
 </style>
 </head>
 <body class="theme-clay">
 
-<div id="sidebarHandle" class="sidebar-handle">
-  <span class="arrow-icon">›</span>
-</div>
+<div id="sidebarHandle" class="sidebar-handle"><span class="arrow-icon">›</span></div>
 
 <div class="dashboard">
   <aside class="sidebar" id="mainSidebar">
     <div class="side-logo">BM <span>MOBILE ZONE</span></div>
-
     <p class="nav-label">WORKSPACE</p>
     <button class="nav-item active" data-module="overview">▦ Overview</button>
-    <button class="nav-item" data-module="products">▣ Products</button>
     <button class="nav-item" data-module="inventory">▤ Inventory</button>
     <button class="nav-item" data-module="racks">▦ Rack Management</button>
+    <button class="nav-item" data-module="purchases">↙ Purchases / Products</button>
     <button class="nav-item" data-module="sales">↗ Sales / POS</button>
     <button class="nav-item" data-module="repairing">🔧 Repairing</button>
-    <button class="nav-item" data-module="purchases">↙ Purchases</button>
 
     <p class="nav-label">PEOPLE</p>
     <button class="nav-item" data-module="customers">♙ Customers</button>
@@ -43,34 +48,28 @@
     <button class="nav-item" data-module="transactions">⇄ Transactions</button>
 
     <p class="nav-label">SYSTEM</p>
-    <button class="nav-item" data-module="settings">⚙ Staff Settings</button>
+    <button class="nav-item" data-module="settings">⚙ Staff & Logs</button>
 
-    <div class="sidebar-foot">v16.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
+    <div class="sidebar-foot">v23.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
   </aside>
 
   <main class="main">
     <header class="topbar no-print">
-      <div>
-        <h1 id="pageTitle">Dashboard</h1>
-        <p class="sub" id="todayDate"></p>
-      </div>
+      <div><h1 id="pageTitle">Dashboard</h1><p class="sub" id="todayDate"></p></div>
       <div class="user-info">
+        <div class="notif-bell" id="notifBell">🔔<span class="badge" id="notifBadge" style="display:none">0</span></div>
         <div class="avatar" id="userAvatar">B</div>
-        <div class="user-text">
-          <strong id="userName">BM MOBILE ZONE</strong>
-          <small id="userRole">ADMIN</small>
-        </div>
+        <div class="user-text"><strong id="userName">BM MOBILE ZONE</strong><small id="userRole">ADMIN</small></div>
         <button class="logout" id="logoutBtn">Logout</button>
       </div>
     </header>
 
+    <div class="notif-panel" id="notifPanel"></div>
+
     <div class="content">
       <!-- OVERVIEW -->
       <section class="module active" id="module-overview">
-        <div class="welcome clay">
-          <h2>Welcome, <span id="welcomeName">Admin</span> 👋</h2>
-          <p>BM MOBILE ZONE — Chohan Mobile Market Zafarwal · 0345-6613232</p>
-        </div>
+        <div class="welcome clay"><h2>Welcome, <span id="welcomeName">Admin</span> 👋</h2><p>BM MOBILE ZONE — Chohan Mobile Market Zafarwal · 0345-6613232</p></div>
         <div class="stats-row" id="dashStats">
           <div class="stat clay"><div class="stat-icon blue">▣</div><div><strong id="stProducts">—</strong><small>Total Products</small></div></div>
           <div class="stat clay"><div class="stat-icon green">▤</div><div><strong id="stStock">—</strong><small>Stock Units</small></div></div>
@@ -87,69 +86,61 @@
         </div>
       </section>
 
-      <!-- PRODUCTS -->
-      <section class="module" id="module-products">
-        <div class="module-head">
-          <div><h2>Products</h2><p>Manage all products & inventory items</p></div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <div class="search-bar"><input id="productSearch" placeholder="Search products…"></div>
-            <button class="btn btn-primary" id="btnAddProduct">+ Add Product</button>
-          </div>
-        </div>
-        <div class="clay" style="padding:20px">
-          <div class="table-wrap" id="productsTable"><div class="empty">Loading…</div></div>
-        </div>
-      </section>
-
       <!-- INVENTORY -->
       <section class="module" id="module-inventory">
         <div class="module-head"><div><h2>Inventory</h2><p>Stock levels & movement history</p></div></div>
         <div class="clay" style="padding:20px">
           <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Low Stock Alerts</h3>
-          <div class="form-grid" style="margin-bottom:14px">
-            <div class="field"><label>Rack Filter</label><select id="inventoryRackFilter"><option value="">All Racks</option></select></div>
-          </div>
+          <div class="form-grid" style="margin-bottom:14px"><div class="field"><label>Rack Filter</label><select id="inventoryRackFilter"><option value="">All Racks</option></select></div></div>
+          <div class="bulk-bar" id="inventoryBulkBar" style="display:none"><span class="count" id="inventorySelCount">0</span> selected <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()">Delete Selected</button></div>
           <div class="table-wrap" id="lowStockTable"><div class="empty">Loading…</div></div>
         </div>
-        <div class="clay" style="padding:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Stock Movements</h3>
-          <div class="table-wrap" id="movementsTable"><div class="empty">Loading…</div></div>
-        </div>
+        <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Stock Movements</h3><div class="table-wrap" id="movementsTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- RACK MANAGEMENT -->
+      <!-- RACKS -->
       <section class="module" id="module-racks">
         <div class="module-head"><div><h2>Rack Management</h2><p>Create racks and see rack-wise stock</p></div><button class="btn btn-primary" id="btnAddRack">+ Add Rack</button></div>
         <div class="clay" style="padding:20px"><div class="table-wrap" id="racksTable"><div class="empty">Loading…</div></div></div>
         <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Rack-wise Inventory</h3><div class="table-wrap" id="rackStockTable"><div class="empty">Loading…</div></div></div>
       </section>
 
+      <!-- PURCHASES / PRODUCTS (SINGLE SOURCE) -->
+      <section class="module" id="module-purchases">
+        <div class="module-head"><div><h2>Purchases / Products</h2><p>Add products & stock here — auto-syncs to inventory</p></div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-ghost" id="btnPurchasesHistory">📋 Purchase History</button>
+            <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase (F8)</button>
+          </div>
+        </div>
+        <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Current Products (auto-synced from purchases)</h3>
+          <div style="display:flex;gap:10px;margin-bottom:14px">
+            <div class="search-bar" style="flex:1"><input id="productSearch" placeholder="Search products…"></div>
+          </div>
+          <div class="bulk-bar" id="productBulkBar" style="display:none"><span class="count" id="productSelCount">0</span> selected <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()">Delete Selected</button></div>
+          <div class="table-wrap" id="productsTable"><div class="empty">Loading…</div></div>
+        </div>
+        <div class="clay" style="padding:20px;margin-top:20px" id="purchasesHistoryBox" hidden>
+          <div class="module-head" style="margin-bottom:14px"><div><h2>Purchase History</h2><p>All past purchase entries</p></div><button class="btn btn-ghost" id="btnRefreshPurchases">↻ Refresh</button></div>
+          <div class="table-wrap" id="purchasesTable"><div class="empty">Loading…</div></div>
+        </div>
+      </section>
+
       <!-- SALES / POS -->
       <section class="module" id="module-sales">
-        <div class="module-head">
-          <div><h2>New Sale</h2><p>Point of sale billing</p></div>
-          <button class="btn btn-ghost" id="btnSalesHistory">📋 Sales History</button>
-        </div>
-
+        <div class="module-head"><div><h2>New Sale</h2><p>Point of sale billing</p></div><button class="btn btn-ghost" id="btnSalesHistory">📋 Sales History</button></div>
         <div class="pos-grid">
           <div class="clay" style="padding:22px">
             <div class="form-grid">
               <div class="field"><label>Customer Name</label><input id="saleCustName" list="posCustomerOptions" placeholder="Search / add customer"><datalist id="posCustomerOptions"></datalist></div>
               <div class="field"><label>Customer Phone</label><input id="saleCustPhone" placeholder="03xx-xxxxxxx"></div>
               <div class="field full" id="previousDueBox" style="display:none;padding:10px;background:rgba(245,158,66,.12);border-radius:8px"><b>Previous Pending Payment:</b> <span id="previousDueAmount">PKR 0</span></div>
-              
-              <div class="field full">
-                <label>Filter Category</label>
-                <select id="saleCategoryFilter" onchange="filterPosProducts()">
-                  <option value="">— All Categories —</option>
-                </select>
-              </div>
-
+              <div class="field full"><label>Filter Category</label><select id="saleCategoryFilter" onchange="filterPosProducts()"><option value="">— All Categories —</option></select></div>
               <div class="field full"><label>Select Product</label><select id="saleProductSelect"><option value="">— Choose product —</option></select></div>
             </div>
             <button class="btn btn-primary" style="margin-top:14px" id="btnAddToCart">+ Add to Cart (F2)</button>
           </div>
-
           <div class="clay" style="padding:22px">
             <h3 style="font-size:14px;font-weight:800;margin-bottom:12px">Cart</h3>
             <div id="cartItems" style="max-height:260px;overflow-y:auto"><div class="empty">Cart is empty</div></div>
@@ -162,12 +153,8 @@
             <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" id="btnSaveSale">💾 Save Sale (F4)</button>
           </div>
         </div>
-
         <div class="clay" style="padding:22px;margin-top:20px" id="salesHistoryBox" hidden>
-          <div class="module-head" style="margin-bottom:14px">
-            <div><h2>Sales History</h2><p>All past sale transactions</p></div>
-            <button class="btn btn-ghost" id="btnRefreshSales">↻ Refresh</button>
-          </div>
+          <div class="module-head" style="margin-bottom:14px"><div><h2>Sales History</h2><p>All past sale transactions</p></div><button class="btn btn-ghost" id="btnRefreshSales">↻ Refresh</button></div>
           <div class="table-wrap" id="salesHistoryTable"><div class="empty">Loading…</div></div>
         </div>
       </section>
@@ -184,22 +171,10 @@
         </div>
       </section>
 
-      <!-- PURCHASES -->
-      <section class="module" id="module-purchases">
-        <div class="module-head"><div><h2>Purchases</h2><p>Stock intake from suppliers</p></div><button class="btn btn-primary" id="btnNewPurchase">+ New Purchase (F8)</button></div>
-        <div class="clay" style="padding:20px"><div class="table-wrap" id="purchasesTable"><div class="empty">Loading…</div></div></div>
-      </section>
-
       <!-- CUSTOMERS -->
       <section class="module" id="module-customers">
-        <div class="module-head">
-          <div><h2>Customers</h2><p>All registered customers</p></div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <div class="search-bar"><input id="custSearch" placeholder="Search customers…"></div>
-            <button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button>
-          </div>
-        </div>
-        <div class="clay" style="padding:20px"><div class="table-wrap" id="customersTable"><div class="empty">Loading…</div></div></div>
+        <div class="module-head"><div><h2>Customers</h2><p>All registered customers</p></div><div style="display:flex;gap:10px;align-items:center"><div class="search-bar"><input id="custSearch" placeholder="Search customers…"></div><button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button></div></div>
+        <div class="clay" style="padding:20px"><div class="bulk-bar" id="custBulkBar" style="display:none"><span class="count" id="custSelCount">0</span> selected <button class="btn btn-danger btn-sm" onclick="bulkDeleteCustomers()">Delete Selected</button></div><div class="table-wrap" id="customersTable"><div class="empty">Loading…</div></div></div>
       </section>
 
       <!-- SUPPLIERS -->
@@ -211,15 +186,26 @@
       <!-- CREDIT / UDHAR -->
       <section class="module" id="module-credit">
         <div class="module-head">
-          <div><h2>Credit / Udhar Management</h2><p>Name-wise outstanding balances & recovery</p></div>
+          <div><h2>Credit / Udhar Management</h2><p>Customer-wise outstanding, recovery & printing</p></div>
           <button class="btn btn-ghost" id="btnPrintCreditAll">🖨 Print All Udhar</button>
+        </div>
+        <div class="filter-tabs" id="creditDateTabs">
+          <button data-range="all" class="active">All</button>
+          <button data-range="today">Today</button>
+          <button data-range="week">This Week</button>
+          <button data-range="month">This Month</button>
+        </div>
+        <div class="filter-tabs" id="creditStatusTabs">
+          <button data-status="all" class="active">All</button>
+          <button data-status="pending">Pending</button>
+          <button data-status="received">Received</button>
         </div>
         <div class="clay" style="padding:20px">
           <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Customer-wise Udhar Summary</h3>
           <div class="table-wrap" id="creditSummaryTable"><div class="empty">Loading…</div></div>
         </div>
         <div class="clay" style="padding:20px">
-          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">All Outstanding Invoices</h3>
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Outstanding Invoices</h3>
           <div class="table-wrap" id="creditTable"><div class="empty">Loading…</div></div>
         </div>
         <div class="clay" style="padding:20px"><h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Recent Credit Recoveries</h3><div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div></div>
@@ -227,10 +213,7 @@
 
       <!-- EXPENSES -->
       <section class="module" id="module-expenses">
-        <div class="module-head">
-          <div><h2>Expenses</h2><p>Date-wise expense tracking with categories</p></div>
-          <button class="btn btn-primary" id="btnAddExpense">+ Add Expense (F9)</button>
-        </div>
+        <div class="module-head"><div><h2>Expenses</h2><p>Date-wise expense tracking with categories</p></div><button class="btn btn-primary" id="btnAddExpense">+ Add Expense (F9)</button></div>
         <div class="stats-row" id="expenseStats">
           <div class="stat clay"><div class="stat-icon orange">▥</div><div><strong id="expToday">—</strong><small>Today</small></div></div>
           <div class="stat clay"><div class="stat-icon purple">▨</div><div><strong id="expWeek">—</strong><small>This Week</small></div></div>
@@ -248,27 +231,17 @@
         </div>
       </section>
 
-      <!-- COMBINED REPORTS & P&L -->
+      <!-- REPORTS -->
       <section class="module" id="module-reports">
         <div class="module-head"><div><h2>Reports & Profit / Loss</h2><p>Verify sales, purchases, and item-wise profit</p></div></div>
         <div class="clay" style="padding:22px">
           <div class="form-grid">
             <div class="field"><label>Report Type</label><select id="reportType">
-              <option value="sales">Sales Report</option>
-              <option value="purchases">Purchase Report</option>
-              <option value="expenses">Expense Report</option>
-              <option value="pl">Profit & Loss (Item-wise)</option>
-              <option value="customer">Customer Report</option>
-              <option value="repairing">Repairing Report</option>
-            </select></div>
-            <div class="field"><label>Period</label><select id="reportPeriod"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option><option value="custom">Custom Range</option></select></div>
+              <option value="sales">Sales Report</option><option value="purchases">Purchase Report</option><option value="expenses">Expense Report</option><option value="pl">Profit & Loss (Item-wise)</option><option value="customer">Customer Report</option><option value="repairing">Repairing Report</option></select></div>
             <div class="field"><label>From Date</label><input type="date" id="reportFrom"></div>
             <div class="field"><label>To Date</label><input type="date" id="reportTo"></div>
-            <div class="field full"><label>Search (Customer Name, Product, Invoice, etc.)</label><input id="reportSearch" placeholder="Type to filter..."></div>
-            <div class="field full" style="display:flex;gap:10px;justify-content:flex-end">
-              <button class="btn btn-primary" id="btnRunReport">Run Report</button>
-              <button class="btn btn-ghost" id="btnPrintReport">🖨 Print Report</button>
-            </div>
+            <div class="field full"><label>Search</label><input id="reportSearch" placeholder="Type to filter..."></div>
+            <div class="field full" style="display:flex;gap:10px;justify-content:flex-end"><button class="btn btn-primary" id="btnRunReport">Run Report</button><button class="btn btn-ghost" id="btnPrintReport">🖨 Print Report</button></div>
           </div>
         </div>
         <div id="plSummary" class="stats-row" style="margin-top:20px; display:none;"></div>
@@ -283,20 +256,22 @@
 
       <!-- STAFF / SETTINGS -->
       <section class="module" id="module-settings">
-        <div class="module-head">
-          <div><h2>Staff Management</h2><p>Generate Staff ID and control their access permissions</p></div>
-          <button class="btn btn-primary" id="btnAddStaff">+ Generate Staff ID</button>
-        </div>
+        <div class="module-head"><div><h2>Staff Management</h2><p>Generate Staff ID, edit permissions & view activity logs</p></div><button class="btn btn-primary" id="btnAddStaff">+ Generate Staff ID</button></div>
         <div class="clay" style="padding:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">Staff Members</h3>
           <div class="table-wrap" id="staffTable"><div class="empty">Loading…</div></div>
+        </div>
+        <div class="clay" style="padding:20px;margin-top:20px">
+          <h3 style="font-size:14px;font-weight:800;margin-bottom:14px">📜 Activity Logs (Kon sa staff kya kar raha hai)</h3>
+          <div class="table-wrap" id="activityLogTable"><div class="empty">Loading…</div></div>
         </div>
         <div class="clay" style="padding:22px; margin-top:20px">
           <h3 style="font-size:14px;font-weight:800;margin-bottom:10px">💡 Staff Permissions Guide</h3>
           <ul style="font-size:13px; color:var(--muted); line-height:1.6; padding-left:20px;">
-            <li><b>Staff ID 01 (Admin):</b> Full Access (Can Add, Edit, Delete anything).</li>
-            <li><b>Can Edit:</b> If checked, the staff can modify existing records (Products, Sales, Customers, etc).</li>
-            <li><b>Can Delete:</b> If checked, the staff can delete records from the system.</li>
-            <li>If both are unchecked, the staff can only add new records (e.g., make new sales) but cannot modify or delete past data.</li>
+            <li><b>Staff ID 01 (Admin):</b> Full Access.</li>
+            <li><b>Can Edit:</b> Modify existing records.</li>
+            <li><b>Can Delete:</b> Delete records.</li>
+            <li>If both unchecked, staff can only add new records.</li>
           </ul>
         </div>
       </section>
@@ -305,17 +280,7 @@
   </main>
 </div>
 
-<div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal">
-    <h3 id="modalTitle">Modal</h3>
-    <div id="modalBody"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
-      <button class="btn btn-primary" id="modalConfirm">Save</button>
-    </div>
-  </div>
-</div>
-
+<div class="modal-backdrop" id="modalBackdrop"><div class="modal"><h3 id="modalTitle">Modal</h3><div id="modalBody"></div><div class="modal-actions"><button class="btn btn-ghost" id="modalCancel">Cancel</button><button class="btn btn-primary" id="modalConfirm">Save</button></div></div></div>
 <div class="toast-host" id="toastHost"></div>
 
 <script type="module" src="js/dashboard.js"></script>
