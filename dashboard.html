@@ -148,9 +148,12 @@
   .log-row{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;display:grid;grid-template-columns:160px 120px 100px 1fr;gap:12px;align-items:center}
   .log-row:last-child{border-bottom:none}
 
-  .purchase-item-row{display:grid;grid-template-columns:2fr 1.2fr 1fr 60px 80px 80px 120px 120px 36px;gap:6px;margin-bottom:8px;align-items:center;padding:10px;background:#fafbfd;border-radius:9px;border:1px solid var(--border)}
-  @media(max-width:900px){.purchase-item-row{grid-template-columns:1fr 1fr;gap:8px}.purchase-item-row button{grid-column:span 2}}
+  /* ✅ UPDATED: 10-column purchase item row with Rack */
+  .purchase-item-row{display:grid;grid-template-columns:2fr 1.2fr 1fr 60px 80px 80px 120px 120px 100px 36px;gap:6px;margin-bottom:8px;align-items:center;padding:10px;background:#fafbfd;border-radius:9px;border:1px solid var(--border)}
+  @media(max-width:1100px){.purchase-item-row{grid-template-columns:1fr 1fr;gap:8px}.purchase-item-row button{grid-column:span 2}}
   .purchase-item-row input,.purchase-item-row select{padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:#fff;width:100%}
+  .purchase-item-row .row-header{background:transparent;border:none;font-size:11px;font-weight:800;color:var(--muted);padding:0 10px;margin-bottom:6px;display:grid;grid-template-columns:2fr 1.2fr 1fr 60px 80px 80px 120px 120px 100px 36px;gap:6px;align-items:center;text-transform:uppercase;letter-spacing:.4px}
+  @media(max-width:1100px){.purchase-item-row .row-header{display:none}}
 
   .kbd{display:inline-block;padding:2px 6px;border-radius:4px;background:#f0f2f7;border:1px solid var(--border);font-family:monospace;font-size:10px;font-weight:700;color:var(--text)}
 
@@ -201,7 +204,7 @@
     <p class="nav-label">System</p>
     <button class="nav-item" data-module="settings">⚙ Staff & Logs <span class="kbd-badge">Alt+,</span></button>
 
-    <div class="sidebar-foot">v30.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
+    <div class="sidebar-foot">v31.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
   </aside>
 
   <main class="main">
@@ -220,6 +223,7 @@
     <div class="notif-panel" id="notifPanel"></div>
 
     <div class="content">
+      <!-- OVERVIEW -->
       <section class="module active" id="module-overview">
         <div class="clay" style="padding:24px;background:linear-gradient(135deg,#4f7cff,#7c5cff);color:#fff;border:none">
           <h2 style="margin:0 0 6px;font-size:22px">Welcome, <span id="welcomeName">Admin</span> 👋</h2>
@@ -241,8 +245,9 @@
         </div>
       </section>
 
+      <!-- INVENTORY -->
       <section class="module" id="module-inventory">
-        <div class="module-head"><div><h2>Inventory</h2><p>Stock levels & movement history</p></div></div>
+        <div class="module-head"><div><h2>Inventory</h2><p>Stock levels & movement history with rack tracking</p></div></div>
         <div class="clay" style="padding:20px">
           <div class="module-head" style="margin-bottom:14px"><h3 style="font-size:14px;margin:0">Low Stock Alerts</h3></div>
           <div class="form-grid" style="margin-bottom:14px"><div class="field"><label>Rack Filter</label><select id="inventoryRackFilter"><option value="">All Racks</option></select></div></div>
@@ -255,14 +260,16 @@
         </div>
       </section>
 
+      <!-- RACKS -->
       <section class="module" id="module-racks">
-        <div class="module-head"><div><h2>Rack Management</h2><p>Create racks and see rack-wise stock</p></div><button class="btn btn-primary" id="btnAddRack">+ Add Rack</button></div>
+        <div class="module-head"><div><h2>Rack Management</h2><p>Create racks, view rack-wise stock & product counts</p></div><button class="btn btn-primary" id="btnAddRack">+ Add Rack</button></div>
         <div class="clay" style="padding:20px"><div class="table-wrap" id="racksTable"><div class="empty">Loading…</div></div></div>
         <div class="clay" style="padding:20px"><h3 style="font-size:14px;margin:0 0 14px">Rack-wise Inventory</h3><div class="table-wrap" id="rackStockTable"><div class="empty">Loading…</div></div></div>
       </section>
 
+      <!-- PURCHASES -->
       <section class="module" id="module-purchases">
-        <div class="module-head"><div><h2>Purchases / Products</h2><p>Single source of truth — auto-syncs to inventory</p></div>
+        <div class="module-head"><div><h2>Purchases / Products</h2><p>Single source of truth — auto-syncs to inventory with rack assignment</p></div>
           <div style="display:flex;gap:10px">
             <button class="btn btn-ghost" id="btnPurchasesHistory">📋 Purchase History</button>
             <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase <span class="kbd">F8</span></button>
@@ -282,6 +289,7 @@
         </div>
       </section>
 
+      <!-- SALES -->
       <section class="module" id="module-sales">
         <div class="module-head">
           <div><h2>New Sale</h2><p>Point of sale billing — F2 add, F4 save, Esc cancel</p></div>
@@ -314,7 +322,7 @@
             </div>
             <div class="cart-total grand"><span>Total</span><span id="cartTotal">0</span></div>
             <div class="field" style="margin-top:8px"><label>Paid Amount</label><input id="salePaid" type="number" value="0" min="0"></div>
-            <div class="field"><label>Payment Method</label><select id="salePaymentMethod"><option value="cash">Cash</option><option value="bank">Bank Transfer</option><option value="other">Other</option></select></div>
+            <div class="field"><label>Payment Method</label><select id="salePaymentMethod"><option value="cash">Cash</option><option value="bank">Bank Transfer</option><option value="easypaisa">EasyPaisa</option><option value="jazzcash">JazzCash</option><option value="other">Other</option></select></div>
             <div id="udharWarning" style="display:none;margin-top:10px;padding:10px;background:#fff4e0;border-left:3px solid #f59e0b;border-radius:6px;font-size:12px;color:#b45309">⚠️ Due amount will be saved to Credit / Udhar.</div>
             <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" id="btnSaveSale">💾 Save Sale <span class="kbd">F4</span></button>
           </div>
@@ -325,6 +333,7 @@
         </div>
       </section>
 
+      <!-- REPAIRING -->
       <section class="module" id="module-repairing">
         <div class="module-head"><div><h2>Repairing</h2><p>Repair jobs, advance / due payments and Urdu receipts</p></div><button class="btn btn-primary" id="btnAddRepair">+ New Repair Slip</button></div>
         <div class="clay" style="padding:20px">
@@ -336,6 +345,7 @@
         </div>
       </section>
 
+      <!-- CUSTOMERS -->
       <section class="module" id="module-customers">
         <div class="module-head"><div><h2>Customers</h2><p>All registered customers</p></div><div style="display:flex;gap:10px;align-items:center"><div class="search-bar"><input id="custSearch" placeholder="Search customers…"></div><button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button></div></div>
         <div class="clay" style="padding:20px">
@@ -344,6 +354,7 @@
         </div>
       </section>
 
+      <!-- SUPPLIERS -->
       <section class="module" id="module-suppliers">
         <div class="module-head">
           <div><h2>Suppliers</h2><p>Vendors, payable balances & purchase history</p></div>
@@ -358,6 +369,7 @@
         </div>
       </section>
 
+      <!-- CREDIT -->
       <section class="module" id="module-credit">
         <div class="module-head"><div><h2>Credit / Udhar Management</h2><p>Customer-wise outstanding, recovery & printing</p></div><button class="btn btn-ghost" id="btnPrintCreditAll">🖨 Print All Udhar</button></div>
         <div class="filter-tabs" id="creditDateTabs">
@@ -382,6 +394,7 @@
         <div class="clay" style="padding:20px"><h3 style="font-size:14px;margin:0 0 14px">Recent Credit Recoveries</h3><div class="table-wrap" id="recoveriesTable"><div class="empty">Loading…</div></div></div>
       </section>
 
+      <!-- EXPENSES -->
       <section class="module" id="module-expenses">
         <div class="module-head"><div><h2>Expenses</h2><p>Date-wise expense tracking with categories</p></div><button class="btn btn-primary" id="btnAddExpense">+ Add Expense <span class="kbd">F9</span></button></div>
         <div class="stats-row">
@@ -401,6 +414,7 @@
         </div>
       </section>
 
+      <!-- REPORTS -->
       <section class="module" id="module-reports">
         <div class="module-head"><div><h2>Reports & Profit / Loss</h2><p>Verify sales, purchases, and item-wise profit</p></div></div>
         <div class="clay" style="padding:22px">
@@ -426,11 +440,13 @@
         <div class="clay" style="padding:20px;margin-top:20px"><div id="reportOutput"><div class="empty">Select a report type and click "Run Report".</div></div></div>
       </section>
 
+      <!-- TRANSACTIONS -->
       <section class="module" id="module-transactions">
         <div class="module-head"><div><h2>Transactions</h2><p>Unified money-in / money-out ledger</p></div></div>
         <div class="clay" style="padding:20px"><div class="table-wrap" id="transactionsTable"><div class="empty">Loading…</div></div></div>
       </section>
 
+      <!-- SETTINGS -->
       <section class="module" id="module-settings">
         <div class="module-head"><div><h2>Staff Management</h2><p>Generate Staff ID, edit permissions & view activity logs</p></div><button class="btn btn-primary" id="btnAddStaff">+ Generate Staff ID</button></div>
         <div class="clay" style="padding:20px">
