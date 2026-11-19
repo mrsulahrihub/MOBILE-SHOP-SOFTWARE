@@ -1,5 +1,7 @@
 // =====================================================
-// BISMILLAH MOBILE ZONE — Dashboard
+// BISMILLAH MOBILE ZONE — Dashboard Controller v33.1
+// Features: Super Admin Permissions (Strict), Fixed Staff Logs, 
+// Print Fixes, Search, Racks, Auto-fill.
 // =====================================================
 import { supabase } from './config.js';
 
@@ -8,6 +10,7 @@ import { supabase } from './config.js';
 // ---------------------------------------------------
 const SESSION = JSON.parse(localStorage.getItem('bm_staff') || '{}');
 const SHOP_ID = localStorage.getItem('shop_id');
+const PERMS_STR = localStorage.getItem('bm_shop_perms');
 
 if (!SHOP_ID && (!SESSION || !SESSION.staff_id)) {
   window.location.replace('./login.html');
@@ -21,7 +24,7 @@ const CURRENT_NAME = SESSION.name || 'Admin';
 // =====================================================
 // SHOP PERMISSIONS LOAD (For Super Admin Restrictions)
 // =====================================================
-const SHOP_PERMS = JSON.parse(localStorage.getItem('bm_shop_perms') || '{}');
+const SHOP_PERMS = JSON.parse(PERMS_STR || '{}');
 
 document.getElementById('userName').textContent = CURRENT_NAME || localStorage.getItem('owner_name') || 'BM MOBILE ZONE';
 document.getElementById('userRole').textContent = (SESSION.role || 'ADMIN').toUpperCase();
@@ -58,14 +61,10 @@ function toast(msg, type = 'info') {
   setTimeout(() => el.remove(), 3800);
 }
 
-// ✅ FIXED: Activity Log Function with better Error Handling
 async function logActivity(action, module, details = '') {
   try {
     const { error } = await supabase.from('activity_log').insert({
-      staff_id: CURRENT_STAFF, 
-      staff_name: CURRENT_NAME, 
-      action, 
-      module,
+      staff_id: CURRENT_STAFF, staff_name: CURRENT_NAME, action, module,
       details: String(details).slice(0, 500)
     });
     if (error) console.warn('Activity log DB error:', error.message);
@@ -79,7 +78,7 @@ async function logActivity(action, module, details = '') {
 // ---------------------------------------------------
 let CATEGORIES = ['Mobile Phones', 'Mobile Accessories', 'Chargers & Cables', 'Handsfree & Audio', 'Batteries', 'Memory & Storage', 'Mobile Parts', 'Covers', 'Tempered Glass', 'Repairing Tools'];
 let BRANDS = ['Samsung', 'Apple', 'Xiaomi', 'Oppo', 'Vivo', 'Infinix', 'Tecno', 'Nokia', 'Huawei', 'Realme', 'OnePlus', 'Other'];
-let ALL_PRODUCTS = []; // Global cache
+let ALL_PRODUCTS = []; 
 
 // =====================================================
 // SHOP SETTINGS
@@ -96,7 +95,7 @@ async function loadShopSettings() {
 }
 
 // =====================================================
-// PRINT FUNCTIONS (Thermal & A4) - FIXED NaN ISSUES
+// PRINT FUNCTIONS (Thermal & A4)
 // =====================================================
 function urduTermsBlock(type = 'sale') {
   const common = `<div>• براہِ کرم مال کاؤنٹر پر چیک کریں۔</div><div>• پھولی ہوئی بیٹری کی کوئی وارنٹی نہیں ہے۔</div><div>• بیٹری کی وارنٹی صرف 2 دن ہوگی۔</div><div>• استعمال شدہ Accessories واپس یا تبدیل نہیں ہوں گی۔</div>`;
@@ -147,7 +146,7 @@ function printA4Premium(data, type = 'sale') {
 window.printA4Premium = printA4Premium;
 
 // =====================================================
-// SIDEBAR & NAVIGATION (With Super Admin Permissions)
+// SIDEBAR & NAVIGATION (Strict Permissions)
 // =====================================================
 const sidebar = document.getElementById('mainSidebar');
 const handle = document.getElementById('sidebarHandle');
@@ -166,8 +165,8 @@ if (handle) {
 const MODULE_TITLES = { overview: 'Dashboard', inventory: 'Inventory', racks: 'Racks', purchases: 'Purchases / Products', sales: 'Sales / POS', repairing: 'Repairing', customers: 'Customers', suppliers: 'Suppliers', credit: 'Credit / Udhar', expenses: 'Expenses', reports: 'Reports & P&L', transactions: 'Transactions', settings: 'Staff & Logs' };
 const MODULE_KEYS = { o: 'overview', i: 'inventory', k: 'racks', u: 'purchases', l: 'sales', r: 'repairing', c: 'customers', s: 'suppliers', d: 'credit', e: 'expenses', p: 'reports', t: 'transactions', ',': 'settings' };
 
-function navTo(mod) {
-  // 🛑 SUPER ADMIN PERMISSION CHECK 🛑
+// ✅ STRICT PERMISSION CHECK
+function hasAccess(mod) {
   const permsMap = {
     sales: 'allow_pos',
     inventory: 'allow_inventory',
@@ -182,13 +181,32 @@ function navTo(mod) {
     transactions: 'allow_transactions',
     settings: 'allow_staff'
   };
-  
   const permKey = permsMap[mod];
+  // Agar permission ka key mojood hai aur uski value false hai
   if (permKey && SHOP_PERMS[permKey] === false) {
+    return false;
+  }
+  return true;
+}
+
+function navTo(mod) {
+  // 1. Check Permissions
+  if (!hasAccess(mod)) {
     toast('Access Denied: You do not have permission to use this section. Please contact MS.Tech.', 'error');
-    return; // Stop navigation
+    return; // Stop Navigation
   }
 
+  // 2. Hide Sidebar Menu Items visually if no access
+  document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
+    const m = btn.dataset.module;
+    if (m && !hasAccess(m) && m !== 'overview') {
+      btn.style.display = 'none'; // Hide from sidebar
+    } else {
+      btn.style.display = 'flex';
+    }
+  });
+
+  // 3. Navigate
   const btn = document.querySelector(`.nav-item[data-module="${mod}"]`);
   if (!btn) return;
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -236,7 +254,7 @@ document.addEventListener('keydown', e => {
     if (e.key === 'F1') { e.preventDefault(); showShortcutHelp(); }
     if (e.key === 'F2') { e.preventDefault(); $('btnAddToCart')?.click(); }
     if (e.key === 'F4') { e.preventDefault(); $('btnSaveSale')?.click(); }
-    if (e.key === 'F5') { e.preventDefault(); const active = document.querySelector('.module.active')?.id.replace('module-', ''); if (active) loadModule(active); toast('Refreshed', 'info'); }
+    if (e.key === 'F5') { e.preventDefault(); const active = document.querySelector('.module.active')?.id.replace('module-', ''); if (active) navTo(active); toast('Refreshed', 'info'); }
     if (e.key === 'F8') { e.preventDefault(); $('btnNewPurchase')?.click(); }
     if (e.key === 'F9') { e.preventDefault(); $('btnAddExpense')?.click(); }
     if (e.key === 'F10') { e.preventDefault(); $('btnAddRepair')?.click(); }
@@ -262,19 +280,9 @@ function openModal(title, bodyHTML, onConfirm, confirmLabel = 'Save', isFullscre
   
   const modalEl = document.querySelector('.modal');
   if (isFullscreen) {
-    modalEl.style.maxWidth = '100%';
-    modalEl.style.width = '100vw';
-    modalEl.style.height = '100vh';
-    modalEl.style.maxHeight = '100vh';
-    modalEl.style.borderRadius = '0';
-    document.querySelector('.modal-backdrop').style.padding = '0';
+    modalEl.style.maxWidth = '100%'; modalEl.style.width = '100vw'; modalEl.style.height = '100vh'; modalEl.style.maxHeight = '100vh'; modalEl.style.borderRadius = '0'; document.querySelector('.modal-backdrop').style.padding = '0';
   } else {
-    modalEl.style.maxWidth = '900px';
-    modalEl.style.width = '100%';
-    modalEl.style.height = 'auto';
-    modalEl.style.maxHeight = '90vh';
-    modalEl.style.borderRadius = 'var(--radius-lg)';
-    document.querySelector('.modal-backdrop').style.padding = '20px';
+    modalEl.style.maxWidth = '900px'; modalEl.style.width = '100%'; modalEl.style.height = 'auto'; modalEl.style.maxHeight = '90vh'; modalEl.style.borderRadius = 'var(--radius-lg)'; document.querySelector('.modal-backdrop').style.padding = '20px';
   }
 
   $('modalBackdrop').classList.add('open');
@@ -1204,11 +1212,15 @@ async function loadTransactions() {
 // =====================================================
 (async function init() {
   await loadShopSettings();
-  
-  // ✅ Log current login activity immediately
   await logActivity('LOGIN', 'system', `Staff ${CURRENT_NAME} logged in`);
-
   await loadOverview();
+  
+  // Hide sidebar buttons if no access
+  document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
+    const m = btn.dataset.module;
+    if (m && !hasAccess(m) && m !== 'overview') btn.style.display = 'none';
+  });
+
   const active = document.querySelector('.nav-item.active')?.dataset.module || 'overview';
   navTo(active);
 })();
