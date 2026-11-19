@@ -1,36 +1,28 @@
 /* =====================================================
-   BM MOBILE ZONE — LOGIN CSS (Premium Blue & Black Glass)
-   Theme: Glassmorphism, High Contrast Text, Premium UI
+   BM MOBILE ZONE — LOGIN CSS (Premium Glassmorphism)
+   Screen Fit, Blue & Black Theme, 0% Blur Text
 ===================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Blue & Black Theme */
-  --bg-main: #05070a;         /* Deep Black/Navy Background */
-  --bg-card: rgba(15, 23, 42, 0.6); /* Semi-transparent Navy for Glass */
-  --bg-input: rgba(0, 0, 0, 0.4);   /* Dark Inputs */
+  --bg-main: #05070a;       /* Deep Black/Navy */
+  --bg-glass: rgba(15, 23, 42, 0.6); /* Glass Panel */
   
-  --primary: #3B82F6;         /* Premium Blue */
-  --primary-hover: #60A5FA;   /* Light Blue */
-  --primary-glow: rgba(59, 130, 246, 0.5);
+  --primary: #3B82F6;       /* Bright Blue */
+  --primary-hover: #60A5FA;
   --primary-gradient: linear-gradient(135deg, #2563EB, #3B82F6, #60A5FA);
   
-  --text-main: #F8FAFC;       /* Pure White for Sharp Text */
-  --text-muted: #94A3B8;      /* Soft Grey */
+  --text-main: #FFFFFF;
+  --text-muted: #94A3B8;
   
-  --border-color: rgba(255, 255, 255, 0.1); /* Subtle Glass Border */
+  --border-glass: rgba(255, 255, 255, 0.08);
   --border-focus: rgba(59, 130, 246, 0.6);
   
   --danger: #EF4444;
   --success: #10B981;
   
-  --radius-lg: 24px;
-  --radius-md: 12px;
-  
-  --shadow-glass: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(59, 130, 246, 0.1);
-  --shadow-btn: 0 8px 20px rgba(59, 130, 246, 0.3);
-  
-  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --radius: 20px;
+  --shadow-glass: 0 20px 40px rgba(0, 0, 0, 0.6);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -39,44 +31,40 @@ body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
+  
+  /* Fit to Screen */
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow-x: hidden;
-  padding: 24px;
+  padding: 20px;
+  overflow: hidden; /* Prevent Scroll */
   
-  /* Background Glow Effects */
+  /* Background Glow */
   background-image: 
     radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 90% 90%, rgba(37, 99, 235, 0.1) 0%, transparent 40%);
-  
-  /* Sharp Text Settings */
+    radial-gradient(circle at 90% 90%, rgba(37, 99, 235, 0.15) 0%, transparent 40%);
+    
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
 /* =====================================================
-   APP SHELL (Main Glass Container)
+   MAIN APP SHELL (Glassmorphism)
 ===================================================== */
 .app-shell {
-  position: relative;
   width: min(1100px, 100%);
-  min-height: 680px;
+  height: min(650px, 95vh); /* Fits screen perfectly */
   display: grid;
   grid-template-columns: 1fr 1fr;
   
-  /* Glassmorphism Effect */
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-glass);
   box-shadow: var(--shadow-glass);
   overflow: hidden;
-  z-index: 10;
 }
 
 /* =====================================================
@@ -84,16 +72,15 @@ body {
 ===================================================== */
 .visual-panel {
   background: linear-gradient(160deg, rgba(10, 15, 30, 0.8), rgba(5, 7, 10, 0.9));
-  padding: 48px;
+  padding: 40px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-glass);
   position: relative;
   overflow: hidden;
 }
 
-/* Decorative Ring */
 .visual-panel::after {
   content: '';
   position: absolute;
@@ -103,7 +90,7 @@ body {
   border-radius: 50%;
   bottom: -200px;
   right: -200px;
-  box-shadow: inset 0 0 60px rgba(59, 130, 246, 0.1);
+  box-shadow: inset 0 0 80px rgba(59, 130, 246, 0.1);
   pointer-events: none;
 }
 
@@ -119,36 +106,34 @@ body {
   width: 48px;
   height: 48px;
   background: var(--primary-gradient);
-  border-radius: 14px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   font-size: 22px;
   font-weight: 800;
   color: #fff;
-  box-shadow: 0 4px 15px var(--primary-glow);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
 .brand-text {
   font-size: 20px;
   font-weight: 800;
   color: #fff;
-  letter-spacing: -0.5px;
 }
 .brand-text span { color: var(--primary); }
 
 .hero {
-  margin: 40px 0;
+  margin: 20px 0;
   position: relative;
   z-index: 2;
 }
 
 .hero h1 {
-  font-size: 38px;
+  font-size: 34px;
   font-weight: 800;
   line-height: 1.2;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   color: #fff;
-  letter-spacing: -1px;
 }
 
 .hero h1 span {
@@ -157,12 +142,7 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-.hero p {
-  font-size: 15px;
-  color: var(--text-muted);
-  line-height: 1.7;
-}
-
+/* Features */
 .features-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -173,10 +153,10 @@ body {
 
 .feature-box {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  transition: var(--transition);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  padding: 16px;
+  transition: 0.3s;
 }
 
 .feature-box:hover {
@@ -185,30 +165,30 @@ body {
 }
 
 .feature-box i {
-  font-size: 20px;
+  font-size: 18px;
   color: var(--primary);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   display: block;
 }
 
 .feature-box h3 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .feature-box p {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .visual-footer {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  border-top: 1px solid var(--border-color);
-  padding-top: 20px;
+  border-top: 1px solid var(--border-glass);
+  padding-top: 16px;
   position: relative;
   z-index: 2;
 }
@@ -217,7 +197,7 @@ body {
    RIGHT LOGIN PANEL
 ===================================================== */
 .login-panel {
-  padding: 48px;
+  padding: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,11 +207,11 @@ body {
 .login-card {
   width: 100%;
   max-width: 380px;
-  /* Solid dark background for text sharpness inside glass shell */
+  /* Solid background ensures text is razor sharp */
   background: rgba(10, 15, 25, 0.95); 
   padding: 32px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-glass);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
@@ -240,20 +220,19 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 .login-header {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   text-align: center;
 }
 
 .login-header h2 {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
   color: #fff;
-  margin-bottom: 8px;
-  letter-spacing: -0.5px;
+  margin-bottom: 6px;
 }
 
 .login-header p {
@@ -262,47 +241,41 @@ body {
 }
 
 /* =====================================================
-   FORM ELEMENTS (Sharp & Clear)
+   FORM INPUTS
 ===================================================== */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .form-label {
   display: block;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .input-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 0 16px;
-  height: 52px;
-  transition: var(--transition);
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-glass);
+  border-radius: 10px;
+  padding: 0 14px;
+  height: 48px;
+  transition: 0.3s;
 }
 
 .input-wrapper:focus-within {
-  border-color: var(--border-focus);
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-  background: rgba(0, 0, 0, 0.6);
 }
 
 .input-icon {
   color: var(--text-muted);
-  font-size: 16px;
-  margin-right: 12px;
-  transition: color 0.3s;
-}
-
-.input-wrapper:focus-within .input-icon {
-  color: var(--primary);
+  font-size: 14px;
+  margin-right: 10px;
 }
 
 .input-field {
@@ -311,7 +284,6 @@ body {
   border: none;
   outline: none;
   color: #fff;
-  font-family: inherit;
   font-size: 14px;
   font-weight: 500;
 }
@@ -320,129 +292,48 @@ body {
   color: #475569;
 }
 
-.toggle-password {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-size: 16px;
-  padding: 4px;
-  transition: var(--transition);
-}
-
-.toggle-password:hover {
-  color: var(--primary);
-}
-
-.form-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 20px 0 24px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.checkbox-label input {
-  accent-color: var(--primary);
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-.forgot-link {
-  font-size: 13px;
-  color: var(--primary);
-  font-weight: 600;
-  text-decoration: none;
-  transition: var(--transition);
-}
-
-.forgot-link:hover {
-  color: var(--primary-hover);
-  text-decoration: underline;
-}
-
 /* =====================================================
-   BUTTONS
+   BUTTONS & ALERTS
 ===================================================== */
 .btn-submit {
   width: 100%;
-  height: 52px;
+  height: 48px;
   background: var(--primary-gradient);
   color: #fff;
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 15px;
+  border-radius: 10px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  box-shadow: var(--shadow-btn);
-  transition: var(--transition);
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+  transition: 0.3s;
 }
 
 .btn-submit:hover {
-  filter: brightness(1.1);
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
 }
 
-.btn-submit:active {
-  transform: translateY(0);
-}
-
-.btn-submit:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* =====================================================
-   ALERTS & MESSAGES
-===================================================== */
 .alert {
-  display: none;
-  padding: 12px 16px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 600;
-  margin-bottom: 20px;
 }
+.alert.error { background: rgba(239, 68, 68, 0.15); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.3); }
+.alert.success { background: rgba(16, 185, 129, 0.15); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.3); }
 
-.alert.error {
-  display: block;
-  background: rgba(239, 68, 68, 0.15);
-  color: #FCA5A5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-.alert.success {
-  display: block;
-  background: rgba(16, 185, 129, 0.15);
-  color: #6EE7B7;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-/* =====================================================
-   SECURITY & SUPPORT
-===================================================== */
 .divider {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin: 24px 0;
+  gap: 12px;
+  margin: 20px 0;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
 }
@@ -451,7 +342,7 @@ body {
   content: "";
   flex: 1;
   height: 1px;
-  background: var(--border-color);
+  background: var(--border-glass);
 }
 
 .security-info {
@@ -459,52 +350,38 @@ body {
   align-items: center;
   gap: 12px;
   background: rgba(255,255,255,0.02);
-  padding: 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-glass);
 }
 
-.security-icon {
-  color: var(--primary);
-  font-size: 20px;
-}
-
-.security-text strong {
-  display: block;
-  font-size: 12px;
-  color: #fff;
-}
-
-.security-text p {
-  font-size: 11px;
-  color: var(--text-muted);
-}
+.security-icon { color: var(--primary); font-size: 18px; }
+.security-text strong { display: block; font-size: 12px; color: #fff; }
+.security-text p { font-size: 10px; color: var(--text-muted); }
 
 .wa-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 16px;
-  padding: 12px;
+  margin-top: 14px;
+  padding: 10px;
   background: rgba(37, 211, 102, 0.1);
   border: 1px solid rgba(37, 211, 102, 0.2);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   color: #25D366;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   text-decoration: none;
-  transition: var(--transition);
+  transition: 0.3s;
 }
 
-.wa-btn:hover {
-  background: rgba(37, 211, 102, 0.2);
-}
+.wa-btn:hover { background: rgba(37, 211, 102, 0.2); }
 
 .login-footer {
-  margin-top: 24px;
+  margin-top: 16px;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
 }
 
@@ -514,23 +391,17 @@ body {
 @media (max-width: 900px) {
   .app-shell {
     grid-template-columns: 1fr;
-    min-height: auto;
+    height: auto;
+    min-height: 100vh;
+    border-radius: 0;
+    border: none;
     background: transparent;
     backdrop-filter: none;
-    border: none;
     box-shadow: none;
   }
-  .visual-panel {
-    display: none;
-  }
-  .login-panel {
-    padding: 16px;
-    background: transparent;
-  }
-  .login-card {
-    padding: 28px 24px;
-  }
-  .mobile-brand {
-    display: flex;
-  }
+  body { overflow: auto; padding: 0; }
+  .visual-panel { display: none; }
+  .login-panel { padding: 20px; }
+  .login-card { padding: 28px 24px; }
+  .mobile-brand { display: flex; }
 }
