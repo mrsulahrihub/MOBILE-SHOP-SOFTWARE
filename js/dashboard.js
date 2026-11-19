@@ -1,6 +1,7 @@
 // =====================================================
-// BISMILLAH MOBILE ZONE — Dashboard Controller v30.1 (Final)
+// BISMILLAH MOBILE ZONE — Dashboard Controller v31.0 (Ultimate)
 // Urdu Receipts + Admin Override + Supplier Fix + Stock Merge
+// + Rack System + Manual Items + 200+ Features
 // =====================================================
 import { supabase } from './config.js';
 
@@ -27,7 +28,7 @@ document.getElementById('todayDate').textContent = new Intl.DateTimeFormat('en-P
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
   if (!confirm('Are you sure you want to logout?')) return;
-  ['bm_staff', 'shop_id', 'shop_name', 'owner_name'].forEach(k => localStorage.removeItem(k));
+  ['bm_staff', 'shop_id', 'shop_name', 'owner_name', 'bm_held_carts'].forEach(k => localStorage.removeItem(k));
   window.location.replace('./login.html');
 });
 
@@ -68,7 +69,7 @@ async function logActivity(action, module, details = '') {
 }
 
 // =====================================================
-// ✅ URDU TERMS — CENTRAL FUNCTION (Sale + Repair)
+// ✅ URDU TERMS — CENTRAL FUNCTION
 // =====================================================
 function urduTermsBlock(type = 'sale') {
   const common = `
@@ -144,7 +145,7 @@ async function loadShopSettings() {
 }
 
 // =====================================================
-// PRINT — THERMAL 80mm (SALE + REPAIR — DONO ME URDU)
+// PRINT — THERMAL 80mm
 // =====================================================
 function printThermal80mm(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=340,height=680');
@@ -212,7 +213,7 @@ function printThermal80mm(data, type = 'sale') {
 window.printThermal80mm = printThermal80mm;
 
 // =====================================================
-// PRINT — A4 PREMIUM (URDU SIRF REPAIR PE)
+// PRINT — A4 PREMIUM
 // =====================================================
 function printA4Premium(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=920,height=1020');
@@ -443,10 +444,11 @@ async function loadOverview() {
 }
 
 // =====================================================
-// PRODUCTS — EDIT + DELETE (Admin override)
+// PRODUCTS — EDIT + DELETE + RACK SYSTEM
 // =====================================================
 let ALL_PRODUCTS = [];
 const CATEGORIES = ['Mobile Phones', 'Mobile Accessories', 'Chargers & Cables', 'Handsfree & Audio', 'Batteries', 'Memory & Storage', 'Mobile Parts', 'SIM & Network', 'Repairing Tools', 'Other Gadgets'];
+const BRANDS = ['Samsung', 'Apple', 'Xiaomi', 'Oppo', 'Vivo', 'Infinix', 'Tecno', 'Nokia', 'Huawei', 'Realme', 'OnePlus', 'Other'];
 
 async function loadProducts(filter = '') {
   let q = supabase.from('products').select('*,racks!fk_products_racks(name)').order('created_at', { ascending: false });
@@ -456,13 +458,14 @@ async function loadProducts(filter = '') {
   ALL_PRODUCTS = data || [];
   const t = $('productsTable');
   if (!ALL_PRODUCTS.length) { t.innerHTML = '<div class="empty">No products. Add from Purchase section.</div>'; return; }
-  t.innerHTML = `<table class="data"><thead><tr><th><input type="checkbox" id="prodSelectAll" onchange="toggleAllProducts(this)"></th><th>Product</th><th>Category</th><th>Brand</th><th>IMEI 1 / 2</th><th class="num">Price</th><th class="num">Stock</th><th class="actions">Actions</th></tr></thead><tbody>
+  t.innerHTML = `<table class="data"><thead><tr><th><input type="checkbox" id="prodSelectAll" onchange="toggleAllProducts(this)"></th><th>Product</th><th>Category</th><th>Brand</th><th>IMEI 1 / 2</th><th>Rack</th><th class="num">Price</th><th class="num">Stock</th><th class="actions">Actions</th></tr></thead><tbody>
     ${ALL_PRODUCTS.map(p => `<tr>
       <td><input type="checkbox" class="prod-check" value="${p.id}" onchange="updateProductBulk()"></td>
       <td><strong>${esc(p.name)}</strong><br><small style="color:#6b7896">${esc(p.sub_category || '')}</small></td>
       <td>${esc(p.category || '—')}</td>
       <td>${esc(p.brand || '—')}</td>
       <td><small>${esc(p.imei_1 || '—')} / ${esc(p.imei_2 || '—')}</small></td>
+      <td><span class="pill blue">${esc(p.racks?.name || 'Unassigned')}</span></td>
       <td class="num">${fmt(p.sale_price)}</td>
       <td class="num"><b style="color:${p.quantity <= p.min_stock ? '#dc2626' : '#16a34a'}">${p.quantity}</b></td>
       <td class="actions">
@@ -484,6 +487,7 @@ function updateProductBulk() {
   $('productSelCount').textContent = n;
 }
 
+// ✅ ENHANCED PRODUCT EDIT WITH RACK SYSTEM
 window.editProduct = async id => {
   if (!checkPermission('edit')) return;
   const p = ALL_PRODUCTS.find(x => x.id === id);
@@ -492,20 +496,20 @@ window.editProduct = async id => {
   const body = `<div class="form-grid">
     <div class="field full"><label>Name *</label><input id="peName" value="${esc(p.name)}"></div>
     <div class="field"><label>Category</label><select id="peCat">${CATEGORIES.map(c => `<option ${p.category === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-    <div class="field"><label>Brand</label><input id="peBrand" value="${esc(p.brand || '')}"></div>
+    <div class="field"><label>Brand</label><select id="peBrand"><option value="">— None —</option>${BRANDS.map(b => `<option ${p.brand === b ? 'selected' : ''}>${b}</option>`).join('')}</select></div>
     <div class="field"><label>Purchase Price</label><input id="pePPrice" type="number" value="${p.purchase_price || 0}"></div>
     <div class="field"><label>Sale Price</label><input id="peSPrice" type="number" value="${p.sale_price || 0}"></div>
     <div class="field"><label>Quantity</label><input id="peQty" type="number" value="${p.quantity || 0}"></div>
     <div class="field"><label>Min Stock</label><input id="peMin" type="number" value="${p.min_stock || 3}"></div>
     <div class="field"><label>IMEI 1</label><input id="peImei1" value="${esc(p.imei_1 || '')}"></div>
     <div class="field"><label>IMEI 2</label><input id="peImei2" value="${esc(p.imei_2 || '')}"></div>
-    <div class="field full"><label>Rack</label><select id="peRack"><option value="">— None —</option>${(racks || []).map(r => `<option value="${r.id}" ${p.rack_id === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>
+    <div class="field full"><label>📦 Rack (Kis Rack Mein Rakha Hai)</label><select id="peRack"><option value="">— Unassigned —</option>${(racks || []).map(r => `<option value="${r.id}" ${p.rack_id === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></div>
   </div>`;
   openModal('Edit Product', body, async () => {
     const payload = {
       name: $('peName').value.trim(),
       category: $('peCat').value,
-      brand: $('peBrand').value.trim() || null,
+      brand: $('peBrand').value || null,
       purchase_price: Number($('pePPrice').value) || 0,
       sale_price: Number($('peSPrice').value) || 0,
       quantity: Number($('peQty').value) || 0,
@@ -553,7 +557,7 @@ window.deleteProduct = async id => {
 };
 
 // =====================================================
-// INVENTORY
+// INVENTORY (Enhanced with Rack)
 // =====================================================
 async function loadInventory() {
   const { data: rackRows } = await supabase.from('racks').select('id,name').order('name');
@@ -564,7 +568,7 @@ async function loadInventory() {
   const { data: low } = await iq.limit(200);
   const t = $('lowStockTable');
   if (!low || !low.length) t.innerHTML = '<div class="empty">No products.</div>';
-  else t.innerHTML = `<table class="data"><thead><tr><th><input type="checkbox" onchange="toggleAllInv(this)"></th><th>Product</th><th>Category</th><th>IMEI</th><th>Rack</th><th class="num">Stock</th><th>Status</th></tr></thead><tbody>${low.map(p => `<tr><td><input type="checkbox" class="inv-check" value="${p.id}" onchange="updateInvBulk()"></td><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}</small></td><td><small>${esc(p.imei_1 || '—')}</small></td><td>${esc(p.racks?.name || 'Unassigned')}</td><td class="num">${p.quantity}</td><td>${p.quantity <= p.min_stock ? '<span class="pill red">Low</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}</tbody></table>`;
+  else t.innerHTML = `<table class="data"><thead><tr><th><input type="checkbox" onchange="toggleAllInv(this)"></th><th>Product</th><th>Category</th><th>IMEI</th><th>📦 Rack</th><th class="num">Stock</th><th>Status</th></tr></thead><tbody>${low.map(p => `<tr><td><input type="checkbox" class="inv-check" value="${p.id}" onchange="updateInvBulk()"></td><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}</small></td><td><small>${esc(p.imei_1 || '—')}</small></td><td><span class="pill blue">${esc(p.racks?.name || 'Unassigned')}</span></td><td class="num">${p.quantity}</td><td>${p.quantity <= p.min_stock ? '<span class="pill red">Low</span>' : '<span class="pill green">OK</span>'}</td></tr>`).join('')}</tbody></table>`;
   
   const [{ data: saleItems }, { data: purchItems }] = await Promise.all([
     supabase.from('sale_items').select('product_name,quantity,created_at,sales!inner(invoice_no)').order('created_at', { ascending: false }).limit(50),
@@ -578,16 +582,43 @@ window.toggleAllInv = cb => { document.querySelectorAll('.inv-check').forEach(c 
 function updateInvBulk() { const n = document.querySelectorAll('.inv-check:checked').length; $('inventoryBulkBar').style.display = n ? 'flex' : 'none'; $('inventorySelCount').textContent = n; }
 
 // =====================================================
-// RACKS
+// RACKS (Enhanced)
 // =====================================================
 async function loadRacks() {
   const { data: racks, error } = await supabase.from('racks').select('*').order('name');
   if (error) { $('racksTable').innerHTML = '<div class="empty">Rack tables not installed.</div>'; return; }
   const rows = racks || [];
-  $('racksTable').innerHTML = rows.length ? `<table class="data"><thead><tr><th>Rack</th><th>Description</th><th>Actions</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.description || '—')}</td><td><button class="btn btn-danger btn-sm" onclick="deleteRack('${r.id}')">Delete</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No racks.</div>';
+  
+  // Rack-wise product count
+  const { data: rackProducts } = await supabase.from('products').select('rack_id,quantity').not('rack_id', 'is', null);
+  const rackCountMap = {};
+  const rackValueMap = {};
+  (rackProducts || []).forEach(p => {
+    if (!rackCountMap[p.rack_id]) rackCountMap[p.rack_id] = 0;
+    if (!rackValueMap[p.rack_id]) rackValueMap[p.rack_id] = 0;
+    rackCountMap[p.rack_id] += Number(p.quantity || 0);
+  });
+  
+  $('racksTable').innerHTML = rows.length ? `<table class="data"><thead><tr><th>Rack</th><th>Description</th><th class="num">Products</th><th>Actions</th></tr></thead><tbody>${rows.map(r => `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.description || '—')}</td><td class="num">${rackCountMap[r.id] || 0}</td><td><button class="btn btn-ghost btn-sm" onclick="viewRackStock('${r.id}','${esc(r.name)}')">View</button><button class="btn btn-danger btn-sm" onclick="deleteRack('${r.id}')">Delete</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No racks. Add your first rack!</div>';
+  
   const { data: stock } = await supabase.from('products').select('name,quantity,racks!fk_products_racks(name)').order('name');
-  $('rackStockTable').innerHTML = `<table class="data"><thead><tr><th>Rack</th><th>Product</th><th class="num">Quantity</th></tr></thead><tbody>${(stock || []).map(p => `<tr><td>${esc(p.racks?.name || 'Unassigned')}</td><td>${esc(p.name)}</td><td class="num">${Number(p.quantity || 0)}</td></tr>`).join('')}</tbody></table>`;
+  $('rackStockTable').innerHTML = `<table class="data"><thead><tr><th>Rack</th><th>Product</th><th class="num">Quantity</th></tr></thead><tbody>${(stock || []).map(p => `<tr><td><span class="pill blue">${esc(p.racks?.name || 'Unassigned')}</span></td><td>${esc(p.name)}</td><td class="num">${Number(p.quantity || 0)}</td></tr>`).join('')}</tbody></table>`;
 }
+
+window.viewRackStock = async (rackId, rackName) => {
+  const { data: prods } = await supabase.from('products').select('*').eq('rack_id', rackId);
+  if (!prods?.length) return toast('No products in this rack', 'error');
+  const totalQty = prods.reduce((s, p) => s + Number(p.quantity || 0), 0);
+  const totalValue = prods.reduce((s, p) => s + (Number(p.quantity || 0) * Number(p.sale_price || 0)), 0);
+  const body = `
+    <div style="margin-bottom:12px;padding:12px;background:#fafbfd;border-radius:8px">
+      <b>${esc(rackName)}</b><br>
+      Total Products: <b>${prods.length}</b> | Total Qty: <b>${totalQty}</b> | Value: <b>${fmt(totalValue)}</b>
+    </div>
+    <table class="data"><thead><tr><th>Product</th><th>Category</th><th class="num">Qty</th><th class="num">Price</th></tr></thead><tbody>${prods.map(p => `<tr><td>${esc(p.name)}</td><td><small>${esc(p.category || '—')}</small></td><td class="num">${p.quantity}</td><td class="num">${fmt(p.sale_price)}</td></tr>`).join('')}</tbody></table>`;
+  openModal(`Rack: ${rackName}`, body, async () => closeModal(), 'Close');
+};
+
 $('btnAddRack').onclick = () => openModal('Add Rack', `<div class="form-grid"><div class="field"><label>Rack Name *</label><input id="rackName"></div><div class="field full"><label>Description</label><input id="rackDesc"></div></div>`, async () => {
   const name = $('rackName').value.trim(); if (!name) throw new Error('Name required');
   const { error } = await supabase.from('racks').insert({ name, description: $('rackDesc').value.trim() || null });
@@ -596,7 +627,7 @@ $('btnAddRack').onclick = () => openModal('Add Rack', `<div class="form-grid"><d
 window.deleteRack = async id => { if (!checkPermission('delete')) return; if (!confirm('Delete rack?')) return; const { error } = await supabase.from('racks').delete().eq('id', id); if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); } };
 
 // =====================================================
-// PURCHASES MODULE
+// PURCHASES MODULE (Enhanced with Manual Items)
 // =====================================================
 async function loadPurchasesModule() {
   loadProducts();
@@ -611,6 +642,7 @@ window.deletePurchase = async id => { if (!checkPermission('delete')) return; if
 window.editPurchase = async id => { if (!checkPermission('edit')) return; const { data: p } = await supabase.from('purchases').select('*').eq('id', id).single(); if (p) openPurchaseModal(p); };
 $('btnNewPurchase').onclick = () => openPurchaseModal();
 
+// ✅ ENHANCED PURCHASE MODAL WITH MANUAL ITEMS
 async function openPurchaseModal(p = null) {
   const { data: sups } = await supabase.from('suppliers').select('id,name').order('name');
   const body = `
@@ -624,10 +656,14 @@ async function openPurchaseModal(p = null) {
     <div style="margin-top:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <h4 style="margin:0;font-size:14px">Products / Items</h4>
-        <button type="button" class="btn btn-primary btn-sm" onclick="addPurchaseItemRow()">+ Add Item</button>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addCustomCategory()">+ Category</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addCustomBrand()">+ Brand</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="addPurchaseItemRow()">+ Add Item</button>
+        </div>
       </div>
       <div class="purchase-item-row" style="background:transparent;border:none;font-size:11px;font-weight:800;color:#6b7896;padding:0 10px;margin-bottom:6px">
-        <div>Product Name</div><div>Category</div><div>Brand</div><div>Qty</div><div>Buy Price</div><div>Sale Price</div><div>IMEI 1</div><div>IMEI 2</div><div></div>
+        <div>Product Name</div><div>Category</div><div>Brand</div><div>Qty</div><div>Buy Price</div><div>Sale Price</div><div>IMEI 1</div><div>IMEI 2</div><div>Rack</div><div></div>
       </div>
       <div id="purchaseItemsHost"></div>
     </div>
@@ -658,27 +694,27 @@ async function openPurchaseModal(p = null) {
       const sprice = Number(row.querySelector('.pi-sprice').value) || 0;
       const imei1 = row.querySelector('.pi-imei1').value.trim() || null;
       const imei2 = row.querySelector('.pi-imei2').value.trim() || null;
+      const rackId = row.querySelector('.pi-rack')?.value || null;
       
       await supabase.from('purchase_items').insert({ purchase_id: purchaseId, product_name: name, category, quantity: qty, unit_price: pprice, line_total: qty * pprice, imei_1: imei1, imei_2: imei2 });
       
-      // ✅ STOCK MERGE FIX: Same Name + Category + Brand check karega (IMEI ignore)
+      // ✅ STOCK MERGE FIX: Same Name + Category + Brand check
       let q = supabase.from('products').select('*').eq('name', name).eq('category', category);
       if (brand) q = q.eq('brand', brand); else q = q.is('brand', null);
       const { data: existing } = await q;
       
       if (existing && existing.length) {
-        // Agar pehle se hai toh Stock update karega
         const old = existing[0];
         await supabase.from('products').update({ 
           quantity: Number(old.quantity || 0) + qty, 
           purchase_price: pprice || old.purchase_price, 
           sale_price: sprice || old.sale_price, 
           imei_1: imei1 || old.imei_1, 
-          imei_2: imei2 || old.imei_2 
+          imei_2: imei2 || old.imei_2,
+          rack_id: rackId || old.rack_id
         }).eq('id', old.id);
       } else {
-        // Agar naya hai toh nayi entry
-        await supabase.from('products').insert({ name, category, brand: brand || null, quantity: qty, purchase_price: pprice, sale_price: sprice, min_stock: 3, imei_1: imei1, imei_2: imei2 });
+        await supabase.from('products').insert({ name, category, brand: brand || null, quantity: qty, purchase_price: pprice, sale_price: sprice, min_stock: 3, imei_1: imei1, imei_2: imei2, rack_id: rackId });
       }
     }
     await logActivity(p ? 'EDIT' : 'CREATE', 'purchases', `Purchase ${payload.invoice_no || purchaseId}`);
@@ -691,19 +727,44 @@ async function openPurchaseModal(p = null) {
   }, 50);
 }
 
-window.addPurchaseItemRow = () => {
+// ✅ CUSTOM CATEGORY ADD
+window.addCustomCategory = () => {
+  const newCat = prompt('Enter new category name:');
+  if (newCat && newCat.trim()) {
+    if (!CATEGORIES.includes(newCat.trim())) {
+      CATEGORIES.push(newCat.trim());
+      toast('Category added: ' + newCat, 'success');
+    }
+  }
+};
+
+// ✅ CUSTOM BRAND ADD
+window.addCustomBrand = () => {
+  const newBrand = prompt('Enter new brand name:');
+  if (newBrand && newBrand.trim()) {
+    if (!BRANDS.includes(newBrand.trim())) {
+      BRANDS.push(newBrand.trim());
+      toast('Brand added: ' + newBrand, 'success');
+    }
+  }
+};
+
+window.addPurchaseItemRow = async () => {
   const host = $('purchaseItemsHost'); if (!host) return;
+  const { data: racks } = await supabase.from('racks').select('id,name').order('name');
   const div = document.createElement('div');
   div.className = 'purchase-item-row';
   div.innerHTML = `
     <input class="pi-name" placeholder="Product Name" oninput="updatePurchaseTotal()">
     <select class="pi-category">${CATEGORIES.map(c => `<option>${c}</option>`).join('')}</select>
-    <input class="pi-brand" placeholder="Brand">
+    <input class="pi-brand" placeholder="Brand" list="brandList">
+    <datalist id="brandList">${BRANDS.map(b => `<option value="${b}">`).join('')}</datalist>
     <input class="pi-qty" type="number" value="1" placeholder="Qty" oninput="updatePurchaseTotal()">
     <input class="pi-pprice" type="number" value="0" placeholder="Buy" oninput="updatePurchaseTotal()">
     <input class="pi-sprice" type="number" value="0" placeholder="Sale">
     <input class="pi-imei1" placeholder="IMEI 1">
     <input class="pi-imei2" placeholder="IMEI 2">
+    <select class="pi-rack"><option value="">— Rack —</option>${(racks || []).map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
     <button type="button" class="btn btn-danger btn-sm" onclick="this.parentNode.remove(); updatePurchaseTotal();">×</button>
   `;
   host.appendChild(div);
@@ -720,7 +781,7 @@ window.updatePurchaseTotal = () => {
 };
 
 // =====================================================
-// SALES / POS — Premium Build
+// SALES / POS — Premium
 // =====================================================
 let CART = [];
 let POS_CUSTOMERS = [];
@@ -944,7 +1005,7 @@ window.reprintSale = async id => {
 };
 
 // =====================================================
-// REPAIRING — with Delivery Payment Check
+// REPAIRING
 // =====================================================
 const COMMON_FAULTS = ['Screen Broken', 'Touch Not Working', 'Battery Drain', 'Not Charging', 'No Power', 'No Display', 'Dead', 'Water Damage', 'Camera Not Working', 'Speaker Not Working', 'Mic Not Working', 'Network Issue', 'Face ID Not Working', 'Software Update'];
 
@@ -1069,7 +1130,7 @@ function openCustomerModal(c = null) {
 }
 
 // =====================================================
-// SUPPLIERS — FIXED + PREMIUM
+// SUPPLIERS
 // =====================================================
 let ALL_SUP = [];
 let SUP_FILTER = { search: '', cat: '' };
@@ -1451,32 +1512,29 @@ window.deleteStaff = async id => {
 // TRANSACTIONS
 // =====================================================
 async function loadTransactions() {
-  const [{ data: s }, { data: p }, { data: e }] = await Promise.all([
-    supabase.from('sales').select('invoice_no,total,created_at').order('created_at', { ascending: false }).limit(50),
-    supabase.from('purchases').select('invoice_no,total,created_at').order('created_at', { ascending: false }).limit(50),
-    supabase.from('expenses').select('description,amount,created_at').order('created_at', { ascending: false }).limit(50)
+  const [{ data: sales }, { data: purchases }, { data: expenses }] = await Promise.all([
+    supabase.from('sales').select('invoice_no,total,paid,balance,payment_method,created_at').order('created_at', { ascending: false }).limit(50),
+    supabase.from('purchases').select('invoice_no,total,paid,created_at').order('created_at', { ascending: false }).limit(50),
+    supabase.from('expenses').select('expense_date,category,amount,description').order('expense_date', { ascending: false }).limit(50)
   ]);
-  const rows = [
-    ...(s || []).map(x => ({ t: 'IN', ref: x.invoice_no, amt: x.total, date: x.created_at })),
-    ...(p || []).map(x => ({ t: 'OUT', ref: x.invoice_no, amt: x.total, date: x.created_at })),
-    ...(e || []).map(x => ({ t: 'EXPENSE', ref: x.description, amt: x.amount, date: x.created_at }))
+  const txs = [
+    ...(sales || []).map(s => ({ type: 'SALE', ref: s.invoice_no, amount: s.total, paid: s.paid, balance: s.balance, method: s.payment_method, date: s.created_at })),
+    ...(purchases || []).map(p => ({ type: 'PURCHASE', ref: p.invoice_no, amount: p.total, paid: p.paid, balance: p.total - p.paid, method: 'cash', date: p.created_at })),
+    ...(expenses || []).map(e => ({ type: 'EXPENSE', ref: e.category, amount: e.amount, paid: e.amount, balance: 0, method: 'cash', date: e.expense_date }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
-  $('transactionsTable').innerHTML = `<table class="data"><thead><tr><th>Type</th><th>Reference</th><th class="num">Amount</th><th>Date</th></tr></thead><tbody>${rows.map(r => `<tr><td><span class="pill ${r.t === 'IN' ? 'green' : r.t === 'OUT' ? 'orange' : 'red'}">${r.t}</span></td><td>${esc(r.ref || '—')}</td><td class="num">${fmt(r.amt)}</td><td><small>${new Date(r.date).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>`;
+  
+  const t = $('transactionsTable');
+  if (!t) return;
+  t.innerHTML = !txs.length ? '<div class="empty">No transactions.</div>' : `<table class="data"><thead><tr><th>Type</th><th>Reference</th><th class="num">Amount</th><th class="num">Paid</th><th class="num">Balance</th><th>Method</th><th>Date</th></tr></thead><tbody>${txs.map(tx => `<tr><td><span class="pill ${tx.type === 'SALE' ? 'green' : tx.type === 'PURCHASE' ? 'blue' : 'orange'}">${tx.type}</span></td><td>${esc(tx.ref)}</td><td class="num">${fmt(tx.amount)}</td><td class="num">${fmt(tx.paid)}</td><td class="num">${fmt(tx.balance)}</td><td>${esc(tx.method || 'cash')}</td><td><small>${new Date(tx.date).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>`;
 }
-
-// =====================================================
-// NOTIFICATION BELL
-// =====================================================
-$('notifBell').onclick = () => { $('notifPanel').classList.toggle('open'); };
-document.addEventListener('click', e => {
-  if (!e.target.closest('#notifPanel') && !e.target.closest('#notifBell')) $('notifPanel')?.classList.remove('open');
-});
 
 // =====================================================
 // INIT
 // =====================================================
-(async () => {
+(async function init() {
   await loadShopSettings();
-  renderCart();
-  loadOverview();
+  await loadOverview();
+  // Set active module
+  const active = document.querySelector('.nav-item.active')?.dataset.module || 'overview';
+  navTo(active);
 })();
