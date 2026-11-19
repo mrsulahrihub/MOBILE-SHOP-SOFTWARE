@@ -1,6 +1,6 @@
 // =====================================================
-// BISMILLAH MOBILE ZONE — Dashboard Controller v32.0
-// Fixed: Stock Merge, Fullscreen Purchase, Auto-fill, Filters
+// BISMILLAH MOBILE ZONE — Dashboard Controller v32.1
+// Fixed: Search, Print NaN, Expense/Udhar/Report Amounts
 // =====================================================
 import { supabase } from './config.js';
 
@@ -68,7 +68,7 @@ async function logActivity(action, module, details = '') {
 // ---------------------------------------------------
 let CATEGORIES = ['Mobile Phones', 'Mobile Accessories', 'Chargers & Cables', 'Handsfree & Audio', 'Batteries', 'Memory & Storage', 'Mobile Parts', 'Covers', 'Tempered Glass', 'Repairing Tools'];
 let BRANDS = ['Samsung', 'Apple', 'Xiaomi', 'Oppo', 'Vivo', 'Infinix', 'Tecno', 'Nokia', 'Huawei', 'Realme', 'OnePlus', 'Other'];
-let ALL_PRODUCTS = []; // Global cache for purchase auto-fill
+let ALL_PRODUCTS = []; // Global cache
 
 // =====================================================
 // SHOP SETTINGS
@@ -85,7 +85,7 @@ async function loadShopSettings() {
 }
 
 // =====================================================
-// PRINT FUNCTIONS (Thermal & A4) - Same as before
+// PRINT FUNCTIONS (Thermal & A4) - FIXED NaN ISSUES
 // =====================================================
 function urduTermsBlock(type = 'sale') {
   const common = `<div>• براہِ کرم مال کاؤنٹر پر چیک کریں۔</div><div>• پھولی ہوئی بیٹری کی کوئی وارنٹی نہیں ہے۔</div><div>• بیٹری کی وارنٹی صرف 2 دن ہوگی۔</div><div>• استعمال شدہ Accessories واپس یا تبدیل نہیں ہوں گی۔</div>`;
@@ -97,28 +97,42 @@ function urduTermsBlock(type = 'sale') {
 function printThermal80mm(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=340,height=680');
   if (!w) return toast('Popup blocked — allow popups to print', 'error');
+  
   let sub = Number(data.subtotal || 0), tot = Number(data.total || 0);
   const itemsSum = (data.items || []).reduce((s, it) => s + Number(it.line_total || it.total || it.amount || 0), 0);
-  if (!sub) sub = itemsSum; if (!tot) tot = sub - Number(data.discount || 0);
-  const itemRows = (data.items || []).map(it => `<tr><td style="text-align:left;font-size:11px">${esc(it.product_name || it.name || it.description)}<br><span style="font-size:9px;color:#444">${esc(it.category || '')} ${it.imei ? 'IMEI: ' + esc(it.imei) : ''}</span></td><td style="text-align:center;font-size:11px">${it.quantity || it.qty || 1}</td><td style="text-align:right;font-size:11px">${Number(it.line_total || it.total || it.amount || 0).toLocaleString()}</td></tr>`).join('');
+  if (!sub || isNaN(sub)) sub = itemsSum; 
+  if (!tot || isNaN(tot)) tot = sub - Number(data.discount || 0);
+  
+  const itemRows = (data.items || []).map(it => `
+    <tr>
+      <td style="text-align:left;font-size:11px">
+        ${esc(it.product_name || it.name || it.description)}
+        <br><span style="font-size:9px;color:#444">${esc(it.category || '')} ${it.imei ? 'IMEI: ' + esc(it.imei) : ''}</span>
+      </td>
+      <td style="text-align:center;font-size:11px">${it.quantity || it.qty || 1}</td>
+      <td style="text-align:right;font-size:11px">${Number(it.line_total || it.total || it.amount || 0).toLocaleString()}</td>
+    </tr>`).join('');
+
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title><style>@page{size:80mm auto;margin:4mm} body{font-family:'Courier New',monospace;width:74mm;margin:0 auto;color:#000;font-weight:bold} h2{text-align:center;margin:0 0 2px 0;font-size:18px;font-weight:900;letter-spacing:1px} .sub{text-align:center;font-size:11px;margin:1px 0} hr{border:none;border-top:2px dashed #000;margin:5px 0} table{width:100%;border-collapse:collapse;font-size:11px} th{border-bottom:2px dashed #000;padding:4px 0;font-size:11px;text-align:left} .row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0} .bold{font-weight:900;font-size:13px} .center{text-align:center;margin-top:6px;font-size:11px} .footer{text-align:center;margin-top:10px;font-size:10px;font-weight:normal;line-height:1.4}</style></head><body><h2>${esc(SHOP.name)}</h2><div class="sub">${esc(SHOP.address)}</div><div class="sub">Tel: ${esc(SHOP.phone1)} / ${esc(SHOP.phone2)}</div><hr><div class="row"><span>Invoice: <b>${esc(data.invoice)}</b></span></div><div class="row"><span>Date: ${new Date(data.date).toLocaleString('en-PK')}</span></div><div class="row"><span>Customer: ${esc(data.customer || 'Walk-in')}</span></div>${data.phone ? `<div class="row"><span>Phone: ${esc(data.phone)}</span></div>` : ''}<hr><table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemRows}</tbody></table><hr><div class="row"><span>Subtotal</span><span>PKR ${sub.toLocaleString()}</span></div><div class="row"><span>Discount</span><span>-PKR ${Number(data.discount || 0).toLocaleString()}</span></div><div class="row bold"><span>Total</span><span>PKR ${tot.toLocaleString()}</span></div><div class="row"><span>Paid</span><span>PKR ${Number(data.paid || 0).toLocaleString()}</span></div>${data.balance > 0 ? `<div class="row bold"><span>Due</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}${urduTermsBlock(type)}<hr><div class="center">Thank you for shopping!</div><div class="center">Visit Again</div><div class="footer"><div style="font-weight:bold">Powered by MS.TECH</div><div>03099100546</div></div><script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script></body></html>`;
   w.document.write(html); w.document.close();
 }
+window.printThermal80mm = printThermal80mm;
 
 function printA4Premium(data, type = 'sale') {
   const w = window.open('', '_blank', 'width=920,height=1020');
   if (!w) return toast('Popup blocked', 'error');
+  
   let sub = Number(data.subtotal || 0), tot = Number(data.total || 0);
   const itemsSum = (data.items || []).reduce((s, it) => s + Number(it.total || it.line_total || it.amount || 0), 0);
-  if (!sub) sub = itemsSum; if (!tot) tot = sub - Number(data.discount || 0);
-  const rows = (data.items || []).map((it, i) => `<tr><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;color:#333;font-size:14px">${i + 1}. ${esc(it.description || it.product_name || it.name)}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:right;color:#333;font-size:14px">PKR ${Number(it.price || it.unit_price || 0).toLocaleString()}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:center;color:#333;font-size:14px">${it.qty || it.quantity || 1}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:right;color:#333;font-size:14px">PKR ${Number(it.total || it.line_total || it.amount || 0).toLocaleString()}</td></tr>`).join('');
+  if (!sub || isNaN(sub)) sub = itemsSum; 
+  if (!tot || isNaN(tot)) tot = sub - Number(data.discount || 0);
+
+  const rows = (data.items || []).map((it, i) => `<tr><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;color:#333;font-size:14px">${i + 1}. ${esc(it.description || it.product_name || it.name)}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:right;color:#333;font-size:14px">PKR ${Number(it.price || it.unit_price || it.total || 0).toLocaleString()}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:center;color:#333;font-size:14px">${it.qty || it.quantity || 1}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:right;color:#333;font-size:14px">PKR ${Number(it.total || it.line_total || it.amount || 0).toLocaleString()}</td></tr>`).join('');
   const isReport = type === 'report'; const title = isReport ? 'REPORT' : 'INVOICE';
   const urduA4 = type === 'repair' ? `<div style="margin-top:20px;padding:15px;background:#fafbfd;border-radius:8px;direction:rtl;font-family:'Jameel Noori Nastaleeq','Noto Nastaliq Urdu',Arial,sans-serif;font-size:13px;line-height:1.9;color:#333;border:1px solid #e6e9f2"><div style="text-align:center;font-weight:bold;margin-bottom:8px">مرمت کی شرائط</div><div>• براہِ کرم مال کاؤنٹر پر چیک کریں۔</div><div>• پھولی ہوئی بیٹری کی کوئی وارنٹی نہیں ہے۔</div><div>• بیٹری کی وارنٹی صرف 2 دن ہوگی۔</div><div>• استعمال شدہ Accessories واپس یا تبدیل نہیں ہوں گی۔</div><div>• موبائل مرمت کے بعد وصول کرنے کے لیے یہ رسید لازمی ساتھ لائیں۔</div></div>` : '';
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'); *{margin:0;padding:0;box-sizing:border-box} body{font-family:'Inter',sans-serif;background:#fff;color:#333;-webkit-print-color-adjust:exact;print-color-adjust:exact;position:relative;min-height:100vh;padding-bottom:150px} .top-curve{position:absolute;top:0;left:0;width:100%;height:160px;background:linear-gradient(135deg,#0f172a 0%,#5b8def 50%,#7c5cff 100%);clip-path:ellipse(150% 100% at 50% 0%);z-index:1} .content{position:relative;z-index:2;padding:40px 60px} .header{display:flex;justify-content:space-between;align-items:flex-start;margin-top:60px;margin-bottom:50px} .title{font-size:48px;font-weight:800;color:#111;margin:0;line-height:1;letter-spacing:-1px} .title span{color:#5b8def;font-size:60px;line-height:0;vertical-align:bottom;margin-right:5px} .company{text-align:right;color:#fff;margin-top:-30px} .company h2{margin:0;font-size:22px;font-weight:800;letter-spacing:1px;color:#111} .company p{margin:3px 0 0;font-size:12px;color:#5b8def;font-weight:600;letter-spacing:.5px} .info{display:flex;justify-content:space-between;margin-bottom:40px;font-size:13px;color:#555} .info-col p{margin:6px 0} .info-col b{color:#333;font-weight:700} table{width:100%;border-collapse:collapse;margin-bottom:40px} th{text-align:left;color:#5b8def;font-size:16px;font-weight:700;padding:10px;text-transform:uppercase;border-bottom:2px solid #5b8def;letter-spacing:.5px} .bottom-section{display:flex;justify-content:space-between;align-items:flex-start;margin-top:40px;page-break-inside:avoid} .terms{width:45%} .terms h4{color:#5b8def;font-size:15px;font-weight:700;margin-bottom:8px} .terms p{font-size:12px;color:#666;line-height:1.6} .totals{width:40%} .totals-row{display:flex;justify-content:space-between;padding:12px 0;font-size:15px;color:#333;font-weight:600;border-bottom:1px solid #eee} .totals-row.grand{font-size:20px;color:#5b8def;font-weight:800;border-bottom:none;margin-top:5px;padding-top:15px;border-top:2px solid #5b8def} .bottom-curve{position:fixed;bottom:0;left:0;width:100%;height:100px;background:linear-gradient(135deg,#0f172a 0%,#5b8def 50%,#7c5cff 100%);clip-path:ellipse(150% 100% at 50% 100%);z-index:1} .footer{position:fixed;bottom:15px;left:0;width:100%;text-align:center;z-index:2;color:#fff;font-size:11px;line-height:1.4} @media print{body{padding-bottom:120px}.top-curve,.bottom-curve{display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div class="top-curve"></div><div class="content"><div class="header"><h1 class="title"><span>|</span>${title}</h1><div class="company"><h2>${esc(SHOP.name)}</h2><p>${esc(SHOP.tagline)}</p></div></div><div class="info"><div class="info-col"><p><b>${title} NO:</b> ${esc(data.invoice)}</p><p><b>DATE:</b> ${new Date(data.date).toLocaleDateString('en-GB')}</p></div><div class="info-col" style="text-align:right"><p><b>${isReport ? 'REPORT TYPE:' : 'INVOICE TO:'}</b> ${esc(data.customer || 'All Customers')}</p><p>${data.phone ? '<b>PHONE:</b> ' + esc(data.phone) : esc(SHOP.address)}</p></div></div><table><thead><tr><th>DESCRIPTION</th><th style="text-align:right">PRICE</th><th style="text-align:center">QTY.</th><th style="text-align:right">TOTAL</th></tr></thead><tbody>${rows}</tbody></table>${urduA4}<div class="bottom-section"><div class="terms"><h4>Terms and conditions</h4><p>${isReport ? 'This is a system generated report.' : 'Goods once sold will not be taken back or exchanged. Warranty claims are subject to manufacturer terms.'}</p></div><div class="totals"><div class="totals-row"><span>SUBTOTAL</span><span>PKR ${sub.toLocaleString()}</span></div><div class="totals-row"><span>DISCOUNT</span><span>PKR ${Number(data.discount || 0).toLocaleString()}</span></div><div class="totals-row grand"><span>GRAND TOTAL</span><span>PKR ${tot.toLocaleString()}</span></div><div class="totals-row" style="border:none;padding-top:5px"><span>PAID</span><span>PKR ${Number(data.paid || 0).toLocaleString()}</span></div>${data.balance > 0 ? `<div class="totals-row" style="color:#dc2626;border:none;padding-top:5px"><span>BALANCE</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}</div></div></div><div class="bottom-curve"></div><div class="footer"><div style="font-weight:bold;font-size:12px">Powered by MS.TECH</div><div>03099100546</div></div><script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script></body></html>`;
   w.document.write(html); w.document.close();
 }
-
-window.printThermal80mm = printThermal80mm;
 window.printA4Premium = printA4Premium;
 
 // =====================================================
@@ -203,7 +217,7 @@ function showShortcutHelp() {
 }
 
 // ---------------------------------------------------
-// MODAL SYSTEM (Updated for Fullscreen Modal Support)
+// MODAL SYSTEM
 // ---------------------------------------------------
 let MODAL_CONFIRM = null;
 
@@ -283,7 +297,7 @@ async function loadOverview() {
 }
 
 // =====================================================
-// PRODUCTS MODULE (With Category & Brand Filters)
+// PRODUCTS MODULE (FIXED SEARCH)
 // =====================================================
 async function loadProducts(filter = '') {
   let q = supabase.from('products').select('*,racks!fk_products_racks(name)').order('created_at', { ascending: false });
@@ -298,14 +312,20 @@ function renderProductsTable() {
   const t = $('productsTable');
   if (!ALL_PRODUCTS.length) { t.innerHTML = '<div class="empty">No products. Add from Purchase section.</div>'; return; }
   
-  const search = ($('productSearch')?.value || '').toLowerCase();
+  const search = ($('productSearch')?.value || '').toLowerCase().trim();
   const catF = $('productFilterCat')?.value || '';
   const brandF = $('productFilterBrand')?.value || '';
 
   const filtered = ALL_PRODUCTS.filter(p => {
-    const matchSearch = (p.name || '').toLowerCase().includes(search) || (p.imei_1 || '').toLowerCase().includes(search) || (p.imei_2 || '').toLowerCase().includes(search);
-    const matchCat = catF ? p.category === catF : true;
-    const matchBrand = brandF ? p.brand === brandF : true;
+    // ✅ FIXED: Better search matching
+    const matchSearch = !search || 
+      (p.name || '').toLowerCase().includes(search) || 
+      (p.imei_1 || '').toLowerCase().includes(search) || 
+      (p.imei_2 || '').toLowerCase().includes(search);
+      
+    const matchCat = !catF || (p.category || '').toLowerCase() === catF.toLowerCase();
+    const matchBrand = !brandF || (p.brand || '').toLowerCase() === brandF.toLowerCase();
+    
     return matchSearch && matchCat && matchBrand;
   });
 
@@ -347,7 +367,6 @@ $('productFilterBrand')?.addEventListener('change', renderProductsTable);
 window.toggleAllProducts = cb => { document.querySelectorAll('.prod-check').forEach(c => c.checked = cb.checked); updateProductBulk(); };
 function updateProductBulk() { const n = document.querySelectorAll('.prod-check:checked').length; $('productBulkBar').style.display = n ? 'flex' : 'none'; $('productSelCount').textContent = n; }
 
-// ✅ ENHANCED PRODUCT EDIT
 window.editProduct = async id => {
   if (!checkPermission('edit')) return;
   const p = ALL_PRODUCTS.find(x => x.id === id);
@@ -470,7 +489,7 @@ $('btnAddRack').onclick = () => openModal('Add Rack', `<div class="form-grid"><d
 window.deleteRack = async id => { if (!checkPermission('delete')) return; if (!confirm('Delete rack?')) return; const { error } = await supabase.from('racks').delete().eq('id', id); if (error) toast(error.message, 'error'); else { toast('Rack deleted'); loadRacks(); } };
 
 // =====================================================
-// PURCHASES (FIXED: Fullscreen Modal, Auto-fill, Perfect Stock Merge)
+// PURCHASES (Fullscreen, Auto-fill, Stock Merge)
 // =====================================================
 async function loadPurchasesModule() {
   await loadProducts(); // Load products globally for auto-fill
@@ -570,7 +589,6 @@ async function openPurchaseModal(p = null) {
       );
 
       if (existing) {
-        // Update existing stock
         await supabase.from('products').update({ 
           quantity: Number(existing.quantity || 0) + qty, 
           purchase_price: pprice || existing.purchase_price, 
@@ -580,7 +598,6 @@ async function openPurchaseModal(p = null) {
           rack_id: rackId || existing.rack_id
         }).eq('id', existing.id);
       } else {
-        // Create new product
         await supabase.from('products').insert({ name, category, brand: brand || null, quantity: qty, purchase_price: pprice, sale_price: sprice, min_stock: 3, imei_1: imei1, imei_2: imei2, rack_id: rackId });
       }
       itemsProcessed++;
@@ -595,7 +612,6 @@ async function openPurchaseModal(p = null) {
   // Setup UI after modal opens
   setTimeout(() => { 
     if (p) {
-      // Populate existing items if editing
       supabase.from('purchase_items').select('*').eq('purchase_id', p.id).then(({ data: items }) => {
         (items || []).forEach(it => addPurchaseItemRow(it));
         updatePurchaseTotal();
@@ -606,7 +622,6 @@ async function openPurchaseModal(p = null) {
     }
   }, 50);
 
-  // Add modal-specific keyboard shortcuts
   document.addEventListener('keydown', function handleModalKeys(e) {
     if (!$('modalBackdrop').classList.contains('open')) return;
     if (e.altKey && e.key.toLowerCase() === 'a') { e.preventDefault(); addPurchaseItemRow(); }
@@ -665,7 +680,6 @@ window.addPurchaseItemRow = (existingData = null) => {
   host.appendChild(div);
 };
 
-// ✅ AUTO-FILL LOGIC: When typing product name, fetch from datalist
 window.handleProductAutoFill = (input) => {
   const val = input.value;
   const datalist = document.getElementById('prodMasterList');
@@ -696,7 +710,7 @@ window.updatePurchaseTotal = () => {
 };
 
 // =====================================================
-// SALES / POS (Unchanged logic, just kept clean)
+// SALES / POS
 // =====================================================
 let CART = []; let POS_CUSTOMERS = []; let POS_PREVIOUS_DUE = 0; let POS_ALL_PRODS = []; let HELD_CARTS = JSON.parse(localStorage.getItem('bm_held_carts') || '[]');
 
@@ -1037,7 +1051,12 @@ $('btnPrintCreditAll').onclick = () => {
   if (!rows.length) return toast('Nothing to print', 'error');
   const printOpt = confirm('Thermal (OK) or A4 (Cancel)?');
   let total = 0;
-  const items = Array.from(rows).map(r => { const c = r.querySelectorAll('td'); const amt = Number(c[3].innerText.replace(/[^0-9]/g, '')); total += amt; return { name: c[0].innerText, description: c[0].innerText, qty: 1, quantity: 1, price: amt, total: amt }; });
+  const items = Array.from(rows).map(r => { 
+    const c = r.querySelectorAll('td'); 
+    const amt = Number(c[3].innerText.replace(/[^0-9]/g, '')); 
+    total += amt; 
+    return { name: c[0].innerText, description: c[0].innerText, qty: 1, quantity: 1, price: amt, total: amt }; 
+  });
   const payload = { invoice: 'UDHAR-ALL', customer: 'All', subtotal: total, discount: 0, total, paid: 0, balance: 0, date: new Date(), items };
   if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'report');
 };
@@ -1070,9 +1089,42 @@ $('btnFilterExpenses').onclick = loadExpenses;
 $('btnRunReport').onclick = runReport;
 $('btnPrintReport').onclick = () => {
   const printOpt = confirm('Thermal (OK) or A4 (Cancel)?');
-  const payload = { invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: 0, total: 0, paid: 0, balance: 0, date: new Date(), items: Array.from($('reportOutput').querySelectorAll('tbody tr')).map(r => { const c = r.querySelectorAll('td'); return { description: c[0]?.innerText + ' ' + (c[1]?.innerText || ''), price: 0, qty: 1, total: c[c.length - 1]?.innerText || c[c.length - 2]?.innerText }; }) };
-  if (printOpt) printThermal80mm({ ...payload, items: payload.items.map(i => ({ ...i, name: i.description, quantity: i.qty })) }, 'sale'); else printA4Premium(payload, 'report');
+  
+  // ✅ FIXED: Extract items properly without NaN
+  const rows = $('reportOutput').querySelectorAll('tbody tr');
+  let total = 0;
+  const items = Array.from(rows).map(r => {
+    const c = r.querySelectorAll('td');
+    if (c.length < 2) return null;
+    // Safely get amount from last column or second to last
+    let amtStr = c[c.length - 1]?.innerText || c[c.length - 2]?.innerText || '0';
+    const amt = Number(amtStr.replace(/[^0-9]/g, '')) || 0;
+    total += amt;
+    return { 
+      name: c[0]?.innerText || 'Item', 
+      description: c[0]?.innerText || 'Item', 
+      qty: 1, 
+      quantity: 1, 
+      price: amt, 
+      total: amt 
+    };
+  }).filter(Boolean);
+
+  const payload = { 
+    invoice: 'REPORT', 
+    customer: $('reportType').value.toUpperCase(), 
+    subtotal: total, 
+    discount: 0, 
+    total: total, 
+    paid: total, 
+    balance: 0, 
+    date: new Date(), 
+    items 
+  };
+  
+  if (printOpt) printThermal80mm(payload, 'report'); else printA4Premium(payload, 'report');
 };
+
 async function runReport() {
   const type = $('reportType').value; const from = $('reportFrom').value; const to = $('reportTo').value; const search = $('reportSearch')?.value?.trim().toLowerCase() || '';
   const out = $('reportOutput'); out.innerHTML = '<div class="empty">Loading…</div>';
