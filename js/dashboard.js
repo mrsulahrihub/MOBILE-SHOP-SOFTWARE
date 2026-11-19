@@ -1,6 +1,5 @@
 // =====================================================
-// BISMILLAH MOBILE ZONE — Dashboard Controller v32.1
-// Fixed: Search, Print NaN, Expense/Udhar/Report Amounts
+// BISMILLAH MOBILE ZONE — Dashboard
 // =====================================================
 import { supabase } from './config.js';
 
@@ -19,6 +18,11 @@ const IS_ADMIN = !SESSION.staff_id || SESSION.staff_id === '01' || SESSION.role 
 const CURRENT_STAFF = SESSION.staff_id || '01';
 const CURRENT_NAME = SESSION.name || 'Admin';
 
+// =====================================================
+// SHOP PERMISSIONS LOAD (For Super Admin Restrictions)
+// =====================================================
+const SHOP_PERMS = JSON.parse(localStorage.getItem('bm_shop_perms') || '{}');
+
 document.getElementById('userName').textContent = CURRENT_NAME || localStorage.getItem('owner_name') || 'BM MOBILE ZONE';
 document.getElementById('userRole').textContent = (SESSION.role || 'ADMIN').toUpperCase();
 document.getElementById('welcomeName').textContent = CURRENT_NAME;
@@ -27,7 +31,7 @@ document.getElementById('todayDate').textContent = new Intl.DateTimeFormat('en-P
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
   if (!confirm('Are you sure you want to logout?')) return;
-  ['bm_staff', 'shop_id', 'shop_name', 'owner_name', 'bm_held_carts'].forEach(k => localStorage.removeItem(k));
+  ['bm_staff', 'shop_id', 'shop_name', 'owner_name', 'bm_held_carts', 'bm_shop_perms'].forEach(k => localStorage.removeItem(k));
   window.location.replace('./login.html');
 });
 
@@ -54,13 +58,20 @@ function toast(msg, type = 'info') {
   setTimeout(() => el.remove(), 3800);
 }
 
+// ✅ FIXED: Activity Log Function with better Error Handling
 async function logActivity(action, module, details = '') {
   try {
-    await supabase.from('activity_log').insert({
-      staff_id: CURRENT_STAFF, staff_name: CURRENT_NAME, action, module,
+    const { error } = await supabase.from('activity_log').insert({
+      staff_id: CURRENT_STAFF, 
+      staff_name: CURRENT_NAME, 
+      action, 
+      module,
       details: String(details).slice(0, 500)
     });
-  } catch (e) { console.warn('activity log failed', e); }
+    if (error) console.warn('Activity log DB error:', error.message);
+  } catch (e) { 
+    console.warn('Activity log failed:', e.message); 
+  }
 }
 
 // ---------------------------------------------------
@@ -136,7 +147,7 @@ function printA4Premium(data, type = 'sale') {
 window.printA4Premium = printA4Premium;
 
 // =====================================================
-// SIDEBAR & NAVIGATION
+// SIDEBAR & NAVIGATION (With Super Admin Permissions)
 // =====================================================
 const sidebar = document.getElementById('mainSidebar');
 const handle = document.getElementById('sidebarHandle');
@@ -156,6 +167,28 @@ const MODULE_TITLES = { overview: 'Dashboard', inventory: 'Inventory', racks: 'R
 const MODULE_KEYS = { o: 'overview', i: 'inventory', k: 'racks', u: 'purchases', l: 'sales', r: 'repairing', c: 'customers', s: 'suppliers', d: 'credit', e: 'expenses', p: 'reports', t: 'transactions', ',': 'settings' };
 
 function navTo(mod) {
+  // 🛑 SUPER ADMIN PERMISSION CHECK 🛑
+  const permsMap = {
+    sales: 'allow_pos',
+    inventory: 'allow_inventory',
+    racks: 'allow_inventory',
+    purchases: 'allow_purchases',
+    repairing: 'allow_repairing',
+    customers: 'allow_customers',
+    suppliers: 'allow_suppliers',
+    credit: 'allow_credit',
+    expenses: 'allow_expenses',
+    reports: 'allow_reports',
+    transactions: 'allow_transactions',
+    settings: 'allow_staff'
+  };
+  
+  const permKey = permsMap[mod];
+  if (permKey && SHOP_PERMS[permKey] === false) {
+    toast('Access Denied: You do not have permission to use this section. Please contact MS.Tech.', 'error');
+    return; // Stop navigation
+  }
+
   const btn = document.querySelector(`.nav-item[data-module="${mod}"]`);
   if (!btn) return;
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -297,7 +330,7 @@ async function loadOverview() {
 }
 
 // =====================================================
-// PRODUCTS MODULE (FIXED SEARCH)
+// PRODUCTS MODULE
 // =====================================================
 async function loadProducts(filter = '') {
   let q = supabase.from('products').select('*,racks!fk_products_racks(name)').order('created_at', { ascending: false });
@@ -317,7 +350,6 @@ function renderProductsTable() {
   const brandF = $('productFilterBrand')?.value || '';
 
   const filtered = ALL_PRODUCTS.filter(p => {
-    // ✅ FIXED: Better search matching
     const matchSearch = !search || 
       (p.name || '').toLowerCase().includes(search) || 
       (p.imei_1 || '').toLowerCase().includes(search) || 
@@ -329,7 +361,6 @@ function renderProductsTable() {
     return matchSearch && matchCat && matchBrand;
   });
 
-  // Update filter dropdowns dynamically
   const cats = [...new Set(ALL_PRODUCTS.map(p => p.category).filter(Boolean))];
   const brands = [...new Set(ALL_PRODUCTS.map(p => p.brand).filter(Boolean))];
   
@@ -508,7 +539,6 @@ async function openPurchaseModal(p = null) {
   const { data: sups } = await supabase.from('suppliers').select('id,name').order('name');
   const { data: racks } = await supabase.from('racks').select('id,name').order('name');
 
-  // Products datalist for auto-fill
   const prodOptions = ALL_PRODUCTS.map(prod => `<option value="${esc(prod.name)}|${esc(prod.category)}|${esc(prod.brand || '')}" data-id="${prod.id}" data-name="${esc(prod.name)}" data-cat="${esc(prod.category)}" data-brand="${esc(prod.brand || '')}" data-buy="${prod.purchase_price}" data-sale="${prod.sale_price}" data-imei1="${esc(prod.imei_1 || '')}" data-imei2="${esc(prod.imei_2 || '')}">${esc(prod.name)} (${esc(prod.category)})</option>`).join('');
 
   const body = `
@@ -578,7 +608,6 @@ async function openPurchaseModal(p = null) {
       
       await supabase.from('purchase_items').insert({ purchase_id: purchaseId, product_name: name, category, quantity: qty, unit_price: pprice, line_total: qty * pprice, imei_1: imei1, imei_2: imei2 });
       
-      // ✅ FIXED STOCK MERGE LOGIC (Ignore extra spaces & case)
       const searchName = name.toLowerCase().replace(/\s+/g, ' ').trim();
       const { data: allProds } = await supabase.from('products').select('*');
       
@@ -607,9 +636,8 @@ async function openPurchaseModal(p = null) {
     
     await logActivity(p ? 'EDIT' : 'CREATE', 'purchases', `Invoice ${invoiceNo} - ${itemsProcessed} items`);
     closeModal(); toast('Purchase saved & products synced!', 'success'); loadPurchasesModule(); loadOverview();
-  }, p ? 'Update Purchase' : 'Save Purchase', true); // TRUE = Fullscreen Modal
+  }, p ? 'Update Purchase' : 'Save Purchase', true); 
   
-  // Setup UI after modal opens
   setTimeout(() => { 
     if (p) {
       supabase.from('purchase_items').select('*').eq('purchase_id', p.id).then(({ data: items }) => {
@@ -1089,42 +1117,19 @@ $('btnFilterExpenses').onclick = loadExpenses;
 $('btnRunReport').onclick = runReport;
 $('btnPrintReport').onclick = () => {
   const printOpt = confirm('Thermal (OK) or A4 (Cancel)?');
-  
-  // ✅ FIXED: Extract items properly without NaN
   const rows = $('reportOutput').querySelectorAll('tbody tr');
   let total = 0;
   const items = Array.from(rows).map(r => {
     const c = r.querySelectorAll('td');
     if (c.length < 2) return null;
-    // Safely get amount from last column or second to last
     let amtStr = c[c.length - 1]?.innerText || c[c.length - 2]?.innerText || '0';
     const amt = Number(amtStr.replace(/[^0-9]/g, '')) || 0;
     total += amt;
-    return { 
-      name: c[0]?.innerText || 'Item', 
-      description: c[0]?.innerText || 'Item', 
-      qty: 1, 
-      quantity: 1, 
-      price: amt, 
-      total: amt 
-    };
+    return { name: c[0]?.innerText || 'Item', description: c[0]?.innerText || 'Item', qty: 1, quantity: 1, price: amt, total: amt };
   }).filter(Boolean);
-
-  const payload = { 
-    invoice: 'REPORT', 
-    customer: $('reportType').value.toUpperCase(), 
-    subtotal: total, 
-    discount: 0, 
-    total: total, 
-    paid: total, 
-    balance: 0, 
-    date: new Date(), 
-    items 
-  };
-  
+  const payload = { invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: total, discount: 0, total: total, paid: total, balance: 0, date: new Date(), items };
   if (printOpt) printThermal80mm(payload, 'report'); else printA4Premium(payload, 'report');
 };
-
 async function runReport() {
   const type = $('reportType').value; const from = $('reportFrom').value; const to = $('reportTo').value; const search = $('reportSearch')?.value?.trim().toLowerCase() || '';
   const out = $('reportOutput'); out.innerHTML = '<div class="empty">Loading…</div>';
@@ -1167,6 +1172,7 @@ async function loadStaff() {
   const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: false });
   const t = $('staffTable');
   if (error) { t.innerHTML = `<div class="empty">${esc(error.message)}</div>`; } else if (!data?.length) { t.innerHTML = '<div class="empty">No staff.</div>'; } else { t.innerHTML = `<table class="data"><thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Permissions</th><th>Actions</th></tr></thead><tbody>${data.map(s => `<tr><td><b>${esc(s.staff_id)}</b></td><td>${esc(s.name)}</td><td><span class="pill">${esc(s.role)}</span></td><td><small>Edit: ${s.can_edit ? 'Yes' : 'No'} | Del: ${s.can_delete ? 'Yes' : 'No'}</small></td><td>${s.staff_id === '01' ? '<small style="color:#6b7896">Protected</small>' : `<button class="btn btn-ghost btn-sm" onclick="editStaff('${s.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">Del</button>`}</td></tr>`).join('')}</tbody></table>`; }
+  
   const { data: logs, error: logErr } = await supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(100);
   if (logErr) { $('activityLogTable').innerHTML = `<div class="empty">Error loading activity: ${esc(logErr.message)}</div>`; } else if (!logs?.length) { $('activityLogTable').innerHTML = '<div class="empty">No activity recorded yet.</div>'; } else { $('activityLogTable').innerHTML = logs.map(l => `<div class="log-row"><span><small>${new Date(l.created_at).toLocaleString()}</small></span><span><b>${esc(l.staff_name || l.staff_id)}</b></span><span><span class="pill blue">${esc(l.action)}</span></span><span>${esc(l.module || '')} — <small>${esc(l.details || '')}</small></span></div>`).join(''); }
 }
@@ -1198,6 +1204,10 @@ async function loadTransactions() {
 // =====================================================
 (async function init() {
   await loadShopSettings();
+  
+  // ✅ Log current login activity immediately
+  await logActivity('LOGIN', 'system', `Staff ${CURRENT_NAME} logged in`);
+
   await loadOverview();
   const active = document.querySelector('.nav-item.active')?.dataset.module || 'overview';
   navTo(active);
