@@ -127,12 +127,13 @@
   .cart-mini .qty-btn{padding:2px 6px;border-radius:4px;background:var(--bg);border:1px solid var(--border);font-size:11px;font-weight:800;cursor:pointer}
   .cart-mini .qty-btn:hover{background:var(--primary);color:#fff}
 
-  .modal-backdrop{position:fixed;inset:0;background:rgba(10,16,30,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+  /* ✅ Modal CSS - Updated for Fullscreen Support */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(10,16,30,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;transition:.2s}
   .modal-backdrop.open{display:flex}
-  .modal{background:#fff;border-radius:var(--radius-lg);padding:26px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
-  .modal h3{margin:0 0 16px;font-size:18px;font-weight:800}
-  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
-
+  .modal{background:#fff;border-radius:var(--radius-lg);padding:26px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);transition:.2s;position:relative}
+  .modal h3{margin:0 0 16px;font-size:18px;font-weight:800;position:sticky;top:-26px;background:#fff;padding:10px 0;z-index:10;border-bottom:1px solid var(--border)}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border);position:sticky;bottom:-26px;background:#fff;padding-bottom:10px;z-index:10}
+  
   .toast-host{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:2000;pointer-events:none}
   .toast{padding:12px 18px;border-radius:11px;background:#1a1f36;color:#fff;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);animation:slideIn .3s;pointer-events:auto}
   .toast.success{background:#22a06b}
@@ -148,7 +149,7 @@
   .log-row{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;display:grid;grid-template-columns:160px 120px 100px 1fr;gap:12px;align-items:center}
   .log-row:last-child{border-bottom:none}
 
-  /* ✅ UPDATED: 10-column purchase item row with Rack */
+  /* ✅ Updated Purchase Row Grid */
   .purchase-item-row{display:grid;grid-template-columns:2fr 1.2fr 1fr 60px 80px 80px 120px 120px 100px 36px;gap:6px;margin-bottom:8px;align-items:center;padding:10px;background:#fafbfd;border-radius:9px;border:1px solid var(--border)}
   @media(max-width:1100px){.purchase-item-row{grid-template-columns:1fr 1fr;gap:8px}.purchase-item-row button{grid-column:span 2}}
   .purchase-item-row input,.purchase-item-row select{padding:7px 9px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:#fff;width:100%}
@@ -204,7 +205,7 @@
     <p class="nav-label">System</p>
     <button class="nav-item" data-module="settings">⚙ Staff & Logs <span class="kbd-badge">Alt+,</span></button>
 
-    <div class="sidebar-foot">v31.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
+    <div class="sidebar-foot">v32.0 · BM MOBILE ZONE<br>Powered by MS.TECH</div>
   </aside>
 
   <main class="main">
@@ -267,7 +268,7 @@
         <div class="clay" style="padding:20px"><h3 style="font-size:14px;margin:0 0 14px">Rack-wise Inventory</h3><div class="table-wrap" id="rackStockTable"><div class="empty">Loading…</div></div></div>
       </section>
 
-      <!-- PURCHASES -->
+      <!-- PURCHASES / PRODUCTS -->
       <section class="module" id="module-purchases">
         <div class="module-head"><div><h2>Purchases / Products</h2><p>Single source of truth — auto-syncs to inventory with rack assignment</p></div>
           <div style="display:flex;gap:10px">
@@ -277,9 +278,18 @@
         </div>
         <div class="clay" style="padding:20px">
           <div class="module-head" style="margin-bottom:14px"><h3 style="font-size:14px;margin:0">Current Products</h3></div>
-          <div style="display:flex;gap:10px;margin-bottom:14px">
-            <div class="search-bar" style="flex:1"><input id="productSearch" placeholder="Search products by name or IMEI…"></div>
+          
+          <!-- ✅ UPDATED: Added Category and Brand Filters here -->
+          <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <div class="search-bar" style="flex:1;min-width:200px"><input id="productSearch" placeholder="Search products by name or IMEI…"></div>
+            <select id="productFilterCat" class="field" style="padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;outline:none;min-width:150px">
+              <option value="">All Categories</option>
+            </select>
+            <select id="productFilterBrand" class="field" style="padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:#fff;font-size:13px;outline:none;min-width:150px">
+              <option value="">All Brands</option>
+            </select>
           </div>
+
           <div class="bulk-bar" id="productBulkBar" style="display:none"><span class="count" id="productSelCount">0</span> selected <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()">Delete Selected</button></div>
           <div class="table-wrap" id="productsTable"><div class="empty">Loading…</div></div>
         </div>
