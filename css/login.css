@@ -1,386 +1,468 @@
-// =====================================================
-// BM MOBILE ZONE — Login Controller v4.0 (Ultimate Premium)
-// Features: Super Admin Login, Staff Sync, Security, 
-// Permissions Sync, Auto-Redirect, Smooth UX
-// =====================================================
-import { supabase } from './config.js';
+/* =====================================================
+   BM MOBILE ZONE — LOGIN CSS (Matched with Dashboard)
+   Theme: Golden & Black, 0% Blur, HD Text
+===================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-// ---------------------------------------------------
-// DOM ELEMENTS
-// ---------------------------------------------------
-const form     = document.getElementById('loginForm');
-const button   = document.getElementById('loginBtn');
-const errorEl  = document.getElementById('errorMessage');
-const okEl     = document.getElementById('successMessage');
-const userInp  = document.getElementById('username');
-const passInp  = document.getElementById('password');
-
-if (!form || !button || !errorEl || !okEl) throw new Error('Login HTML elements missing.');
-
-// ---------------------------------------------------
-// PREMIUM: Auto-Login (Session Guard)
-// ---------------------------------------------------
-const existingSession = localStorage.getItem('bm_staff');
-const existingShopId = localStorage.getItem('shop_id');
-const loginTime = localStorage.getItem('login_time');
-
-if (existingSession && existingShopId && loginTime) {
-  const hoursSinceLogin = (Date.now() - Number(loginTime)) / (1000 * 60 * 60);
-  if (hoursSinceLogin < 12) {
-    // Session valid, redirect to dashboard
-    window.location.replace('./dashboard.html');
-  } else {
-    // Session expired, clear it
-    ['bm_staff', 'shop_id', 'login_time', 'bm_shop_perms'].forEach(k => localStorage.removeItem(k));
-  }
-}
-
-// ---------------------------------------------------
-// PREMIUM: Password Visibility Toggle
-// ---------------------------------------------------
-const toggleBtn = document.createElement('button');
-toggleBtn.type = 'button';
-toggleBtn.innerHTML = '👁️';
-toggleBtn.style.cssText = 'position:absolute;right:15px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;opacity:0.6;transition:opacity 0.2s;';
-toggleBtn.onmouseover = () => toggleBtn.style.opacity = '1';
-toggleBtn.onmouseout = () => toggleBtn.style.opacity = '0.6';
-
-passInp.style.paddingRight = '40px';
-passInp.parentNode.style.position = 'relative';
-passInp.parentNode.appendChild(toggleBtn);
-
-toggleBtn.addEventListener('click', () => {
-  if (passInp.type === 'password') {
-    passInp.type = 'text';
-    toggleBtn.innerHTML = '🙈';
-  } else {
-    passInp.type = 'password';
-    toggleBtn.innerHTML = '👁️';
-  }
-});
-
-// ---------------------------------------------------
-// PREMIUM: Caps Lock Detection
-// ---------------------------------------------------
-const capsWarning = document.createElement('div');
-capsWarning.style.cssText = 'color:#fbbf24;font-size:11px;font-weight:bold;margin-top:8px;display:none;text-align:center;transition:all 0.3s;';
-capsWarning.innerHTML = '⚠️ Caps Lock is ON';
-passInp.parentNode.appendChild(capsWarning);
-
-passInp.addEventListener('keyup', (e) => {
-  if (e.getModifierState && e.getModifierState('CapsLock')) {
-    capsWarning.style.display = 'block';
-  } else {
-    capsWarning.style.display = 'none';
-  }
-});
-
-// ---------------------------------------------------
-// PREMIUM: Password Strength Meter
-// ---------------------------------------------------
-const strengthMeter = document.createElement('div');
-strengthMeter.style.cssText = 'height:4px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:8px;overflow:hidden;display:none;';
-const strengthBar = document.createElement('div');
-strengthBar.style.cssText = 'height:100%;width:0%;background:var(--danger);transition:all 0.3s;';
-strengthMeter.appendChild(strengthBar);
-passInp.parentNode.appendChild(strengthMeter);
-
-passInp.addEventListener('input', () => {
-  const val = passInp.value;
-  if (!val) {
-    strengthMeter.style.display = 'none';
-    return;
-  }
-  strengthMeter.style.display = 'block';
+:root {
+  /* Colors matched with Dashboard */
+  --bg-main: #0a0a0a;       /* Deep Black */
+  --bg-card: #141414;       /* Slightly lighter black */
+  --bg-panel: #000000;      /* Pure Black for left panel */
   
-  let strength = 0;
-  if (val.length >= 6) strength += 30;
-  if (val.length >= 10) strength += 20;
-  if (/[A-Z]/.test(val)) strength += 20;
-  if (/[0-9]/.test(val)) strength += 20;
-  if (/[^A-Za-z0-9]/.test(val)) strength += 10;
+  --gold-primary: #FFD700;  /* Bright Gold */
+  --gold-hover: #FFC300;    /* Hover Gold */
+  --gold-gradient: linear-gradient(135deg, #FFD700, #DAA520);
   
-  strengthBar.style.width = strength + '%';
-  if (strength < 50) strengthBar.style.background = 'var(--danger)';
-  else if (strength < 80) strengthBar.style.background = 'var(--warning)';
-  else strengthBar.style.background = 'var(--success)';
-});
-
-// ---------------------------------------------------
-// PREMIUM: Enter Key Navigation
-// ---------------------------------------------------
-userInp.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); passInp.focus(); }
-});
-passInp.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); form.requestSubmit(); }
-});
-
-// ---------------------------------------------------
-// PREMIUM: Feedback Helpers (Smooth Shake)
-// ---------------------------------------------------
-function clearFeedback() {
-  errorEl.textContent = '';
-  errorEl.classList.remove('error');
-  okEl.textContent = '';
-  okEl.classList.remove('success');
-}
-
-function showError(msg) {
-  console.error('LOGIN ERROR:', msg);
-  okEl.classList.remove('success');
-  okEl.textContent = '';
-  errorEl.textContent = typeof msg === 'string' ? msg : (msg?.message || 'Login failed.');
-  errorEl.classList.add('error');
+  --text-main: #FFFFFF;     /* Pure White */
+  --text-muted: #A1A1AA;    /* Light Grey */
   
-  // Smooth Shake Animation
-  form.style.animation = 'smoothShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97)';
-  setTimeout(() => form.style.animation = '', 500);
+  --border-color: #27272A;  /* Dark Grey Border */
+  --danger: #EF4444;
+  --success: #10B981;
+  
+  --radius: 16px;
+  --transition: all 0.2s ease-in-out;
 }
 
-function showSuccess(msg) {
-  errorEl.classList.remove('error');
-  errorEl.textContent = '';
-  okEl.textContent = msg;
-  okEl.classList.add('success');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  padding: 24px;
+  
+  /* Sharp Text Settings - 0% Blur */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-function setLoading(state) {
-  button.disabled = state;
-  button.classList.toggle('loading', state);
-  if (state) {
-    button.innerHTML = 'Authenticating... <i class="fa-solid fa-spinner fa-spin"></i>';
-  } else {
-    button.innerHTML = 'Login to Dashboard <i class="fa-solid fa-arrow-right"></i>';
-  }
+/* =====================================================
+   APP SHELL (Layout)
+===================================================== */
+.app-shell {
+  position: relative;
+  width: min(1100px, 100%);
+  min-height: 650px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
 }
 
-// ---------------------------------------------------
-// PREMIUM: Brute-Force Protection (Max 5 Attempts)
-// ---------------------------------------------------
-let failedAttempts = Number(localStorage.getItem('bm_failed_attempts') || 0);
-let lockoutTime = Number(localStorage.getItem('bm_lockout_time') || 0);
-
-function checkLockout() {
-  if (lockoutTime && Date.now() < lockoutTime) {
-    const remaining = Math.ceil((lockoutTime - Date.now()) / 1000);
-    showError(`Too many failed attempts. Please wait ${remaining} seconds.`);
-    return true;
-  }
-  return false;
+/* =====================================================
+   LEFT VISUAL PANEL
+===================================================== */
+.visual-panel {
+  background: var(--bg-panel);
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--border-color);
 }
 
-function incrementFailedAttempts() {
-  failedAttempts++;
-  localStorage.setItem('bm_failed_attempts', failedAttempts);
-  if (failedAttempts >= 5) {
-    lockoutTime = Date.now() + 30000; // 30 seconds lock
-    localStorage.setItem('bm_lockout_time', lockoutTime);
-    showError('Too many failed attempts. Account locked for 30 seconds.');
-  }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-function resetFailedAttempts() {
-  failedAttempts = 0;
-  localStorage.setItem('bm_failed_attempts', 0);
-  localStorage.removeItem('bm_lockout_time');
+.brand-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--gold-gradient);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #000;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
 }
 
-// =====================================================
-// MAIN LOGIN HANDLER
-// =====================================================
-form.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  clearFeedback();
+.brand-text {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+.brand-text span { color: var(--gold-primary); }
 
-  if (checkLockout()) return;
-
-  const username = userInp.value.trim();
-  const password = passInp.value;
-
-  if (!username || !password) {
-    return showError('Please enter both Staff ID / Username and Password.');
-  }
-
-  // Network Check
-  if (!navigator.onLine) {
-    return showError('No internet connection. Please check your network.');
-  }
-
-  setLoading(true);
-
-  try {
-    // ============================================================
-    // STEP 1: SUPER ADMIN LOGIN
-    // ============================================================
-    const { data: saData, error: saError } = await supabase
-      .from('shops').select('*')
-      .eq('username', username).eq('password', password).eq('shop_name', 'SUPER ADMIN').maybeSingle();
-
-    if (saError && saError.code !== 'PGRST116') throw saError;
-
-    if (saData) {
-      localStorage.setItem('isSuperAdmin', 'true');
-      showSuccess('Welcome Super Admin! Redirecting to Management Panel...');
-      setTimeout(() => window.location.replace('./superadmin.html'), 1000);
-      return;
-    }
-
-    // ============================================================
-    // STEP 2: STAFF LOGIN
-    // ============================================================
-    const { data: staffData, error: staffError } = await supabase
-      .from('staff').select('*')
-      .eq('staff_id', username).eq('password', password).maybeSingle();
-
-    if (staffError && staffError.code !== 'PGRST116') throw staffError;
-
-    if (staffData) {
-      // Fetch Shop Permissions for Staff
-      const shopId = localStorage.getItem('shop_id') || staffData.shop_id;
-      let shopPerms = {};
-      
-      if (shopId) {
-        const { data: shopData } = await supabase.from('shops').select('*').eq('id', shopId).maybeSingle();
-        if (shopData) shopPerms = shopData;
-      }
-
-      // Save Sessions & Permissions
-      localStorage.setItem('bm_staff', JSON.stringify({
-        id: staffData.id,
-        staff_id: staffData.staff_id,
-        name: staffData.name,
-        role: staffData.role || 'Staff',
-        can_edit: !!staffData.can_edit,
-        can_delete: !!staffData.can_delete
-      }));
-      
-      localStorage.setItem('shop_id', shopId || staffData.staff_id); 
-      localStorage.setItem('shop_name', localStorage.getItem('shop_name') || 'BM MOBILE ZONE');
-      localStorage.setItem('owner_name', staffData.name);
-      localStorage.setItem('bm_shop_perms', JSON.stringify(shopPerms));
-      localStorage.setItem('login_time', Date.now().toString());
-      localStorage.setItem('last_login', new Date().toISOString());
-
-      resetFailedAttempts();
-      showSuccess(`Welcome back, ${staffData.name}! Redirecting...`);
-      setTimeout(() => window.location.replace('./dashboard.html'), 1000);
-      return;
-    }
-
-    // ============================================================
-    // STEP 3: SHOP OWNER LOGIN (Fallback)
-    // ============================================================
-    const { data: shop, error: shopError } = await supabase
-      .from('shops').select('*')
-      .eq('username', username).eq('password', password).maybeSingle();
-
-    if (shopError && shopError.code !== 'PGRST116') throw shopError;
-
-    if (!shop) {
-      incrementFailedAttempts();
-      throw new Error('Invalid Staff ID / Username or Password.');
-    }
-    
-    if (shop.is_active === false) {
-      throw new Error('Your shop account is disabled. Please contact Super Admin.');
-    }
-
-    // Save Shop Permissions & Sessions
-    localStorage.setItem('bm_shop_perms', JSON.stringify(shop));
-    localStorage.setItem('shop_id', shop.id);
-    localStorage.setItem('shop_name', shop.shop_name || 'BM MOBILE ZONE');
-    localStorage.setItem('owner_name', shop.owner_name || 'Admin');
-    localStorage.setItem('login_time', Date.now().toString());
-    localStorage.setItem('last_login', new Date().toISOString());
-
-    localStorage.setItem('bm_staff', JSON.stringify({
-      id: shop.id,
-      staff_id: '01',
-      name: shop.owner_name || shop.username || 'Admin',
-      role: 'Admin',
-      can_edit: true,
-      can_delete: true
-    }));
-
-    resetFailedAttempts();
-    showSuccess('Login successful! Redirecting...');
-    setTimeout(() => window.location.replace('./dashboard.html'), 1000);
-
-  } catch (err) {
-    showError(err.message || 'Login failed. Please try again.');
-    setLoading(false);
-    passInp.focus();
-  }
-});
-
-// ---------------------------------------------------
-// PREMIUM: Forgot Password (WhatsApp)
-// ---------------------------------------------------
-document.getElementById('forgotLink')?.addEventListener('click', (e) => {
-  e.preventDefault();
-  const msg = encodeURIComponent(`Assalam o Alaikum, I forgot my BM Mobile Zone password. Please help. (Username: ${userInp.value.trim() || '___'})`);
-  window.open(`https://wa.me/923099100546?text=${msg}`, '_blank');
-});
-
-// ---------------------------------------------------
-// PREMIUM: Remember Me
-// ---------------------------------------------------
-const rememberBox = document.getElementById('rememberMe');
-const savedUser = localStorage.getItem('bm_remember_user');
-if (savedUser) { 
-  userInp.value = savedUser; 
-  if(rememberBox) rememberBox.checked = true; 
+.hero {
+  margin: 40px 0;
 }
 
-form.addEventListener('submit', () => {
-  if (rememberBox && rememberBox.checked) localStorage.setItem('bm_remember_user', userInp.value.trim());
-  else localStorage.removeItem('bm_remember_user');
-});
-
-// ---------------------------------------------------
-// PREMIUM: Auto Focus
-// ---------------------------------------------------
-setTimeout(() => {
-  if (!userInp.value) userInp.focus();
-  else passInp.focus();
-}, 200);
-
-// ---------------------------------------------------
-// PREMIUM: Global Shortcut (Alt + L)
-// ---------------------------------------------------
-document.addEventListener('keydown', (e) => {
-  if (e.altKey && e.key.toLowerCase() === 'l') {
-    e.preventDefault();
-    form.requestSubmit();
-  }
-});
-
-// ---------------------------------------------------
-// PREMIUM: Last Login Info Display
-// ---------------------------------------------------
-const lastLogin = localStorage.getItem('last_login');
-if (lastLogin && errorEl) {
-  const date = new Date(lastLogin);
-  const infoEl = document.createElement('p');
-  infoEl.style.cssText = 'font-size:11px;color:var(--muted);text-align:center;margin-top:15px;';
-  infoEl.textContent = `Last login: ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`;
-  form.appendChild(infoEl);
+.hero h1 {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 16px;
+  color: #fff;
+  letter-spacing: -1px;
 }
 
-// ---------------------------------------------------
-// PREMIUM: Smooth Shake Animation Injection
-// ---------------------------------------------------
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes smoothShake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-6px); }
-    40% { transform: translateX(6px); }
-    60% { transform: translateX(-4px); }
-    80% { transform: translateX(4px); }
+.hero h1 span {
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.feature-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: var(--transition);
+}
+
+.feature-box:hover {
+  border-color: rgba(255, 215, 0, 0.3);
+  background: rgba(255, 215, 0, 0.02);
+}
+
+.feature-box i {
+  font-size: 20px;
+  color: var(--gold-primary);
+  margin-bottom: 12px;
+  display: block;
+}
+
+.feature-box h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.feature-box p {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.visual-footer {
+  font-size: 12px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+}
+
+/* =====================================================
+   RIGHT LOGIN PANEL
+===================================================== */
+.login-panel {
+  padding: 48px;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.mobile-brand {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.login-header {
+  margin-bottom: 32px;
+}
+
+.login-header h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.login-header p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* =====================================================
+   FORM ELEMENTS (Sharp, Clear)
+===================================================== */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0 16px;
+  height: 52px;
+  transition: var(--transition);
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.input-icon {
+  color: var(--text-muted);
+  font-size: 16px;
+  margin-right: 12px;
+}
+
+.input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.input-field::placeholder {
+  color: #52525B;
+}
+
+.toggle-password {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  transition: var(--transition);
+}
+
+.toggle-password:hover {
+  color: var(--gold-primary);
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0 24px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  accent-color: var(--gold-primary);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.forgot-link {
+  font-size: 13px;
+  color: var(--gold-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+.btn-submit {
+  width: 100%;
+  height: 52px;
+  background: var(--gold-gradient);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+  transition: var(--transition);
+}
+
+.btn-submit:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+}
+
+.btn-submit:active {
+  transform: scale(0.98);
+}
+
+.btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   ALERTS & MESSAGES
+===================================================== */
+.alert {
+  display: none;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.alert.error {
+  display: block;
+  background: rgba(239, 68, 68, 0.1);
+  color: #FCA5A5;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.alert.success {
+  display: block;
+  background: rgba(16, 185, 129, 0.1);
+  color: #6EE7B7;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* =====================================================
+   SECURITY & SUPPORT
+===================================================== */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.divider::before, .divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.security-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.02);
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.security-icon {
+  color: var(--gold-primary);
+  font-size: 18px;
+}
+
+.security-text strong {
+  display: block;
+  font-size: 12px;
+  color: #fff;
+}
+
+.security-text p {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.wa-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(37, 211, 102, 0.1);
+  border: 1px solid rgba(37, 211, 102, 0.2);
+  border-radius: 10px;
+  color: #25D366;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.wa-btn:hover {
+  background: rgba(37, 211, 102, 0.15);
+}
+
+.login-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media (max-width: 900px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+    min-height: auto;
   }
-  .fa-spinner { animation: spin 1s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-`;
-document.head.appendChild(style);
+  .visual-panel {
+    display: none;
+  }
+  .login-panel {
+    padding: 32px 24px;
+  }
+  .mobile-brand {
+    display: flex;
+  }
+}
