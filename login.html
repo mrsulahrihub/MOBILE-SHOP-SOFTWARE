@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- External CSS Link -->
 <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
@@ -24,13 +23,12 @@
 
     <div class="hero">
       <h1>Sign in to your <span>business cockpit.</span></h1>
-      <!-- ✅ UPDATED TEXT AS REQUESTED -->
-      <p style="font-size: 14px; line-height: 1.8; color: var(--text-muted); margin-top: 16px;">
+      <p style="font-size: 13.5px; line-height: 1.7; color: var(--text-muted); margin-top: 12px; text-align: justify;">
         BM MOBILE ZONE is a smart Mobile Shop Management ERP developed by MS.Tech.<br><br>
         Manage complete mobile inventory, rack-wise stock, purchases and sales in one platform.<br>
         Track product availability, IMEI numbers, customers and suppliers efficiently.<br>
         Handle POS billing, mobile repairing, expenses and business reports with ease.<br><br>
-        <strong style="color: #fff;">A complete solution for smarter inventory management and business growth.</strong>
+        <strong style="color: var(--primary);">A complete solution for smarter inventory management and business growth.</strong>
       </p>
     </div>
 
@@ -44,13 +42,6 @@
         <i class="fa-solid fa-chart-line"></i>
         <h3>Analytics</h3>
         <p>Real-time sales and revenue insights.</p>
-      </div>
-      <div class="feature-box" style="grid-column: span 2; display: flex; align-items: center; gap: 16px;">
-        <i class="fa-solid fa-shield-halved" style="margin: 0; font-size: 24px;"></i>
-        <div>
-          <h3 style="margin-bottom: 4px;">256-bit encrypted access</h3>
-          <p>Your session and credentials are protected end-to-end.</p>
-        </div>
       </div>
     </div>
 
@@ -74,7 +65,6 @@
         <p>Enter your credentials to access the dashboard.</p>
       </div>
 
-      <!-- ✅ CLEANED UP FORM (Removed extra empty boxes, remember me, forgot pass) -->
       <form id="loginForm" novalidate>
         <div class="form-group">
           <label class="form-label" for="username">Username / Staff ID</label>
@@ -89,13 +79,13 @@
           <div class="input-wrapper">
             <i class="fa-solid fa-lock input-icon"></i>
             <input type="password" id="password" name="password" class="input-field" placeholder="Enter your password" autocomplete="current-password" required>
-            <!-- Toggle icon will be injected by JS -->
+            <!-- Toggle button automatically JS se add hoga -->
           </div>
         </div>
 
-        <!-- Hidden Alert Boxes (JS will show them when needed) -->
-        <div class="alert error" id="errorMessage" role="alert" style="display: none; margin-top: 15px;"></div>
-        <div class="alert success" id="successMessage" role="status" style="display: none; margin-top: 15px;"></div>
+        <!-- Hidden Alert Boxes -->
+        <div class="alert error" id="errorMessage" role="alert" style="display: none; margin-top: 15px; margin-bottom: 0;"></div>
+        <div class="alert success" id="successMessage" role="status" style="display: none; margin-top: 15px; margin-bottom: 0;"></div>
 
         <button type="submit" class="btn-submit" id="loginBtn" style="margin-top: 24px;">
           <span>Login to Dashboard</span>
@@ -106,19 +96,19 @@
       <div class="divider">SECURE CONNECTION</div>
 
       <div class="security-info">
-        <i class="fa-solid fa-lock security-icon"></i>
+        <i class="fa-solid fa-shield-halved security-icon"></i>
         <div class="security-text">
           <strong>256-bit SSL Encrypted</strong>
-          <p>Your credentials are transmitted over a secure channel.</p>
+          <p>Your credentials are transmitted securely.</p>
         </div>
       </div>
 
       <a href="https://wa.me/923099100546?text=Assalam%20o%20Alaikum%2C%20I%20need%20support%20for%20BM%20Mobile%20Zone." target="_blank" class="wa-btn">
-        <i class="fa-brands fa-whatsapp"></i> Contact Support — 0309 9100546
+        <i class="fa-brands fa-whatsapp"></i> Contact Support
       </a>
 
       <div class="login-footer">
-        Need help? WhatsApp us anytime · Powered by MS.TECH
+        Need help? WhatsApp us · Powered by MS.TECH
       </div>
 
     </div>
