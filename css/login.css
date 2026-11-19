@@ -1,28 +1,30 @@
-
 /* =====================================================
    MOBILE SHOP MANAGEMENT SYSTEM
-   PREMIUM DARK NEUMORPHISM LOGIN DESIGN
-   Compatible with existing login.html
+   PREMIUM GOLDEN & BLACK GLASSMORPHISM LOGIN DESIGN
 ===================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 :root {
-    --bg: #111a2b;
-    --surface: #19253a;
-    --surface-light: #202e46;
-    --primary: #438cff;
-    --primary-light: #65a6ff;
-    --cyan: #35d5e8;
-    --text: #edf4ff;
-    --muted: #8c9bb3;
-    --success: #32d69a;
-    --danger: #ff667d;
+    --bg: #080808;
+    --surface: rgba(20, 20, 20, 0.6);
+    --surface-light: rgba(35, 35, 35, 0.7);
+    
+    /* Golden Theme Colors */
+    --gold: #d4af37;
+    --gold-light: #f3e5ab;
+    --gold-dark: #aa8529;
+    --gold-gradient: linear-gradient(135deg, #f3e5ab, #d4af37, #aa8529);
+    
+    --text: #ffffff;
+    --muted: #a3a3a3;
+    --success: #10b981;
+    --danger: #ef4444;
 
-    --shadow-dark: 8px 8px 18px #0b1220;
-    --shadow-light: -8px -8px 18px #253650;
-    --shadow-inset: inset 5px 5px 10px #0d1626,
-                    inset -5px -5px 10px #253650;
+    /* Glassmorphism Shadows */
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    --glass-border: rgba(212, 175, 55, 0.15);
+    --glass-border-focus: rgba(212, 175, 55, 0.5);
 
     --radius: 20px;
 }
@@ -44,14 +46,17 @@ body {
     background: var(--bg);
     color: var(--text);
     overflow-x: hidden;
+    background-image: 
+        radial-gradient(circle at 15% 15%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(212, 175, 55, 0.05) 0%, transparent 40%);
+    background-attachment: fixed;
 }
 
-/* BACKGROUND EFFECTS */
-
+/* BACKGROUND EFFECTS (Golden Ambient Glows) */
 .ambient {
     position: fixed;
     border-radius: 50%;
-    filter: blur(90px);
+    filter: blur(100px);
     opacity: .15;
     pointer-events: none;
     z-index: 0;
@@ -60,7 +65,7 @@ body {
 .ambient-one {
     width: 350px;
     height: 350px;
-    background: #1769ff;
+    background: var(--gold);
     top: -100px;
     left: -100px;
 }
@@ -68,7 +73,7 @@ body {
 .ambient-two {
     width: 300px;
     height: 300px;
-    background: #00c6d9;
+    background: var(--gold-dark);
     bottom: -100px;
     right: -80px;
 }
@@ -76,13 +81,12 @@ body {
 .ambient-three {
     width: 250px;
     height: 250px;
-    background: #6948e8;
+    background: #554400;
     top: 45%;
     left: 45%;
 }
 
-/* MAIN LAYOUT */
-
+/* MAIN LAYOUT (Glassmorphism Container) */
 .app-shell {
     position: relative;
     z-index: 1;
@@ -92,15 +96,15 @@ body {
     display: grid;
     grid-template-columns: 1.15fr .85fr;
     background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-radius: 30px;
     overflow: hidden;
-    box-shadow: 18px 18px 45px #090f19,
-                -10px -10px 35px #253650;
-    border: 1px solid rgba(255,255,255,.035);
+    box-shadow: var(--glass-shadow);
+    border: 1px solid var(--glass-border);
 }
 
 /* LEFT VISUAL PANEL */
-
 .visual-panel {
     position: relative;
     min-height: 700px;
@@ -109,11 +113,12 @@ body {
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
-    background:
-        radial-gradient(circle at 15% 15%, rgba(67,140,255,.15), transparent 35%),
-        linear-gradient(145deg, #1b2941, #142036);
+    background: 
+        linear-gradient(145deg, rgba(20,20,20,0.8), rgba(10,10,10,0.9));
+    border-right: 1px solid rgba(255,255,255,0.03);
 }
 
+/* Gold Rings Decoration */
 .visual-panel::after {
     content: "";
     position: absolute;
@@ -122,14 +127,13 @@ body {
     right: -180px;
     bottom: -180px;
     border-radius: 50%;
-    border: 1px solid rgba(67,140,255,.15);
-    box-shadow: 0 0 0 35px rgba(67,140,255,.025),
-                0 0 0 70px rgba(67,140,255,.02);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    box-shadow: 0 0 0 35px rgba(212, 175, 55, 0.05),
+                0 0 0 70px rgba(212, 175, 55, 0.02);
     pointer-events: none;
 }
 
-/* BRAND */
-
+/* BRAND & LOGO */
 .brand-top {
     display: flex;
     align-items: center;
@@ -146,9 +150,9 @@ body {
     border-radius: 16px;
     font-size: 23px;
     font-weight: 900;
-    color: var(--primary-light);
-    background: var(--surface);
-    box-shadow: var(--shadow-dark), var(--shadow-light);
+    color: #000;
+    background: var(--gold-gradient);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
 }
 
 .system-status {
@@ -158,8 +162,8 @@ body {
     font-size: 11px;
     font-weight: 700;
     color: var(--success);
-    background: rgba(50,214,154,.08);
-    border: 1px solid rgba(50,214,154,.2);
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .system-status::before {
@@ -173,8 +177,7 @@ body {
     box-shadow: 0 0 10px var(--success);
 }
 
-/* HERO */
-
+/* HERO TEXT */
 .hero-content {
     position: relative;
     z-index: 2;
@@ -183,7 +186,7 @@ body {
 
 .eyebrow {
     display: inline-block;
-    color: var(--cyan);
+    color: var(--gold);
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 2px;
@@ -197,10 +200,13 @@ body {
     font-weight: 800;
     letter-spacing: -1.8px;
     max-width: 550px;
+    color: var(--text);
 }
 
 .hero-content h1 span {
-    color: var(--primary-light);
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .hero-content p {
@@ -211,8 +217,7 @@ body {
     line-height: 1.9;
 }
 
-/* FEATURE CARDS */
-
+/* BENTO FEATURE CARDS (Glass) */
 .bento-grid {
     position: relative;
     z-index: 2;
@@ -225,23 +230,23 @@ body {
     min-height: 145px;
     padding: 23px;
     border-radius: 19px;
-    background: var(--surface);
-    box-shadow: 7px 7px 15px #0d1524,
-                -7px -7px 15px #253650;
-    border: 1px solid rgba(255,255,255,.025);
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: .3s ease;
 }
 
 .bento-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 10px 10px 22px #0b1220,
-                -8px -8px 20px #2a3b57;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(212, 175, 55, 0.3);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
 .bento-card h3 {
     font-size: 14px;
     margin: 15px 0 7px;
     font-weight: 700;
+    color: var(--gold-light);
 }
 
 .bento-card p {
@@ -252,24 +257,14 @@ body {
 
 .bento-card .icon,
 .bento-card > svg {
-    color: var(--primary-light);
+    color: var(--gold);
 }
 
-.inventory-card {
-    grid-column: span 1;
-}
-
-.sales-card {
-    grid-column: span 1;
-}
-
-.security-card {
-    grid-column: span 2;
-    min-height: 105px;
-}
+.inventory-card { grid-column: span 1; }
+.sales-card { grid-column: span 1; }
+.security-card { grid-column: span 2; min-height: 105px; }
 
 /* LEFT FOOTER */
-
 .visual-footer {
     position: relative;
     z-index: 2;
@@ -281,14 +276,13 @@ body {
 }
 
 /* RIGHT LOGIN PANEL */
-
 .login-panel {
     min-width: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 45px;
-    background: #172338;
+    background: transparent;
 }
 
 .login-card {
@@ -296,14 +290,14 @@ body {
     max-width: 440px;
     padding: 38px;
     border-radius: 26px;
-    background: var(--surface);
-    box-shadow: 12px 12px 28px #0b1422,
-                -10px -10px 25px #24344d;
-    border: 1px solid rgba(255,255,255,.035);
+    background: rgba(20, 20, 20, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
 }
 
 /* MOBILE BRAND */
-
 .mobile-brand {
     display: none;
     align-items: center;
@@ -312,28 +306,21 @@ body {
     margin-bottom: 35px;
 }
 
-.mobile-brand .brand-symbol {
-    width: 45px;
-    height: 45px;
-}
-
 /* LOGIN HEADING */
-
-.login-heading {
-    margin-bottom: 30px;
-}
+.login-heading { margin-bottom: 30px; }
 
 .welcome-tag {
     display: inline-block;
     padding: 8px 13px;
     border-radius: 30px;
-    background: rgba(67,140,255,.10);
-    color: var(--primary-light);
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--gold);
     font-size: 10px;
     font-weight: 800;
     letter-spacing: 1px;
     text-transform: uppercase;
     margin-bottom: 18px;
+    border: 1px solid rgba(212, 175, 55, 0.2);
 }
 
 .login-heading h2 {
@@ -341,6 +328,7 @@ body {
     font-weight: 800;
     letter-spacing: -1px;
     margin-bottom: 10px;
+    color: var(--text);
 }
 
 .login-heading p {
@@ -349,23 +337,18 @@ body {
     line-height: 1.7;
 }
 
-/* FORM */
-
-#loginForm {
-    width: 100%;
-}
+/* FORM INPUTS */
+#loginForm { width: 100%; }
 
 #loginForm label {
     display: block;
     margin-bottom: 10px;
-    color: #cbd7e9;
+    color: var(--gold-light);
     font-size: 12px;
     font-weight: 700;
 }
 
-.input-group {
-    margin-bottom: 22px;
-}
+.input-group { margin-bottom: 22px; }
 
 .input-wrapper {
     width: 100%;
@@ -375,22 +358,20 @@ body {
     gap: 13px;
     padding: 0 16px;
     border-radius: 13px;
-    background: #141f32;
-    box-shadow: var(--shadow-inset);
-    border: 1px solid rgba(255,255,255,.025);
-    transition: .25s ease;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255,255,255,.05);
+    transition: .3s ease;
 }
 
 .input-wrapper:focus-within {
-    border-color: rgba(67,140,255,.6);
-    box-shadow: inset 3px 3px 7px #0d1626,
-                inset -3px -3px 7px #253650,
-                0 0 0 3px rgba(67,140,255,.09);
+    border-color: var(--gold);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
+    background: rgba(0, 0, 0, 0.5);
 }
 
 .input-icon {
     flex-shrink: 0;
-    color: #7186a5;
+    color: var(--muted);
     display: flex;
     align-items: center;
 }
@@ -404,11 +385,11 @@ body {
     color: var(--text);
     background: transparent;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .input-wrapper input::placeholder {
-    color: #64748c;
+    color: #666;
 }
 
 #togglePassword {
@@ -417,30 +398,21 @@ body {
     border: none;
     outline: none;
     cursor: pointer;
-    color: #8295b2;
+    color: var(--muted);
     background: transparent;
     font-size: 17px;
     transition: .2s;
 }
 
-#togglePassword:hover {
-    color: var(--primary-light);
-}
+#togglePassword:hover { color: var(--gold); }
 
 /* PASSWORD STRENGTH */
-
-.password-strength {
-    display: none;
-    margin-top: 12px;
-}
-
-.password-strength.visible {
-    display: block;
-}
+.password-strength { display: none; margin-top: 12px; }
+.password-strength.visible { display: block; }
 
 .strength-track {
     height: 5px;
-    background: #0d1728;
+    background: rgba(255,255,255,0.1);
     border-radius: 10px;
     overflow: hidden;
 }
@@ -461,20 +433,10 @@ body {
 }
 
 /* CAPS WARNING */
+#capsWarning { display: none; color: #fbbf24; font-size: 11px; margin-top: 9px; }
+#capsWarning.visible { display: block; }
 
-#capsWarning {
-    display: none;
-    color: #ffbd65;
-    font-size: 11px;
-    margin-top: 9px;
-}
-
-#capsWarning.visible {
-    display: block;
-}
-
-/* OPTIONS */
-
+/* OPTIONS ROW */
 .options-row {
     display: flex;
     justify-content: space-between;
@@ -494,19 +456,13 @@ body {
 }
 
 #rememberMe {
-    accent-color: var(--primary);
+    accent-color: var(--gold);
     width: 15px;
     height: 15px;
     cursor: pointer;
 }
 
-.custom-check {
-    display: inline-flex;
-    align-items: center;
-}
-
 /* SECURE NOTE */
-
 .secure-note {
     display: flex;
     align-items: center;
@@ -517,34 +473,32 @@ body {
     line-height: 1.6;
 }
 
-/* FEEDBACK */
-
+/* FEEDBACK MESSAGES */
 #errorMessage,
 #successMessage {
     display: none;
     padding: 12px 14px;
     border-radius: 11px;
     margin-bottom: 17px;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.6;
 }
 
 #errorMessage.visible {
     display: block;
-    color: #ff8292;
-    background: rgba(255,102,125,.09);
-    border: 1px solid rgba(255,102,125,.2);
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 #successMessage.visible {
     display: block;
     color: var(--success);
-    background: rgba(50,214,154,.08);
-    border: 1px solid rgba(50,214,154,.2);
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-/* LOGIN BUTTON */
-
+/* LOGIN BUTTON (Golden Gradient) */
 #loginBtn {
     width: 100%;
     min-height: 56px;
@@ -556,26 +510,19 @@ body {
     overflow: hidden;
     border: none;
     border-radius: 13px;
-    color: #fff;
-    background: linear-gradient(135deg, #347cf1, #2860d6);
-    box-shadow: 5px 5px 12px #0b1422,
-                -4px -4px 12px #253650,
-                inset 0 1px 0 rgba(255,255,255,.2);
+    color: #000;
+    background: var(--gold-gradient);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
     font-family: inherit;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 800;
     cursor: pointer;
-    transition: .25s ease;
+    transition: .3s ease;
 }
 
 #loginBtn:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #438cff, #3474ed);
-    box-shadow: 0 8px 22px rgba(52,124,241,.28);
-}
-
-#loginBtn:active {
-    transform: scale(.98);
+    box-shadow: 0 6px 25px rgba(212, 175, 55, 0.5);
+    filter: brightness(1.1);
 }
 
 #loginBtn:disabled {
@@ -596,32 +543,24 @@ body {
     display: none;
     width: 17px;
     height: 17px;
-    border: 2px solid rgba(255,255,255,.35);
-    border-top-color: #fff;
+    border: 2px solid rgba(0,0,0,.2);
+    border-top-color: #000;
     border-radius: 50%;
     animation: spin .7s linear infinite;
 }
 
-#loginBtn.loading .button-loader {
-    display: block;
-}
+#loginBtn.loading .button-loader { display: block; }
+#loginBtn.loading .button-arrow { display: none; }
 
-#loginBtn.loading .button-arrow {
-    display: none;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* DIVIDER */
-
 .login-divider {
     display: flex;
     align-items: center;
     gap: 13px;
     margin: 25px 0;
-    color: #71819b;
+    color: var(--muted);
     font-size: 10px;
 }
 
@@ -630,19 +569,18 @@ body {
     content: "";
     flex: 1;
     height: 1px;
-    background: rgba(255,255,255,.09);
+    background: rgba(255,255,255,.1);
 }
 
 /* SECURITY INFO */
-
 .security-info {
     display: flex;
     align-items: center;
     gap: 12px;
     padding: 15px;
     border-radius: 13px;
-    background: #151f32;
-    box-shadow: var(--shadow-inset);
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
 .security-shield {
@@ -652,8 +590,8 @@ body {
     display: grid;
     place-items: center;
     border-radius: 11px;
-    color: var(--success);
-    background: #192b39;
+    color: var(--gold);
+    background: rgba(212, 175, 55, 0.1);
 }
 
 .security-info p {
@@ -664,62 +602,34 @@ body {
 
 .security-info strong {
     display: block;
-    color: #dce8f8;
+    color: var(--gold-light);
     font-size: 11px;
     margin-bottom: 3px;
 }
 
 /* BOTTOM */
-
 .login-bottom {
     margin-top: 25px;
     text-align: center;
-    color: #72829c;
+    color: var(--muted);
     font-size: 10px;
     line-height: 1.7;
 }
 
-/* GENERAL TRANSITIONS */
-
-button,
-input,
-.bento-card,
-.input-wrapper {
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* TABLET */
-
+/* TABLET & MOBILE RESPONSIVE */
 @media (max-width: 1050px) {
     .app-shell {
         width: 96%;
         grid-template-columns: 1fr 1fr;
     }
-
-    .visual-panel {
-        padding: 32px;
-    }
-
-    .login-panel {
-        padding: 30px;
-    }
-
-    .login-card {
-        padding: 28px;
-    }
-
-    .hero-content h1 {
-        font-size: 36px;
-    }
+    .visual-panel { padding: 32px; }
+    .login-panel { padding: 30px; }
+    .login-card { padding: 28px; }
+    .hero-content h1 { font-size: 36px; }
 }
 
-/* MOBILE */
-
 @media (max-width: 760px) {
-    body {
-        padding: 20px 0;
-    }
-
+    body { padding: 20px 0; }
     .app-shell {
         width: min(480px, 92%);
         min-height: auto;
@@ -727,76 +637,36 @@ input,
         display: block;
         border-radius: 23px;
     }
-
-    .visual-panel {
-        display: none;
-    }
-
+    .visual-panel { display: none; }
     .login-panel {
         min-height: 90vh;
         padding: 24px 16px;
-        background: transparent;
     }
-
     .login-card {
         max-width: 100%;
         padding: 28px 22px;
         border-radius: 21px;
     }
-
-    .mobile-brand {
-        display: flex;
-    }
-
-    .login-heading h2 {
-        font-size: 26px;
-    }
-
-    .ambient-one {
-        width: 220px;
-        height: 220px;
-    }
-
-    .ambient-two {
-        width: 200px;
-        height: 200px;
-    }
+    .mobile-brand { display: flex; }
+    .login-heading h2 { font-size: 26px; }
 }
 
-/* SMALL MOBILE */
-
 @media (max-width: 380px) {
-    .login-panel {
-        padding: 15px 10px;
-    }
-
-    .login-card {
-        padding: 24px 17px;
-    }
-
-    .login-heading h2 {
-        font-size: 23px;
-    }
-
-    .options-row {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .input-wrapper {
-        padding: 0 12px;
-    }
+    .login-panel { padding: 15px 10px; }
+    .login-card { padding: 24px 17px; }
+    .login-heading h2 { font-size: 23px; }
+    .options-row { align-items: flex-start; flex-direction: column; }
+    .input-wrapper { padding: 0 12px; }
 }
 
 /* ACCESSIBILITY */
-
 button:focus-visible,
 input:focus-visible {
-    outline: 2px solid var(--primary-light);
+    outline: 2px solid var(--gold);
     outline-offset: 3px;
 }
 
 ::selection {
-    color: white;
-    background: #347cf1;
+    color: #000;
+    background: var(--gold);
 }
