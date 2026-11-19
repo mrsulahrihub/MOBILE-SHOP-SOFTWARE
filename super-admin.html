@@ -9,17 +9,11 @@
 
 <style>
 :root {
-  --bg: #eef2f6;
-  --text: #1e293b;
-  --muted: #64748b;
-  --primary: #3b82f6;
-  --primary-light: #eff6ff;
-  --success: #10b981;
-  --success-light: #ecfdf5;
-  --danger: #ef4444;
-  --danger-light: #fef2f2;
-  --warning: #f59e0b;
-  --warning-light: #fffbeb;
+  --bg: #eef2f6; --text: #1e293b; --muted: #64748b;
+  --primary: #3b82f6; --primary-light: #eff6ff;
+  --success: #10b981; --success-light: #ecfdf5;
+  --danger: #ef4444; --danger-light: #fef2f2;
+  --warning: #f59e0b; --warning-light: #fffbeb;
   --panel: #ffffff;
   
   /* Claymorphism Shadows */
@@ -54,7 +48,6 @@ body { background: var(--bg); color: var(--text); display: flex; min-height: 100
 .nav-item:hover { background: rgba(255,255,255,0.5); }
 .nav-item.active { background: var(--bg); color: var(--primary); box-shadow: var(--clay-inner); }
 .nav-item i { width: 24px; text-align: center; font-size: 18px; }
-.nav-item .badge { margin-left: auto; background: var(--primary); color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
 
 /* --- MAIN CONTENT --- */
 .main { flex: 1; padding: 40px; overflow-y: auto; height: 100vh; }
@@ -73,10 +66,10 @@ body { background: var(--bg); color: var(--text); display: flex; min-height: 100
 .btn-primary { background: var(--primary); color: white; box-shadow: 4px 4px 15px rgba(59,130,246,0.4); }
 .btn-primary:hover { background: #2563eb; }
 .btn-danger { background: var(--danger); color: white; box-shadow: 4px 4px 15px rgba(239,68,68,0.4); }
-.btn-sm { padding: 8px 14px; font-size: 12px; border-radius: 10px; }
+.btn-sm { padding: 8px 12px; font-size: 12px; border-radius: 10px; }
 
 /* --- STATS CARDS --- */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 40px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 40px; }
 .stat-card {
   background: var(--bg); padding: 25px; border-radius: 24px;
   box-shadow: var(--clay-shadow); display: flex; align-items: center; gap: 20px;
@@ -110,19 +103,13 @@ body { background: var(--bg); color: var(--text); display: flex; min-height: 100
   display: flex; align-items: center; padding: 10px 16px; border-radius: 14px;
   background: var(--bg); box-shadow: var(--clay-inner);
 }
-.search-bar input { border: none; background: transparent; outline: none; font-weight: 600; width: 220px; font-family: inherit; }
+.search-bar input { border: none; background: transparent; outline: none; font-weight: 600; width: 220px; font-family: inherit; color: var(--text); }
 .search-bar i { color: var(--muted); margin-right: 10px; }
 
 .table-responsive { overflow-x: auto; }
-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; min-width: 900px; }
-th {
-  text-align: left; padding: 10px 20px; font-size: 13px; color: var(--muted);
-  font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
-}
-td {
-  padding: 16px 20px; background: rgba(255,255,255,0.4); font-size: 14px; font-weight: 600; color: var(--text);
-  vertical-align: middle;
-}
+table { width: 100%; border-collapse: separate; border-spacing: 0 10px; min-width: 1000px; }
+th { text-align: left; padding: 10px 20px; font-size: 13px; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+td { padding: 16px 20px; background: rgba(255,255,255,0.4); font-size: 14px; font-weight: 600; color: var(--text); vertical-align: middle; }
 td:first-child { border-top-left-radius: 16px; border-bottom-left-radius: 16px; }
 td:last-child { border-top-right-radius: 16px; border-bottom-right-radius: 16px; }
 tr { transition: 0.2s; }
@@ -132,6 +119,7 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 .pill.green { background: var(--success-light); color: var(--success); box-shadow: var(--clay-inner); }
 .pill.red { background: var(--danger-light); color: var(--danger); box-shadow: var(--clay-inner); }
 .pill.blue { background: var(--primary-light); color: var(--primary); box-shadow: var(--clay-inner); }
+.pill.orange { background: var(--warning-light); color: var(--warning); box-shadow: var(--clay-inner); }
 
 /* --- MODALS --- */
 .modal-backdrop {
@@ -179,6 +167,14 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 }
 .login-box h1 { color: var(--primary); font-size: 32px; font-weight: 900; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8); }
 .login-box p { color: var(--muted); margin-bottom: 35px; font-size: 15px; font-weight: 600; }
+
+/* TOASTS */
+.toast-host { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; pointer-events: none; }
+.toast { padding: 15px 25px; border-radius: 16px; background: var(--bg); color: var(--text); font-size: 14px; font-weight: 700; box-shadow: var(--clay-shadow); animation: slideIn 0.3s; pointer-events: auto; display: flex; align-items: center; gap: 10px; }
+.toast.success { color: var(--success); border-left: 5px solid var(--success); }
+.toast.error { color: var(--danger); border-left: 5px solid var(--danger); }
+.toast.info { color: var(--primary); border-left: 5px solid var(--primary); }
+@keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
 </style>
 </head>
 <body>
@@ -195,8 +191,9 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     <div class="input-group" style="text-align: left;">
       <input type="text" id="loginUser" placeholder="Username (superadmin)" style="padding-left: 20px;">
     </div>
-    <div class="input-group" style="text-align: left;">
-      <input type="password" id="loginPass" placeholder="Password (admin123)" style="padding-left: 20px;">
+    <div class="input-group" style="text-align: left; position: relative;">
+      <input type="password" id="loginPass" placeholder="Password (admin123)" style="padding-left: 20px; padding-right: 40px;">
+      <button type="button" onclick="togglePass('loginPass', this)" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); border:none; background:none; cursor:pointer; color:var(--muted); font-size:16px;"><i class="fa-solid fa-eye"></i></button>
     </div>
     
     <button class="btn btn-primary" id="loginBtn" onclick="loginSA()" style="width: 100%; justify-content: center; margin-top: 10px; font-size: 16px;">
@@ -215,8 +212,8 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     
     <p style="font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; margin-bottom: 10px; margin-left: 15px;">MAIN MENU</p>
     <div class="nav-item active"><i class="fa-solid fa-chart-pie"></i> Dashboard</div>
-    <div class="nav-item" onclick="alert('Billing Module coming soon!')"><i class="fa-solid fa-file-invoice-dollar"></i> Billing & Plans</div>
-    <div class="nav-item" onclick="alert('Global Settings coming soon!')"><i class="fa-solid fa-gear"></i> Global Settings</div>
+    <div class="nav-item" onclick="toast('Billing Module coming soon!', 'info')"><i class="fa-solid fa-file-invoice-dollar"></i> Billing & Plans</div>
+    <div class="nav-item" onclick="toast('Global Settings coming soon!', 'info')"><i class="fa-solid fa-gear"></i> Global Settings</div>
     
     <div class="nav-item" style="margin-top: auto; color: var(--danger); background: var(--danger-light); box-shadow: none;" onclick="logoutSA()">
       <i class="fa-solid fa-right-from-bracket"></i> Logout (Alt + X)
@@ -230,11 +227,16 @@ tr:hover td { background: rgba(255,255,255,0.8); }
         <h1>Overview Dashboard</h1>
         <p>System statistics, shop management & permissions</p>
       </div>
-      <div style="display: flex; gap: 15px;">
+      <div style="display: flex; gap: 15px; flex-wrap: wrap;">
         <div class="search-bar">
           <i class="fa-solid fa-search"></i>
           <input type="text" id="searchShops" placeholder="Search shops..." oninput="loadShops()">
         </div>
+        <select id="filterStatus" class="btn" style="font-weight:700; outline:none;" onchange="loadShops()">
+          <option value="all">All Status</option>
+          <option value="active">Active Only</option>
+          <option value="blocked">Blocked Only</option>
+        </select>
         <button class="btn btn-primary" onclick="openShopModal()"><i class="fa-solid fa-plus"></i> Create New Shop</button>
       </div>
     </div>
@@ -268,7 +270,10 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     <div class="card">
       <div class="card-header">
         <h2><i class="fa-solid fa-database" style="color: var(--primary);"></i> Registered Shops</h2>
-        <span style="font-size: 13px; font-weight: 700; color: var(--muted);" id="lastUpdated"></span>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span style="font-size: 12px; font-weight: 700; color: var(--muted);" id="lastUpdated"></span>
+          <button class="btn btn-sm" onclick="exportToCSV()" title="Download CSV"><i class="fa-solid fa-download"></i> Export</button>
+        </div>
       </div>
       <div class="table-responsive">
         <table>
@@ -315,7 +320,10 @@ tr:hover td { background: rgba(255,255,255,0.8); }
       </div>
       <div class="input-group">
         <label>Login Password *</label>
-        <input type="text" id="newShopPass" placeholder="e.g. 12345">
+        <div style="display:flex; gap:5px;">
+          <input type="text" id="newShopPass" placeholder="e.g. 12345" style="flex:1;">
+          <button class="btn btn-sm" onclick="generatePassword('newShopPass')" title="Generate Password"><i class="fa-solid fa-key"></i></button>
+        </div>
       </div>
     </div>
     
@@ -350,7 +358,10 @@ tr:hover td { background: rgba(255,255,255,0.8); }
       </div>
       <div class="input-group">
         <label>Password *</label>
-        <input type="text" id="editShopPass">
+        <div style="display:flex; gap:5px;">
+          <input type="text" id="editShopPass" style="flex:1;">
+          <button class="btn btn-sm" onclick="generatePassword('editShopPass')" title="Generate Password"><i class="fa-solid fa-key"></i></button>
+        </div>
       </div>
     </div>
     <div class="modal-actions">
@@ -378,6 +389,8 @@ tr:hover td { background: rgba(255,255,255,0.8); }
   </div>
 </div>
 
+<div class="toast-host" id="toastHost"></div>
+
 <!-- SUPABASE JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -385,7 +398,6 @@ tr:hover td { background: rgba(255,255,255,0.8); }
   const SUPABASE_KEY ='sb_publishable_n-1lDHm0Zjtf0pZTvTiSkA_Kxbt89L1';
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Available Permissions
   const SECTIONS = [
     { key: 'allow_pos', label: 'Sales / POS' },
     { key: 'allow_inventory', label: 'Inventory & Racks' },
@@ -402,6 +414,35 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 
   let ALL_SHOPS = [];
 
+  // Toast Notification System
+  function toast(msg, type = 'info') {
+    const host = document.getElementById('toastHost');
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info';
+    el.innerHTML = `<i class="fa-solid ${icon}"></i> ${msg}`;
+    host.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  function togglePass(id, btn) {
+    const input = document.getElementById(id);
+    if (input.type === 'password') { input.type = 'text'; btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>'; }
+    else { input.type = 'password'; btn.innerHTML = '<i class="fa-solid fa-eye"></i>'; }
+  }
+
+  function generatePassword(id) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$";
+    let pass = "";
+    for (let i = 0; i < 8; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    document.getElementById(id).value = pass;
+    toast('Strong password generated!', 'success');
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard!', 'success'));
+  }
+
   window.onload = () => {
     if (localStorage.getItem('isSuperAdmin') === 'true') {
       showApp();
@@ -413,7 +454,7 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     const p = document.getElementById('loginPass').value.trim();
     const btn = document.getElementById('loginBtn');
     
-    if(!u || !p) return alert('Enter username and password');
+    if(!u || !p) return toast('Enter username and password', 'error');
     
     btn.innerHTML = 'Authenticating... <i class="fa-solid fa-spinner fa-spin"></i>';
     btn.disabled = true;
@@ -427,15 +468,17 @@ tr:hover td { background: rgba(255,255,255,0.8); }
       
       localStorage.setItem('isSuperAdmin', 'true');
       showApp();
+      toast('Welcome Super Admin!', 'success');
       
     } catch (err) {
-      alert(err.message === 'Invalid Credentials' ? 'Invalid Username or Password!' : 'Database Error: ' + err.message);
+      toast(err.message === 'Invalid Credentials' ? 'Invalid Username or Password!' : 'Database Error: ' + err.message, 'error');
       btn.innerHTML = 'Login Securely <i class="fa-solid fa-arrow-right"></i>';
       btn.disabled = false;
     }
   }
 
   function logoutSA() {
+    if (!confirm('Are you sure you want to logout?')) return;
     localStorage.removeItem('isSuperAdmin');
     window.location.reload();
   }
@@ -449,7 +492,7 @@ tr:hover td { background: rgba(255,255,255,0.8); }
   // ==========================================
   // SHOP MANAGEMENT
   // ==========================================
-  function openShopModal() { document.getElementById('shopModal').classList.add('open'); }
+  function openShopModal() { document.getElementById('shopModal').classList.add('open'); document.getElementById('newShopName').focus(); }
   function closeShopModal() { document.getElementById('shopModal').classList.remove('open'); }
   function openEditShopModal() { document.getElementById('editShopModal').classList.add('open'); }
   function closeEditShopModal() { document.getElementById('editShopModal').classList.remove('open'); }
@@ -463,9 +506,8 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     const username = document.getElementById('newShopUser').value.trim();
     const password = document.getElementById('newShopPass').value.trim();
 
-    if (!shopName || !username || !password) return alert('Shop Name, Username and Password are required!');
+    if (!shopName || !username || !password) return toast('Shop Name, Username and Password are required!', 'error');
 
-    // Default permissions (all true)
     const defaultPerms = {};
     SECTIONS.forEach(s => defaultPerms[s.key] = true);
 
@@ -479,11 +521,11 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     }]);
 
     if (error) {
-      if (error.code === '23505') return alert('This Username is already taken. Please try another.');
-      return alert('Error: ' + error.message);
+      if (error.code === '23505') return toast('This Username is already taken.', 'error');
+      return toast('Error: ' + error.message, 'error');
     }
 
-    alert('Shop Created Successfully!');
+    toast('Shop Created Successfully!', 'success');
     closeShopModal();
     
     document.getElementById('newShopName').value = '';
@@ -497,6 +539,8 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 
   async function loadShops() {
     const search = document.getElementById('searchShops')?.value?.toLowerCase() || '';
+    const statusFilter = document.getElementById('filterStatus')?.value || 'all';
+    
     const { data, error } = await sb.from('shops').select('*').order('created_at', { ascending: false });
     if (error) return console.error(error);
     
@@ -506,27 +550,28 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     if (search) {
       filtered = filtered.filter(s => 
         (s.shop_name || '').toLowerCase().includes(search) || 
-        (s.username || '').toLowerCase().includes(search)
+        (s.username || '').toLowerCase().includes(search) ||
+        (s.phone || '').includes(search)
       );
     }
     
-    // Update Stats
+    if (statusFilter === 'active') filtered = filtered.filter(s => s.is_active);
+    if (statusFilter === 'blocked') filtered = filtered.filter(s => !s.is_active);
+    
     document.getElementById('statTotalShops').textContent = ALL_SHOPS.filter(s => s.shop_name !== 'SUPER ADMIN').length;
     document.getElementById('statActiveShops').textContent = ALL_SHOPS.filter(s => s.is_active && s.shop_name !== 'SUPER ADMIN').length;
     document.getElementById('statBlockedShops').textContent = ALL_SHOPS.filter(s => !s.is_active && s.shop_name !== 'SUPER ADMIN').length;
-    document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+    document.getElementById('lastUpdated').textContent = 'Updated: ' + new Date().toLocaleTimeString();
 
-    // Populate Table
     const tbody = document.getElementById('shopsTableBody');
     tbody.innerHTML = filtered.map(s => {
-      // Count active permissions
       let activePerms = 0;
       let totalPerms = SECTIONS.length;
       SECTIONS.forEach(p => { if (s[p.key]) activePerms++; });
       
       let permBadge = activePerms === totalPerms ? 
         `<span class="pill green"><i class="fa-solid fa-check-double"></i> Full Access</span>` : 
-        `<span class="pill orange" style="background:var(--warning-light); color:var(--warning);"><i class="fa-solid fa-lock"></i> ${activePerms}/${totalPerms} Sections</span>`;
+        `<span class="pill orange"><i class="fa-solid fa-lock"></i> ${activePerms}/${totalPerms} Sections</span>`;
 
       return `
       <tr>
@@ -535,20 +580,21 @@ tr:hover td { background: rgba(255,255,255,0.8); }
           <small style="color: var(--muted); font-weight: 600;"><i class="fa-solid fa-user"></i> ${s.owner_name || 'No owner'} &nbsp; <i class="fa-solid fa-phone"></i> ${s.phone || 'No phone'}</small>
         </td>
         <td>
-          <div style="background: var(--bg); padding: 8px 12px; border-radius: 10px; display: inline-block; box-shadow: var(--clay-inner);">
-            <span style="font-family: monospace; font-size: 14px; font-weight: 800; color: var(--primary);"><i class="fa-solid fa-user"></i> ${s.username}</span><br>
+          <div style="background: var(--bg); padding: 8px 12px; border-radius: 10px; display: inline-block; box-shadow: var(--clay-inner); position:relative;">
+            <span style="font-family: monospace; font-size: 14px; font-weight: 800; color: var(--primary);"><i class="fa-solid fa-user"></i> ${s.username}</span>
+            <button onclick="copyToClipboard('${s.username}')" style="border:none; background:none; color:var(--muted); cursor:pointer; margin-left:5px;" title="Copy Username"><i class="fa-solid fa-copy"></i></button>
+            <br>
             <span style="font-family: monospace; font-size: 12px; color: var(--muted);"><i class="fa-solid fa-key"></i> ${s.password}</span>
+            <button onclick="copyToClipboard('${s.password}')" style="border:none; background:none; color:var(--muted); cursor:pointer; margin-left:5px;" title="Copy Password"><i class="fa-solid fa-copy"></i></button>
           </div>
         </td>
-        <td>
-          ${permBadge}
-        </td>
+        <td>${permBadge}</td>
         <td>
           <span class="pill ${s.is_active ? 'green' : 'red'}">
             <i class="fa-solid ${s.is_active ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${s.is_active ? 'ACTIVE' : 'BLOCKED'}
           </span>
         </td>
-        <td style="color: var(--muted);">${new Date(s.created_at).toLocaleDateString('en-PK', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+        <td style="color: var(--muted); font-size:12px;">${new Date(s.created_at).toLocaleDateString('en-PK', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' })}</td>
         <td>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button class="btn btn-sm" style="background:var(--primary-light); color:var(--primary);" onclick="editShop('${s.id}')" title="Edit Details"><i class="fa-solid fa-pen"></i></button>
@@ -562,7 +608,7 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     `}).join('');
     
     if(filtered.length === 0) {
-       tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--muted); font-weight: 600;">No shops found. Click "Create New Shop" to add one.</td></tr>';
+       tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--muted); font-weight: 600;">No shops found. Adjust filters or create a new shop.</td></tr>';
     }
   }
 
@@ -571,7 +617,8 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     if (!confirm(`Are you sure you want to ${action} this shop?`)) return;
     
     const { error } = await sb.from('shops').update({ is_active: !currentStatus }).eq('id', id);
-    if (error) return alert(error.message);
+    if (error) return toast(error.message, 'error');
+    toast(`Shop ${action}ed successfully!`, 'success');
     loadShops();
   }
 
@@ -600,7 +647,7 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     const username = document.getElementById('editShopUser').value.trim();
     const password = document.getElementById('editShopPass').value.trim();
 
-    if (!shopName || !username || !password) return alert('Shop Name, Username and Password are required!');
+    if (!shopName || !username || !password) return toast('Shop Name, Username and Password are required!', 'error');
 
     const { error } = await sb.from('shops').update({
       shop_name: shopName,
@@ -611,11 +658,11 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     }).eq('id', id);
 
     if (error) {
-      if (error.code === '23505') return alert('This Username is already taken. Please try another.');
-      return alert('Error: ' + error.message);
+      if (error.code === '23505') return toast('This Username is already taken.', 'error');
+      return toast('Error: ' + error.message, 'error');
     }
 
-    alert('Shop details updated successfully!');
+    toast('Shop details updated successfully!', 'success');
     closeEditShopModal();
     loadShops();
   }
@@ -645,15 +692,36 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     const payload = {};
     
     SECTIONS.forEach(sec => {
-      payload[sec.key] = document.getElementById(`perm_${sec.key}`).checked;
+      payload[sec.key] = document.getElementById(`perm_${sec.key}`).checked ? true : false;
     });
 
     const { error } = await sb.from('shops').update(payload).eq('id', id);
-    if (error) return alert(error.message);
+    if (error) return toast(error.message, 'error');
 
-    alert('Permissions saved successfully!');
+    toast('Permissions updated successfully!', 'success');
     closePermModal();
     loadShops();
+  }
+
+  // ==========================================
+  // EXPORT TO CSV
+  // ==========================================
+  function exportToCSV() {
+    const shops = ALL_SHOPS.filter(s => s.shop_name !== 'SUPER ADMIN');
+    if (shops.length === 0) return toast('No shops to export', 'error');
+    
+    let csv = 'Shop Name,Owner Name,Phone,Username,Password,Status,Joined Date\n';
+    shops.forEach(s => {
+      csv += `"${s.shop_name}","${s.owner_name || ''}","${s.phone || ''}","${s.username}","${s.password}","${s.is_active ? 'Active' : 'Blocked'}","${new Date(s.created_at).toLocaleDateString()}"\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `BM_Shops_Export_${Date.now()}.csv`);
+    a.click();
+    toast('Data exported successfully!', 'success');
   }
 
   // ==========================================
@@ -688,6 +756,11 @@ tr:hover td { background: rgba(255,255,255,0.8); }
       closeShopModal();
       closeEditShopModal();
       closePermModal();
+    }
+
+    if (event.ctrlKey && event.key.toLowerCase() === 'f') {
+      event.preventDefault();
+      document.getElementById('searchShops')?.focus();
     }
   });
 </script>
