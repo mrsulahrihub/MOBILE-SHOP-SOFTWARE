@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- External CSS Link -->
 <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
@@ -23,7 +24,14 @@
 
     <div class="hero">
       <h1>Sign in to your <span>business cockpit.</span></h1>
-      <p>Manage inventory, sales, customers and reports from a single premium dashboard designed for speed and clarity.</p>
+      <!-- ✅ UPDATED TEXT AS REQUESTED -->
+      <p style="font-size: 14px; line-height: 1.8; color: var(--text-muted); margin-top: 16px;">
+        BM MOBILE ZONE is a smart Mobile Shop Management ERP developed by MS.Tech.<br><br>
+        Manage complete mobile inventory, rack-wise stock, purchases and sales in one platform.<br>
+        Track product availability, IMEI numbers, customers and suppliers efficiently.<br>
+        Handle POS billing, mobile repairing, expenses and business reports with ease.<br><br>
+        <strong style="color: #fff;">A complete solution for smarter inventory management and business growth.</strong>
+      </p>
     </div>
 
     <div class="features-grid">
@@ -63,11 +71,11 @@
 
       <div class="login-header">
         <h2>Welcome back</h2>
-        <p>Enter your Staff ID or Username to continue.</p>
+        <p>Enter your credentials to access the dashboard.</p>
       </div>
 
+      <!-- ✅ CLEANED UP FORM (Removed extra empty boxes, remember me, forgot pass) -->
       <form id="loginForm" novalidate>
-        <!-- Username Field -->
         <div class="form-group">
           <label class="form-label" for="username">Username / Staff ID</label>
           <div class="input-wrapper">
@@ -76,30 +84,20 @@
           </div>
         </div>
 
-        <!-- Password Field -->
         <div class="form-group">
           <label class="form-label" for="password">Password</label>
           <div class="input-wrapper">
             <i class="fa-solid fa-lock input-icon"></i>
             <input type="password" id="password" name="password" class="input-field" placeholder="Enter your password" autocomplete="current-password" required>
-            <!-- Toggle button is injected by JS, but we can leave a space for it -->
+            <!-- Toggle icon will be injected by JS -->
           </div>
         </div>
 
-        <!-- Options -->
-        <div class="form-options">
-          <label class="checkbox-label">
-            <input type="checkbox" id="rememberMe" name="rememberMe"> Remember me
-          </label>
-          <a href="#" id="forgotLink" class="forgot-link">Forgot password?</a>
-        </div>
+        <!-- Hidden Alert Boxes (JS will show them when needed) -->
+        <div class="alert error" id="errorMessage" role="alert" style="display: none; margin-top: 15px;"></div>
+        <div class="alert success" id="successMessage" role="status" style="display: none; margin-top: 15px;"></div>
 
-        <!-- Alerts -->
-        <div class="alert error" id="errorMessage" role="alert"></div>
-        <div class="alert success" id="successMessage" role="status"></div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn-submit" id="loginBtn">
+        <button type="submit" class="btn-submit" id="loginBtn" style="margin-top: 24px;">
           <span>Login to Dashboard</span>
           <i class="fa-solid fa-arrow-right"></i>
         </button>
