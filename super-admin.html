@@ -19,6 +19,7 @@
   --danger: #ef4444;
   --danger-light: #fef2f2;
   --warning: #f59e0b;
+  --warning-light: #fffbeb;
   --panel: #ffffff;
   
   /* Claymorphism Shadows */
@@ -30,17 +31,6 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow: hidden; }
-
-/* --- VIDEO BACKGROUND (For Login) --- */
-#video-bg {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  object-fit: cover; z-index: -2; opacity: 0.15; filter: blur(3px);
-}
-#login-overlay {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: radial-gradient(circle, transparent 20%, var(--bg) 80%);
-  z-index: -1;
-}
 
 /* --- SIDEBAR --- */
 .sidebar {
@@ -62,22 +52,20 @@ body { background: var(--bg); color: var(--text); display: flex; min-height: 100
   display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.3s; margin-bottom: 8px;
 }
 .nav-item:hover { background: rgba(255,255,255,0.5); }
-.nav-item.active {
-  background: var(--bg); color: var(--primary);
-  box-shadow: var(--clay-inner);
-}
+.nav-item.active { background: var(--bg); color: var(--primary); box-shadow: var(--clay-inner); }
 .nav-item i { width: 24px; text-align: center; font-size: 18px; }
+.nav-item .badge { margin-left: auto; background: var(--primary); color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
 
 /* --- MAIN CONTENT --- */
 .main { flex: 1; padding: 40px; overflow-y: auto; height: 100vh; }
-.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
 .topbar h1 { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
 .topbar p { color: var(--muted); font-size: 14px; font-weight: 500; margin-top: 5px; }
 
 /* --- BUTTONS --- */
 .btn {
   padding: 12px 24px; border-radius: 14px; border: none; font-weight: 800; font-size: 14px;
-  cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 10px;
+  cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   background: var(--bg); color: var(--text); box-shadow: var(--clay-btn);
 }
 .btn:hover { transform: translateY(-2px); }
@@ -85,9 +73,10 @@ body { background: var(--bg); color: var(--text); display: flex; min-height: 100
 .btn-primary { background: var(--primary); color: white; box-shadow: 4px 4px 15px rgba(59,130,246,0.4); }
 .btn-primary:hover { background: #2563eb; }
 .btn-danger { background: var(--danger); color: white; box-shadow: 4px 4px 15px rgba(239,68,68,0.4); }
+.btn-sm { padding: 8px 14px; font-size: 12px; border-radius: 10px; }
 
 /* --- STATS CARDS --- */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 40px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; margin-bottom: 40px; }
 .stat-card {
   background: var(--bg); padding: 25px; border-radius: 24px;
   box-shadow: var(--clay-shadow); display: flex; align-items: center; gap: 20px;
@@ -101,65 +90,88 @@ body { background: var(--bg); color: var(--text); display: flex; min-height: 100
 }
 .stat-icon {
   width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px;
-  box-shadow: var(--clay-inner); z-index: 1;
+  box-shadow: var(--clay-inner); z-index: 1; flex-shrink: 0;
 }
 .stat-icon.blue { color: var(--primary); background: var(--primary-light); }
 .stat-icon.green { color: var(--success); background: var(--success-light); }
-.stat-icon.orange { color: var(--warning); background: #fffbeb; }
+.stat-icon.orange { color: var(--warning); background: var(--warning-light); }
 .stat-info { z-index: 1; }
 .stat-info h3 { font-size: 32px; font-weight: 900; margin-bottom: 4px; color: var(--text); }
-.stat-info p { font-size: 14px; color: var(--muted); font-weight: 700; }
+.stat-info p { font-size: 13px; color: var(--muted); font-weight: 700; }
 
 /* --- TABLE SECTION --- */
 .card {
   background: var(--bg); border-radius: 28px; padding: 30px;
   box-shadow: var(--clay-shadow); margin-bottom: 30px;
 }
-.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-.card-header h2 { font-size: 20px; font-weight: 900; }
-table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+.card-header h2 { font-size: 20px; font-weight: 900; display: flex; align-items: center; gap: 10px; }
+.search-bar {
+  display: flex; align-items: center; padding: 10px 16px; border-radius: 14px;
+  background: var(--bg); box-shadow: var(--clay-inner);
+}
+.search-bar input { border: none; background: transparent; outline: none; font-weight: 600; width: 220px; font-family: inherit; }
+.search-bar i { color: var(--muted); margin-right: 10px; }
+
+.table-responsive { overflow-x: auto; }
+table { width: 100%; border-collapse: separate; border-spacing: 0 10px; min-width: 900px; }
 th {
   text-align: left; padding: 10px 20px; font-size: 13px; color: var(--muted);
   font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
 }
 td {
-  padding: 20px; background: rgba(255,255,255,0.4); font-size: 14px; font-weight: 600; color: var(--text);
+  padding: 16px 20px; background: rgba(255,255,255,0.4); font-size: 14px; font-weight: 600; color: var(--text);
+  vertical-align: middle;
 }
 td:first-child { border-top-left-radius: 16px; border-bottom-left-radius: 16px; }
 td:last-child { border-top-right-radius: 16px; border-bottom-right-radius: 16px; }
 tr { transition: 0.2s; }
 tr:hover td { background: rgba(255,255,255,0.8); }
 
-.pill { padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 900; display: inline-flex; align-items: center; gap: 6px; }
+.pill { padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 900; display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.5px; }
 .pill.green { background: var(--success-light); color: var(--success); box-shadow: var(--clay-inner); }
 .pill.red { background: var(--danger-light); color: var(--danger); box-shadow: var(--clay-inner); }
+.pill.blue { background: var(--primary-light); color: var(--primary); box-shadow: var(--clay-inner); }
 
 /* --- MODALS --- */
 .modal-backdrop {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(238, 242, 246, 0.8);
-  backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 999;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(238, 242, 246, 0.85);
+  backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 999; padding: 20px;
 }
 .modal-backdrop.open { display: flex; }
 .modal {
-  background: var(--bg); width: 100%; max-width: 500px; border-radius: 32px;
+  background: var(--bg); width: 100%; max-width: 600px; border-radius: 32px;
   padding: 35px; box-shadow: var(--clay-shadow); animation: slideUp 0.3s ease;
+  max-height: 90vh; overflow-y: auto;
 }
+.modal.large { max-width: 800px; }
 @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .modal h3 { font-size: 22px; font-weight: 900; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
 .input-group { margin-bottom: 20px; }
 .input-group label { display: block; font-size: 13px; font-weight: 800; color: var(--muted); margin-bottom: 8px; }
-.input-group input {
+.input-group input, .input-group select {
   width: 100%; padding: 15px; border-radius: 14px; border: none;
   background: var(--bg); color: var(--text); font-family: inherit; font-size: 14px; font-weight: 600;
   box-shadow: var(--clay-inner); transition: 0.3s;
 }
-.input-group input:focus { outline: 2px solid var(--primary); background: white; }
+.input-group input:focus, .input-group select:focus { outline: 2px solid var(--primary); background: white; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; }
+
+/* --- PERMISSIONS GRID --- */
+.perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+.perm-item {
+  display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--bg);
+  border-radius: 12px; box-shadow: var(--clay-inner); cursor: pointer; transition: 0.2s;
+}
+.perm-item:hover { background: white; }
+.perm-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+.perm-item label { font-weight: 700; font-size: 13px; cursor: pointer; margin: 0; flex: 1; }
 
 /* --- LOGIN SCREEN --- */
 #loginScreen {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center; z-index: 1000;
+  background: var(--bg);
 }
 .login-box {
   background: var(--bg); padding: 50px 40px; border-radius: 36px; width: 100%; max-width: 420px;
@@ -170,12 +182,6 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 </style>
 </head>
 <body>
-
-<!-- BACKGROUND VIDEO (Only visible on login) -->
-<video autoplay loop muted playsinline id="video-bg">
-  <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-network-connection-loop-26848-large.mp4" type="video/mp4">
-</video>
-<div id="login-overlay"></div>
 
 <!-- LOGIN SCREEN -->
 <div id="loginScreen">
@@ -222,9 +228,15 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     <div class="topbar">
       <div>
         <h1>Overview Dashboard</h1>
-        <p>System statistics and shop management</p>
+        <p>System statistics, shop management & permissions</p>
       </div>
-      <button class="btn btn-primary" onclick="openShopModal()"><i class="fa-solid fa-plus"></i> Create New Shop (Alt + N)</button>
+      <div style="display: flex; gap: 15px;">
+        <div class="search-bar">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="searchShops" placeholder="Search shops..." oninput="loadShops()">
+        </div>
+        <button class="btn btn-primary" onclick="openShopModal()"><i class="fa-solid fa-plus"></i> Create New Shop</button>
+      </div>
     </div>
 
     <!-- STATS -->
@@ -255,28 +267,31 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     <!-- SHOPS TABLE -->
     <div class="card">
       <div class="card-header">
-        <h2>Registered Shops Database</h2>
+        <h2><i class="fa-solid fa-database" style="color: var(--primary);"></i> Registered Shops</h2>
         <span style="font-size: 13px; font-weight: 700; color: var(--muted);" id="lastUpdated"></span>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Shop Information</th>
-            <th>Login Credentials</th>
-            <th>Status</th>
-            <th>Joined Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="shopsTableBody">
-          <!-- JS will populate -->
-        </tbody>
-      </table>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Shop Information</th>
+              <th>Login Credentials</th>
+              <th>Permissions</th>
+              <th>Status</th>
+              <th>Joined Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="shopsTableBody">
+            <!-- JS will populate -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 </div>
 
-<!-- ADD SHOP MODAL -->
+<!-- CREATE SHOP MODAL -->
 <div class="modal-backdrop" id="shopModal">
   <div class="modal">
     <h3><i class="fa-solid fa-store" style="color: var(--primary);"></i> Create New Shop</h3>
@@ -305,8 +320,60 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     </div>
     
     <div class="modal-actions">
-      <button class="btn" onclick="closeShopModal()">Cancel (Esc)</button>
+      <button class="btn" onclick="closeShopModal()">Cancel</button>
       <button class="btn btn-primary" onclick="createShop()"><i class="fa-solid fa-check"></i> Create Shop</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT SHOP MODAL -->
+<div class="modal-backdrop" id="editShopModal">
+  <div class="modal">
+    <h3><i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Edit Shop Details</h3>
+    <input type="hidden" id="editShopId">
+    <div class="input-group">
+      <label>Shop Name *</label>
+      <input type="text" id="editShopName">
+    </div>
+    <div class="input-group">
+      <label>Owner Name</label>
+      <input type="text" id="editOwnerName">
+    </div>
+    <div class="input-group">
+      <label>Phone Number</label>
+      <input type="text" id="editShopPhone">
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+      <div class="input-group">
+        <label>Username *</label>
+        <input type="text" id="editShopUser">
+      </div>
+      <div class="input-group">
+        <label>Password *</label>
+        <input type="text" id="editShopPass">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeEditShopModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveShopEdit()"><i class="fa-solid fa-save"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- PERMISSIONS MODAL -->
+<div class="modal-backdrop" id="permModal">
+  <div class="modal large">
+    <h3><i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Manage Permissions</h3>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px; font-weight: 600;">Select which sections this shop is allowed to access. Unchecked sections will show a warning to the user.</p>
+    
+    <input type="hidden" id="permShopId">
+    <div class="perm-grid" id="permGrid">
+      <!-- JS will populate checkboxes -->
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closePermModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePermissions()"><i class="fa-solid fa-save"></i> Save Permissions</button>
     </div>
   </div>
 </div>
@@ -314,18 +381,27 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 <!-- SUPABASE JS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  // ==========================================
-  // SUPABASE CONFIGURATION
-  // ==========================================
   const SUPABASE_URL = 'https://lateoozrnyzjckcgfytp.supabase.co';
   const SUPABASE_KEY ='sb_publishable_n-1lDHm0Zjtf0pZTvTiSkA_Kxbt89L1';
-  
-  // FIX: Variable name changed from 'supabase' to 'sb' to prevent global clash
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ==========================================
-  // AUTHENTICATION
-  // ==========================================
+  // Available Permissions
+  const SECTIONS = [
+    { key: 'allow_pos', label: 'Sales / POS' },
+    { key: 'allow_inventory', label: 'Inventory & Racks' },
+    { key: 'allow_purchases', label: 'Purchases / Products' },
+    { key: 'allow_repairing', label: 'Repairing' },
+    { key: 'allow_customers', label: 'Customers' },
+    { key: 'allow_suppliers', label: 'Suppliers' },
+    { key: 'allow_credit', label: 'Credit / Udhar' },
+    { key: 'allow_expenses', label: 'Expenses' },
+    { key: 'allow_reports', label: 'Reports & P&L' },
+    { key: 'allow_transactions', label: 'Transactions' },
+    { key: 'allow_staff', label: 'Staff Management' }
+  ];
+
+  let ALL_SHOPS = [];
+
   window.onload = () => {
     if (localStorage.getItem('isSuperAdmin') === 'true') {
       showApp();
@@ -343,7 +419,6 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     btn.disabled = true;
 
     try {
-      // FIX: Changed 'supabase' to 'sb'
       const { data, error } = await sb.from('shops').select('*').eq('username', u).eq('password', p).maybeSingle();
       
       if (error) throw error;
@@ -367,8 +442,6 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 
   function showApp() {
     document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('video-bg').style.display = 'none';
-    document.getElementById('login-overlay').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
     loadShops();
   }
@@ -378,6 +451,10 @@ tr:hover td { background: rgba(255,255,255,0.8); }
   // ==========================================
   function openShopModal() { document.getElementById('shopModal').classList.add('open'); }
   function closeShopModal() { document.getElementById('shopModal').classList.remove('open'); }
+  function openEditShopModal() { document.getElementById('editShopModal').classList.add('open'); }
+  function closeEditShopModal() { document.getElementById('editShopModal').classList.remove('open'); }
+  function openPermModal() { document.getElementById('permModal').classList.add('open'); }
+  function closePermModal() { document.getElementById('permModal').classList.remove('open'); }
 
   async function createShop() {
     const shopName = document.getElementById('newShopName').value.trim();
@@ -388,13 +465,17 @@ tr:hover td { background: rgba(255,255,255,0.8); }
 
     if (!shopName || !username || !password) return alert('Shop Name, Username and Password are required!');
 
-    // FIX: Changed 'supabase' to 'sb'
+    // Default permissions (all true)
+    const defaultPerms = {};
+    SECTIONS.forEach(s => defaultPerms[s.key] = true);
+
     const { error } = await sb.from('shops').insert([{
       shop_name: shopName, 
       owner_name: ownerName || null, 
       phone: phone || null, 
       username: username, 
-      password: password
+      password: password,
+      ...defaultPerms
     }]);
 
     if (error) {
@@ -405,7 +486,6 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     alert('Shop Created Successfully!');
     closeShopModal();
     
-    // Clear inputs
     document.getElementById('newShopName').value = '';
     document.getElementById('newOwnerName').value = '';
     document.getElementById('newShopPhone').value = '';
@@ -416,21 +496,39 @@ tr:hover td { background: rgba(255,255,255,0.8); }
   }
 
   async function loadShops() {
-    // FIX: Changed 'supabase' to 'sb'
+    const search = document.getElementById('searchShops')?.value?.toLowerCase() || '';
     const { data, error } = await sb.from('shops').select('*').order('created_at', { ascending: false });
     if (error) return console.error(error);
     
-    const shops = data || [];
+    ALL_SHOPS = data || [];
+    let filtered = ALL_SHOPS.filter(s => s.shop_name !== 'SUPER ADMIN');
+    
+    if (search) {
+      filtered = filtered.filter(s => 
+        (s.shop_name || '').toLowerCase().includes(search) || 
+        (s.username || '').toLowerCase().includes(search)
+      );
+    }
     
     // Update Stats
-    document.getElementById('statTotalShops').textContent = shops.filter(s => s.shop_name !== 'SUPER ADMIN').length;
-    document.getElementById('statActiveShops').textContent = shops.filter(s => s.is_active && s.shop_name !== 'SUPER ADMIN').length;
-    document.getElementById('statBlockedShops').textContent = shops.filter(s => !s.is_active && s.shop_name !== 'SUPER ADMIN').length;
+    document.getElementById('statTotalShops').textContent = ALL_SHOPS.filter(s => s.shop_name !== 'SUPER ADMIN').length;
+    document.getElementById('statActiveShops').textContent = ALL_SHOPS.filter(s => s.is_active && s.shop_name !== 'SUPER ADMIN').length;
+    document.getElementById('statBlockedShops').textContent = ALL_SHOPS.filter(s => !s.is_active && s.shop_name !== 'SUPER ADMIN').length;
     document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
 
     // Populate Table
     const tbody = document.getElementById('shopsTableBody');
-    tbody.innerHTML = shops.filter(s => s.shop_name !== 'SUPER ADMIN').map(s => `
+    tbody.innerHTML = filtered.map(s => {
+      // Count active permissions
+      let activePerms = 0;
+      let totalPerms = SECTIONS.length;
+      SECTIONS.forEach(p => { if (s[p.key]) activePerms++; });
+      
+      let permBadge = activePerms === totalPerms ? 
+        `<span class="pill green"><i class="fa-solid fa-check-double"></i> Full Access</span>` : 
+        `<span class="pill orange" style="background:var(--warning-light); color:var(--warning);"><i class="fa-solid fa-lock"></i> ${activePerms}/${totalPerms} Sections</span>`;
+
+      return `
       <tr>
         <td>
           <strong style="color: var(--text); font-size: 16px; display: block; margin-bottom: 4px;">${s.shop_name}</strong>
@@ -443,21 +541,28 @@ tr:hover td { background: rgba(255,255,255,0.8); }
           </div>
         </td>
         <td>
+          ${permBadge}
+        </td>
+        <td>
           <span class="pill ${s.is_active ? 'green' : 'red'}">
             <i class="fa-solid ${s.is_active ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${s.is_active ? 'ACTIVE' : 'BLOCKED'}
           </span>
         </td>
         <td style="color: var(--muted);">${new Date(s.created_at).toLocaleDateString('en-PK', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
         <td>
-          <button class="btn ${s.is_active ? 'btn-danger' : 'btn-primary'}" style="padding: 8px 16px; font-size: 12px; box-shadow: none;" onclick="toggleShop('${s.id}', ${s.is_active})">
-            ${s.is_active ? '<i class="fa-solid fa-ban"></i> Block' : '<i class="fa-solid fa-check"></i> Unblock'}
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-sm" style="background:var(--primary-light); color:var(--primary);" onclick="editShop('${s.id}')" title="Edit Details"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-sm" style="background:var(--warning-light); color:var(--warning);" onclick="managePermissions('${s.id}')" title="Manage Permissions"><i class="fa-solid fa-shield-halved"></i></button>
+            <button class="btn btn-sm ${s.is_active ? 'btn-danger' : 'btn-primary'}" onclick="toggleShop('${s.id}', ${s.is_active})" title="${s.is_active ? 'Block Shop' : 'Unblock Shop'}">
+              <i class="fa-solid ${s.is_active ? 'fa-ban' : 'fa-check'}"></i>
+            </button>
+          </div>
         </td>
       </tr>
-    `).join('');
+    `}).join('');
     
-    if(shops.filter(s => s.shop_name !== 'SUPER ADMIN').length === 0) {
-       tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--muted); font-weight: 600;">No shops registered yet. Click "Create New Shop" to add one.</td></tr>';
+    if(filtered.length === 0) {
+       tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--muted); font-weight: 600;">No shops found. Click "Create New Shop" to add one.</td></tr>';
     }
   }
 
@@ -465,17 +570,96 @@ tr:hover td { background: rgba(255,255,255,0.8); }
     const action = currentStatus ? 'block' : 'unblock';
     if (!confirm(`Are you sure you want to ${action} this shop?`)) return;
     
-    // FIX: Changed 'supabase' to 'sb'
     const { error } = await sb.from('shops').update({ is_active: !currentStatus }).eq('id', id);
     if (error) return alert(error.message);
     loadShops();
   }
 
   // ==========================================
-  // SHORTKEYS (KEYBOARD SHORTCUTS)
+  // EDIT SHOP DETAILS
+  // ==========================================
+  function editShop(id) {
+    const shop = ALL_SHOPS.find(s => s.id === id);
+    if (!shop) return;
+    
+    document.getElementById('editShopId').value = shop.id;
+    document.getElementById('editShopName').value = shop.shop_name;
+    document.getElementById('editOwnerName').value = shop.owner_name || '';
+    document.getElementById('editShopPhone').value = shop.phone || '';
+    document.getElementById('editShopUser').value = shop.username;
+    document.getElementById('editShopPass').value = shop.password;
+    
+    openEditShopModal();
+  }
+
+  async function saveShopEdit() {
+    const id = document.getElementById('editShopId').value;
+    const shopName = document.getElementById('editShopName').value.trim();
+    const ownerName = document.getElementById('editOwnerName').value.trim();
+    const phone = document.getElementById('editShopPhone').value.trim();
+    const username = document.getElementById('editShopUser').value.trim();
+    const password = document.getElementById('editShopPass').value.trim();
+
+    if (!shopName || !username || !password) return alert('Shop Name, Username and Password are required!');
+
+    const { error } = await sb.from('shops').update({
+      shop_name: shopName,
+      owner_name: ownerName || null,
+      phone: phone || null,
+      username: username,
+      password: password
+    }).eq('id', id);
+
+    if (error) {
+      if (error.code === '23505') return alert('This Username is already taken. Please try another.');
+      return alert('Error: ' + error.message);
+    }
+
+    alert('Shop details updated successfully!');
+    closeEditShopModal();
+    loadShops();
+  }
+
+  // ==========================================
+  // MANAGE PERMISSIONS
+  // ==========================================
+  function managePermissions(id) {
+    const shop = ALL_SHOPS.find(s => s.id === id);
+    if (!shop) return;
+    
+    document.getElementById('permShopId').value = shop.id;
+    
+    const grid = document.getElementById('permGrid');
+    grid.innerHTML = SECTIONS.map(sec => `
+      <div class="perm-item">
+        <input type="checkbox" id="perm_${sec.key}" ${shop[sec.key] !== false ? 'checked' : ''}>
+        <label for="perm_${sec.key}">${sec.label}</label>
+      </div>
+    `).join('');
+    
+    openPermModal();
+  }
+
+  async function savePermissions() {
+    const id = document.getElementById('permShopId').value;
+    const payload = {};
+    
+    SECTIONS.forEach(sec => {
+      payload[sec.key] = document.getElementById(`perm_${sec.key}`).checked;
+    });
+
+    const { error } = await sb.from('shops').update(payload).eq('id', id);
+    if (error) return alert(error.message);
+
+    alert('Permissions saved successfully!');
+    closePermModal();
+    loadShops();
+  }
+
+  // ==========================================
+  // SHORTKEYS
   // ==========================================
   document.addEventListener('keydown', function(event) {
-    // Alt + L (Login)
     if (event.altKey && event.key.toLowerCase() === 'l') {
       const loginScreen = document.getElementById('loginScreen');
       if (loginScreen && loginScreen.style.display !== 'none') {
@@ -484,7 +668,6 @@ tr:hover td { background: rgba(255,255,255,0.8); }
       }
     }
     
-    // Alt + N (New Shop Modal)
     if (event.altKey && event.key.toLowerCase() === 'n') {
       const app = document.getElementById('app');
       if (app && app.style.display === 'flex') {
@@ -493,7 +676,6 @@ tr:hover td { background: rgba(255,255,255,0.8); }
       }
     }
 
-    // Alt + X (Logout)
     if (event.altKey && event.key.toLowerCase() === 'x') {
       const app = document.getElementById('app');
       if (app && app.style.display === 'flex') {
@@ -502,9 +684,10 @@ tr:hover td { background: rgba(255,255,255,0.8); }
       }
     }
 
-    // Esc (Close Modal)
     if (event.key === 'Escape') {
       closeShopModal();
+      closeEditShopModal();
+      closePermModal();
     }
   });
 </script>
