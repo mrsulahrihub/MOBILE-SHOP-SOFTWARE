@@ -1,542 +1,358 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BM MOBILE ZONE — Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Jameel+Noori+Nastaleeq&display=swap" rel="stylesheet">
-<style>
-/* ============ ROOT / RESET ============ */
-:root{
-  --bg:#f4f6fb; --surface:#ffffff; --surface-2:#fafbfd;
-  --border:#e6e9f2; --border-strong:#d5dae8;
-  --text:#0f172a; --muted:#6b7896;
-  --primary:#5b8def; --primary-dark:#3f6fd1; --primary-light:#eff4ff;
-  --green:#16a34a; --green-bg:#f0fdf4;
-  --red:#dc2626; --red-bg:#fef2f2;
-  --orange:#ea580c; --orange-bg:#fff7ed;
-  --purple:#7c5cff; --purple-bg:#f3f0ff;
-  --radius:12px; --radius-lg:16px;
-  --shadow:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);
-  --shadow-lg:0 20px 50px rgba(15,23,42,.14);
-}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
-button,input,select,textarea{font-family:inherit;font-size:inherit;outline:none}
-a{text-decoration:none;color:inherit}
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-thumb{background:#c7d0e0;border-radius:8px}
-::-webkit-scrollbar-thumb:hover{background:#a9b6cc}
-
-/* ============ LAYOUT ============ */
-.app{display:flex;min-height:100vh}
-.sidebar{width:250px;background:#0f172a;color:#fff;position:fixed;top:0;left:0;bottom:0;z-index:100;display:flex;flex-direction:column;transition:transform .25s ease}
-.sidebar.show{transform:translateX(0)}
-.sidebar-brand{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
-.sidebar-brand .logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#5b8def,#7c5cff);display:grid;place-items:center;font-weight:900;font-size:17px;letter-spacing:-1px}
-.sidebar-brand h1{font-size:14px;font-weight:800;letter-spacing:.5px;line-height:1.2}
-.sidebar-brand small{font-size:10px;color:#8ea0c0;font-weight:500}
-.nav{padding:12px 10px;flex:1;overflow-y:auto}
-.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;color:#b8c4dc;cursor:pointer;font-size:13px;font-weight:500;margin-bottom:2px;transition:.15s;border:none;background:none;width:100%;text-align:left}
-.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
-.nav-item.active{background:linear-gradient(135deg,#5b8def,#7c5cff);color:#fff;font-weight:700;box-shadow:0 4px 12px rgba(91,141,239,.4)}
-.nav-item .ico{width:18px;display:inline-flex;justify-content:center}
-.sidebar-foot{padding:14px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#8ea0c0;line-height:1.6}
-.sidebar-foot b{color:#fff}
-
-.main{flex:1;margin-left:250px;padding:24px;max-width:100%}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:14px;flex-wrap:wrap}
-.topbar h2{font-size:22px;font-weight:800}
-.topbar .sub{font-size:12px;color:var(--muted);font-weight:500}
-.topbar-right{display:flex;align-items:center;gap:10px}
-.search-bar{position:relative}
-.search-bar input{padding:9px 12px 9px 34px;border:1px solid var(--border);border-radius:9px;background:var(--surface);width:230px;font-size:13px}
-.search-bar input:focus{border-color:var(--primary)}
-.search-bar .ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
-.user-chip{display:flex;align-items:center;gap:10px;background:var(--surface);padding:6px 12px 6px 6px;border-radius:99px;border:1px solid var(--border);box-shadow:var(--shadow)}
-.user-chip .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#5b8def,#7c5cff);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}
-.user-chip .uinfo strong{display:block;font-size:12px;line-height:1.2}
-.user-chip .uinfo small{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px}
-.icon-btn{width:38px;height:38px;border-radius:9px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:grid;place-items:center;position:relative;font-size:16px}
-.icon-btn:hover{background:var(--surface-2)}
-.notif-badge{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:10px;font-weight:800;min-width:18px;height:18px;border-radius:99px;display:none;place-items:center;padding:0 4px}
-
-/* ============ MODULES ============ */
-.module{display:none}
-.module.active{display:block;animation:fade .2s}
-@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
-/* ============ CARDS / STATS ============ */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
-.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
-.stat-icon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:18px;flex-shrink:0}
-.stat-icon.blue{background:var(--primary-light);color:var(--primary)}
-.stat-icon.green{background:var(--green-bg);color:var(--green)}
-.stat-icon.red{background:var(--red-bg);color:var(--red)}
-.stat-icon.orange{background:var(--orange-bg);color:var(--orange)}
-.stat-icon.purple{background:var(--purple-bg);color:var(--purple)}
-.stat strong{display:block;font-size:17px;font-weight:800;line-height:1.2}
-.stat small{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;box-shadow:var(--shadow);margin-bottom:18px}
-.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px;flex-wrap:wrap}
-.card-head h3{font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px}
-.card-head .actions{display:flex;gap:8px;flex-wrap:wrap}
-
-/* ============ TABLE ============ */
-table.data{width:100%;border-collapse:collapse;font-size:13px}
-table.data th{text-align:left;padding:10px 10px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border);background:var(--surface-2);white-space:nowrap}
-table.data td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-table.data tbody tr:hover{background:var(--surface-2)}
-table.data .num{text-align:right;font-variant-numeric:tabular-nums}
-table.data .actions{text-align:right;white-space:nowrap}
-table.cart-mini{width:100%;border-collapse:collapse;font-size:12px}
-table.cart-mini th{padding:6px 4px;font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);text-align:left}
-table.cart-mini td{padding:7px 4px;border-bottom:1px solid var(--border)}
-table.cart-mini .num{text-align:right}
-
-/* ============ PILLS / KBD ============ */
-.pill{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;background:#eef2f9;color:#4a5878}
-.pill.blue{background:var(--primary-light);color:var(--primary)}
-.pill.green{background:var(--green-bg);color:var(--green)}
-.pill.red{background:var(--red-bg);color:var(--red)}
-.pill.orange{background:var(--orange-bg);color:var(--orange)}
-.pill.purple{background:var(--purple-bg);color:var(--purple)}
-.kbd{display:inline-block;padding:2px 7px;border-radius:5px;background:#eef2f9;border:1px solid var(--border-strong);font-size:11px;font-weight:700;font-family:monospace;color:#3f4a63}
-
-/* ============ BUTTONS ============ */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border-radius:9px;border:1px solid transparent;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap}
-.btn:hover{filter:brightness(.96)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-sm{padding:5px 10px;font-size:12px;border-radius:7px}
-.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(91,141,239,.3)}
-.btn-primary:hover{background:var(--primary-dark)}
-.btn-ghost{background:var(--surface);border-color:var(--border);color:var(--text)}
-.btn-ghost:hover{background:var(--surface-2)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-success{background:var(--green);color:#fff}
-.qty-btn{width:22px;height:22px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-weight:800;line-height:1;display:inline-grid;place-items:center}
-.qty-btn:hover{background:var(--surface-2)}
-
-/* ============ FORMS ============ */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.field{display:flex;flex-direction:column;gap:5px}
-.field.full{grid-column:1 / -1}
-.field label{font-size:12px;font-weight:700;color:#3f4a63}
-.field input,.field select,.field textarea{padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:13px;transition:.15s}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(91,141,239,.12)}
-.field textarea{resize:vertical;min-height:64px}
-.field small{font-size:11px;color:var(--muted)}
-
-/* Purchase item row (10 cols) */
-.purchase-item-row{display:grid;grid-template-columns:2.2fr 1.2fr 1fr .7fr .9fr .9fr 1.3fr 1.3fr 1.1fr auto;gap:8px;margin-bottom:8px;align-items:center}
-.purchase-item-row input,.purchase-item-row select{padding:7px 9px;border:1px solid var(--border);border-radius:7px;background:var(--surface);font-size:12px;width:100%}
-.purchase-item-row input:focus,.purchase-item-row select:focus{border-color:var(--primary)}
-.purchase-item-row.row-header{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;padding:0 4px;margin-bottom:6px}
-
-/* ============ MODAL ============ */
-.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);z-index:200;display:none;padding:20px;overflow:auto}
-.modal-backdrop.open{display:flex;align-items:flex-start;justify-content:center}
-.modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);width:100%;max-width:900px;max-height:90vh;display:flex;flex-direction:column;margin-top:2vh}
-.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.modal-head h3{font-size:16px;font-weight:800}
-.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:4px}
-.modal-close:hover{color:var(--text)}
-.modal-body{padding:20px;overflow-y:auto;flex:1}
-.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
-
-/* ============ TOAST ============ */
-.toast-host{position:fixed;bottom:20px;right:20px;z-index:500;display:flex;flex-direction:column;gap:8px}
-.toast{padding:11px 16px;border-radius:9px;background:#0f172a;color:#fff;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);animation:slideIn .2s;max-width:340px}
-.toast.success{background:var(--green)}
-.toast.error{background:var(--red)}
-.toast.info{background:var(--primary)}
-@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
-
-/* ============ EMPTY STATE ============ */
-.empty{padding:30px;text-align:center;color:var(--muted);font-size:13px}
-
-/* ============ BULK BAR ============ */
-.bulk-bar{display:none;align-items:center;gap:12px;padding:10px 14px;background:var(--primary-light);border:1px solid #cfdcff;border-radius:9px;margin-bottom:12px;font-size:13px;font-weight:600;color:var(--primary-dark)}
-
-/* ============ RACKS SPECIFIC ============ */
-.rack-search{margin-bottom:12px}
-.rack-search input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--surface)}
-.rack-search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(91,141,239,.12)}
-.rack-shortcut-hint{font-size:11px;color:var(--muted);margin-top:8px}
-.rack-shortcut-hint .kbd{margin:0 2px}
-
-/* ============ RESPONSIVE ============ */
-@media(max-width:1024px){
-  .sidebar{transform:translateX(-100%)}
-  .main{margin-left:0}
-  .form-grid{grid-template-columns:1fr}
-  .purchase-item-row{grid-template-columns:1fr 1fr;gap:8px}
-  .purchase-item-row.row-header{display:none}
-}
-@media(max-width:640px){
-  .main{padding:14px}
-  .topbar h2{font-size:18px}
-  .search-bar input{width:140px}
-  .stat strong{font-size:15px}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — BM Mobile Zone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jameel+Noori+Nastaleeq&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./dashboard.css">
 </head>
 <body>
-
-<div class="app">
 
   <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar" id="mainSidebar">
     <div class="sidebar-brand">
-      <div class="logo">BM</div>
+      <div class="brand-logo">BM</div>
       <div>
-        <h1>BM MOBILE ZONE</h1>
+        <h1>BM Mobile Zone</h1>
         <small>Dashboard v34</small>
       </div>
     </div>
-    <nav class="nav">
-      <button class="nav-item active" data-module="overview"><span class="ico">▦</span> Dashboard</button>
-      <button class="nav-item" data-module="inventory"><span class="ico">▤</span> Inventory</button>
-      <button class="nav-item" data-module="racks"><span class="ico">📦</span> Racks</button>
-      <button class="nav-item" data-module="purchases"><span class="ico">↙</span> Purchases</button>
-      <button class="nav-item" data-module="sales"><span class="ico">🛒</span> Sales / POS</button>
-      <button class="nav-item" data-module="repairing"><span class="ico">🔧</span> Repairing</button>
-      <button class="nav-item" data-module="customers"><span class="ico">👥</span> Customers</button>
-      <button class="nav-item" data-module="suppliers"><span class="ico">🏭</span> Suppliers</button>
-      <button class="nav-item" data-module="credit"><span class="ico">💳</span> Credit / Udhar</button>
-      <button class="nav-item" data-module="expenses"><span class="ico">💸</span> Expenses</button>
-      <button class="nav-item" data-module="reports"><span class="ico">📊</span> Reports</button>
-      <button class="nav-item" data-module="transactions"><span class="ico">🔁</span> Transactions</button>
-      <button class="nav-item" data-module="settings"><span class="ico">⚙</span> Staff & Logs</button>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-module="overview">
+        <span class="nav-icon">▦</span> <span>Dashboard</span> <span class="kbd">Alt+O</span>
+      </button>
+      <button class="nav-item" data-module="inventory">
+        <span class="nav-icon">▤</span> <span>Inventory</span> <span class="kbd">Alt+I</span>
+      </button>
+      <button class="nav-item" data-module="racks">
+        <span class="nav-icon">🗄️</span> <span>Racks</span> <span class="kbd">Alt+K</span>
+      </button>
+      <button class="nav-item" data-module="purchases">
+        <span class="nav-icon">🛒</span> <span>Purchases</span> <span class="kbd">Alt+U</span>
+      </button>
+      <button class="nav-item" data-module="sales">
+        <span class="nav-icon">💳</span> <span>Sales / POS</span> <span class="kbd">Alt+L</span>
+      </button>
+      <button class="nav-item" data-module="repairing">
+        <span class="nav-icon">🔧</span> <span>Repairing</span> <span class="kbd">Alt+R</span>
+      </button>
+      <button class="nav-item" data-module="customers">
+        <span class="nav-icon">👥</span> <span>Customers</span> <span class="kbd">Alt+C</span>
+      </button>
+      <button class="nav-item" data-module="suppliers">
+        <span class="nav-icon">🏭</span> <span>Suppliers</span> <span class="kbd">Alt+S</span>
+      </button>
+      <button class="nav-item" data-module="credit">
+        <span class="nav-icon">📒</span> <span>Credit / Udhar</span> <span class="kbd">Alt+D</span>
+      </button>
+      <button class="nav-item" data-module="expenses">
+        <span class="nav-icon">💸</span> <span>Expenses</span> <span class="kbd">Alt+E</span>
+      </button>
+      <button class="nav-item" data-module="reports">
+        <span class="nav-icon">📊</span> <span>Reports & P&L</span> <span class="kbd">Alt+P</span>
+      </button>
+      <button class="nav-item" data-module="transactions">
+        <span class="nav-icon">🔁</span> <span>Transactions</span> <span class="kbd">Alt+T</span>
+      </button>
+      <button class="nav-item" data-module="settings">
+        <span class="nav-icon">⚙️</span> <span>Staff & Logs</span> <span class="kbd">Alt+,</span>
+      </button>
     </nav>
-    <div class="sidebar-foot">
-      <b>Powered by MS.TECH</b><br>03099100546
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="avatar" id="userAvatar">B</div>
+        <div>
+          <b id="userName">BM MOBILE ZONE</b>
+          <small id="userRole">ADMIN</small>
+        </div>
+      </div>
     </div>
   </aside>
+
+  <button class="sidebar-handle" id="sidebarHandle" title="Menu">☰</button>
 
   <!-- ============ MAIN ============ -->
   <main class="main">
 
-    <!-- TOPBAR -->
-    <div class="topbar">
+    <!-- Topbar -->
+    <header class="topbar">
       <div>
         <h2 id="pageTitle">Dashboard</h2>
-        <div class="sub" id="todayDate"></div>
+        <small id="todayDate">—</small>
       </div>
       <div class="topbar-right">
         <div class="search-bar">
-          <span class="ico">🔍</span>
-          <input type="text" placeholder="Search (Ctrl+K)" id="globalSearch">
+          <input placeholder="Search… (Ctrl+K)" type="search">
         </div>
-        <button class="icon-btn" id="notifBtn" title="Notifications">
-          🔔 <span class="notif-badge" id="notifBadge">0</span>
-        </button>
-        <div class="user-chip">
-          <div class="avatar" id="userAvatar">B</div>
-          <div class="uinfo">
-            <strong id="userName">Admin</strong>
-            <small id="userRole">ADMIN</small>
-          </div>
-        </div>
-        <button class="icon-btn" id="logoutBtn" title="Logout">⎋</button>
+        <button class="icon-btn" id="notifBtn" title="Notifications">🔔 <span id="notifBadge" class="badge" style="display:none">0</span></button>
+        <button class="btn btn-danger btn-sm" id="logoutBtn">Logout</button>
       </div>
-    </div>
+    </header>
 
-    <!-- ===================================================== -->
-    <!-- OVERVIEW -->
-    <!-- ===================================================== -->
+    <div class="notif-panel" id="notifPanel"></div>
+
+    <!-- ============ MODULE: OVERVIEW ============ -->
     <section class="module active" id="module-overview">
-      <div class="stats">
-        <div class="stat"><div class="stat-icon blue">▤</div><div><strong id="stProducts">0</strong><small>Products</small></div></div>
-        <div class="stat"><div class="stat-icon blue">📦</div><div><strong id="stStock">0</strong><small>Total Stock</small></div></div>
-        <div class="stat"><div class="stat-icon green">↗</div><div><strong id="stTodaySales">PKR 0</strong><small>Today Sales</small></div></div>
-        <div class="stat"><div class="stat-icon green">▨</div><div><strong id="stMonthSales">PKR 0</strong><small>Month Sales</small></div></div>
-        <div class="stat"><div class="stat-icon orange">↙</div><div><strong id="stPurchases">PKR 0</strong><small>Purchases</small></div></div>
-        <div class="stat"><div class="stat-icon purple">👥</div><div><strong id="stCustomers">0</strong><small>Customers</small></div></div>
-        <div class="stat"><div class="stat-icon red">💳</div><div><strong id="stOutstanding">PKR 0</strong><small>Outstanding</small></div></div>
-        <div class="stat"><div class="stat-icon red">💸</div><div><strong id="stExpenses">PKR 0</strong><small>Expenses</small></div></div>
+      <div class="welcome-card">
+        <h3>Welcome back, <span id="welcomeName">Admin</span> 👋</h3>
+        <p>Yahan se aap apna poora business manage kar sakte hain. Shortcuts ke liye <b>F1</b> dabaein.</p>
       </div>
+
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-icon blue">📦</div><div><strong id="stProducts">0</strong><small>Products</small></div></div>
+        <div class="stat"><div class="stat-icon green">📊</div><div><strong id="stStock">0</strong><small>Total Stock</small></div></div>
+        <div class="stat"><div class="stat-icon purple">💰</div><div><strong id="stTodaySales">PKR 0</strong><small>Today Sales</small></div></div>
+        <div class="stat"><div class="stat-icon orange">📈</div><div><strong id="stMonthSales">PKR 0</strong><small>Month Sales</small></div></div>
+        <div class="stat"><div class="stat-icon blue">🛒</div><div><strong id="stPurchases">PKR 0</strong><small>Purchases</small></div></div>
+        <div class="stat"><div class="stat-icon green">👥</div><div><strong id="stCustomers">0</strong><small>Customers</small></div></div>
+        <div class="stat"><div class="stat-icon red">📒</div><div><strong id="stOutstanding">PKR 0</strong><small>Outstanding Udhar</small></div></div>
+        <div class="stat"><div class="stat-icon orange">💸</div><div><strong id="stExpenses">PKR 0</strong><small>Expenses</small></div></div>
+      </div>
+
       <div class="card">
-        <div class="card-head"><h3>Recent Sales</h3></div>
-        <div id="recentSales"><div class="empty">Loading…</div></div>
+        <h3>Recent Sales</h3>
+        <div id="recentSales"></div>
       </div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- INVENTORY -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: INVENTORY ============ -->
     <section class="module" id="module-inventory">
-      <div class="card">
-        <div class="card-head">
-          <h3>Stock Overview</h3>
-          <div class="actions">
-            <select id="inventoryRackFilter" class="form-input"><option value="">All Racks</option></select>
-          </div>
-        </div>
-        <div id="lowStockTable"><div class="empty">Loading…</div></div>
+      <div class="toolbar">
+        <h3>Inventory</h3>
+        <select id="inventoryRackFilter" class="form-input"><option value="">All Racks</option></select>
       </div>
       <div class="card">
-        <div class="card-head"><h3>Recent Movements</h3></div>
-        <div id="movementsTable"><div class="empty">Loading…</div></div>
+        <h4>Low Stock / All Products</h4>
+        <div id="lowStockTable"></div>
+      </div>
+      <div class="card">
+        <h4>Recent Movements</h4>
+        <div id="movementsTable"></div>
       </div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- RACKS — UPDATED v34 -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: RACKS (UPDATED v34) ============ -->
     <section class="module" id="module-racks">
-      <!-- Rack List -->
-      <div class="card">
-        <div class="card-head">
-          <h3>📦 Racks</h3>
-          <div class="actions">
-            <button class="btn btn-primary" id="btnAddRack">+ Add Rack <span class="kbd">Alt+A</span></button>
-          </div>
-        </div>
-
-        <!-- Rack Search -->
-        <div class="rack-search">
-          <input type="text" id="rackSearchInput" placeholder="🔍 Search racks by name or description... (Alt+F)">
-        </div>
-
-        <div id="racksTable"><div class="empty">Loading…</div></div>
-
-        <!-- Shortcut hints -->
-        <div class="rack-shortcut-hint">
-          Shortcuts: <span class="kbd">Alt+A</span> Add Rack ·
-          <span class="kbd">Alt+F</span> Search ·
-          <span class="kbd">Enter</span> Next field ·
-          <span class="kbd">Ctrl+Enter</span> Save
+      <div class="toolbar">
+        <h3>🗄️ Racks Management</h3>
+        <div class="toolbar-actions">
+          <!-- NEW: Search racks -->
+          <input id="rackSearchInput" class="form-input" placeholder="🔍 Search racks... (Alt+F)" style="min-width:220px">
+          <button class="btn btn-primary" id="btnAddRack" title="Add new rack (Alt+A)">+ Add Rack <span class="kbd">Alt+A</span></button>
         </div>
       </div>
 
-      <!-- Rack-wise Stock -->
+      <!-- Racks list -->
       <div class="card">
-        <div class="card-head">
-          <h3>Rack-wise Stock</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <h4 style="margin:0">All Racks</h4>
+          <small style="color:var(--muted)">
+            <b>Alt+A</b> Add &nbsp;·&nbsp; <b>Alt+E</b> Edit &nbsp;·&nbsp; <b>Alt+V</b> View &nbsp;·&nbsp; <b>Alt+D</b> Delete &nbsp;·&nbsp; <b>Alt+F</b> Search
+          </small>
         </div>
-        <div id="rackStockTable"><div class="empty">Loading…</div></div>
+        <div id="racksTable"></div>
+      </div>
+
+      <!-- Rack-wise stock overview -->
+      <div class="card">
+        <h4>📦 Rack-wise Stock Overview</h4>
+        <div id="rackStockTable"></div>
       </div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- PURCHASES -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: PURCHASES ============ -->
     <section class="module" id="module-purchases">
+      <div class="toolbar">
+        <h3>Purchases / Products</h3>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" id="btnPurchasesHistory">History</button>
+          <button class="btn btn-ghost" id="btnRefreshPurchases">↻</button>
+          <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase <span class="kbd">F8</span></button>
+        </div>
+      </div>
       <div class="card">
-        <div class="card-head">
-          <h3>Purchases</h3>
-          <div class="actions">
-            <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase <span class="kbd">F8</span></button>
-            <button class="btn btn-ghost" id="btnPurchasesHistory">History</button>
-            <button class="btn btn-ghost" id="btnRefreshPurchases">↻</button>
-          </div>
+        <h4>Products Catalog</h4>
+        <div class="toolbar">
+          <input id="productSearch" class="form-input" placeholder="Search products…">
+          <select id="productFilterCat" class="form-input"><option value="">All Categories</option></select>
+          <select id="productFilterBrand" class="form-input"><option value="">All Brands</option></select>
         </div>
-        <div id="purchasesHistoryBox" hidden>
-          <div id="purchasesTable"><div class="empty">Loading…</div></div>
+        <div id="productsTable"></div>
+        <div class="bulk-bar" id="productBulkBar" style="display:none">
+          <span><b id="productSelCount">0</b> selected</span>
+          <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()">Delete Selected</button>
         </div>
+      </div>
+      <div class="card" id="purchasesHistoryBox" hidden>
+        <h4>Purchase History</h4>
+        <div id="purchasesTable"></div>
       </div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- SALES / POS -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: SALES / POS ============ -->
     <section class="module" id="module-sales">
-      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
-        <div class="card">
-          <div class="card-head"><h3>Product Selection</h3></div>
-          <div class="form-grid">
-            <div class="field full">
-              <label>Category Filter</label>
-              <select id="saleCategoryFilter"><option value="">— All —</option></select>
-            </div>
-            <div class="field full">
-              <label>Product</label>
-              <select id="saleProductSelect"><option value="">— Choose —</option></select>
-            </div>
-            <div class="field full">
-              <button class="btn btn-primary" id="btnAddToCart">Add to Cart <span class="kbd">F2</span></button>
-            </div>
-          </div>
-          <hr style="margin:16px 0;border:none;border-top:1px solid var(--border)">
-          <div class="card-head"><h3>Customer</h3></div>
-          <div class="form-grid">
-            <div class="field"><label>Name</label><input id="saleCustName" list="posCustomerOptions" placeholder="Walk-in Customer"></div>
-            <div class="field"><label>Phone</label><input id="saleCustPhone"></div>
-            <datalist id="posCustomerOptions"></datalist>
-            <div class="field full" id="previousDueBox" style="display:none;padding:10px;background:var(--red-bg);border-radius:8px">
-              <small style="color:var(--red);font-weight:700">⚠ Previous Due: <span id="previousDueAmount">PKR 0</span></small>
-            </div>
-            <div class="field"><label>Payment Method</label>
-              <select id="salePaymentMethod"><option>cash</option><option>easypaisa</option><option>jazzcash</option><option>bank</option></select>
-            </div>
-            <div class="field"><label>Discount</label>
-              <div style="display:flex;gap:6px">
-                <input id="saleDiscount" type="number" value="0" style="flex:1">
-                <select id="saleDiscountType" style="width:70px"><option value="flat">PKR</option><option value="pct">%</option></select>
-              </div>
-            </div>
-            <div class="field"><label>Paid</label><input id="salePaid" type="number" value="0"></div>
-          </div>
-          <div id="udharWarning" style="display:none;margin-top:10px;padding:8px;background:var(--orange-bg);border-radius:8px;font-size:12px;color:var(--orange);font-weight:700">⚠ Udhar — Payment incomplete</div>
-        </div>
-
-        <div class="card">
-          <div class="card-head"><h3>Cart</h3></div>
-          <div id="cartItems"><div class="empty">Cart is empty</div></div>
-          <hr style="margin:14px 0;border:none;border-top:1px solid var(--border)">
-          <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span>Subtotal</span><b id="cartSubtotal">PKR 0</b></div>
-          <div style="display:flex;justify-content:space-between;font-size:16px;padding:8px 0;border-top:2px solid var(--primary);margin-top:6px"><span>Total</span><b id="cartTotal" style="color:var(--primary)">PKR 0</b></div>
-          <div style="display:flex;gap:8px;margin-top:14px">
-            <button class="btn btn-ghost" id="btnHoldSale" style="flex:1">Hold</button>
-            <button class="btn btn-ghost" id="btnResumeSale" style="flex:1">Resume</button>
-            <button class="btn btn-primary" id="btnSaveSale" style="flex:2">Save Sale <span class="kbd">F4</span></button>
-          </div>
+      <div class="toolbar">
+        <h3>Sales / POS</h3>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" id="btnSalesHistory">History</button>
+          <button class="btn btn-ghost" id="btnRefreshSales">↻</button>
+          <button class="btn btn-ghost" id="btnHoldSale">Hold Sale</button>
+          <button class="btn btn-ghost" id="btnResumeSale">Resume</button>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <h3>Sales History</h3>
-          <div class="actions">
-            <button class="btn btn-ghost" id="btnSalesHistory">Show</button>
-            <button class="btn btn-ghost" id="btnRefreshSales">↻</button>
+      <div class="pos-grid">
+        <div class="card">
+          <h4>Product</h4>
+          <select id="saleCategoryFilter" class="form-input"></select>
+          <select id="saleProductSelect" class="form-input" style="margin-top:8px"></select>
+          <button class="btn btn-primary" id="btnAddToCart" style="margin-top:8px;width:100%">Add to Cart <span class="kbd">F2</span></button>
+        </div>
+
+        <div class="card">
+          <h4>Customer</h4>
+          <input id="saleCustName" class="form-input" list="posCustomerOptions" placeholder="Customer name (Walk-in)">
+          <datalist id="posCustomerOptions"></datalist>
+          <input id="saleCustPhone" class="form-input" placeholder="Phone" style="margin-top:8px">
+          <div id="previousDueBox" style="display:none;margin-top:8px;padding:8px;background:#fef2f2;border-radius:6px;color:#dc2626;font-size:13px">
+            Previous Due: <b id="previousDueAmount">PKR 0</b>
           </div>
         </div>
-        <div id="salesHistoryBox" hidden>
-          <div id="salesHistoryTable"><div class="empty">Loading…</div></div>
+
+        <div class="card">
+          <h4>Cart</h4>
+          <div id="cartItems"></div>
+          <hr>
+          <div class="row"><span>Subtotal</span><b id="cartSubtotal">PKR 0</b></div>
+          <div class="row"><span>Discount</span><input id="saleDiscount" type="number" value="0" style="width:80px"></div>
+          <div class="row"><span>Type</span><select id="saleDiscountType"><option value="amt">PKR</option><option value="pct">%</option></select></div>
+          <div class="row"><span>Total</span><b id="cartTotal">PKR 0</b></div>
+          <div class="row"><span>Paid</span><input id="salePaid" type="number" value="0" style="width:100px"></div>
+          <div class="row"><span>Method</span><select id="salePaymentMethod"><option>Cash</option><option>Card</option><option>JazzCash</option><option>EasyPaisa</option></select></div>
+          <div id="udharWarning" style="display:none;color:#dc2626;font-size:12px;margin-top:6px">⚠️ Udhar (Balance) rahega!</div>
+          <button class="btn btn-primary" id="btnSaveSale" style="width:100%;margin-top:12px">Save Sale <span class="kbd">F4</span></button>
         </div>
+      </div>
+
+      <div class="card" id="salesHistoryBox" hidden>
+        <h4>Sales History</h4>
+        <div id="salesHistoryTable"></div>
       </div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- REPAIRING -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: REPAIRING ============ -->
     <section class="module" id="module-repairing">
-      <div class="card">
-        <div class="card-head">
-          <h3>Repair Jobs</h3>
-          <div class="actions">
-            <input type="text" id="repairSearch" placeholder="Search..." style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px">
-            <select id="repairStatusFilter" style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px">
-              <option value="">All Status</option>
-              <option>Received</option><option>In Progress</option><option>Ready</option><option>Delivered</option>
-            </select>
-            <button class="btn btn-primary" id="btnAddRepair">+ New Repair <span class="kbd">F10</span></button>
-          </div>
+      <div class="toolbar">
+        <h3>Repairing</h3>
+        <div class="toolbar-actions">
+          <input id="repairSearch" class="form-input" placeholder="Search…">
+          <select id="repairStatusFilter" class="form-input">
+            <option value="">All Status</option>
+            <option>Received</option><option>In Progress</option><option>Ready</option><option>Delivered</option>
+          </select>
+          <button class="btn btn-primary" id="btnAddRepair">+ New Repair <span class="kbd">F10</span></button>
         </div>
-        <div id="repairsTable"><div class="empty">Loading…</div></div>
       </div>
+      <div class="card"><div id="repairsTable"></div></div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- CUSTOMERS -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: CUSTOMERS ============ -->
     <section class="module" id="module-customers">
-      <div class="card">
-        <div class="card-head">
-          <h3>Customers</h3>
-          <div class="actions">
-            <input type="text" id="custSearch" placeholder="Search name..." style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px">
-            <button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button>
-          </div>
+      <div class="toolbar">
+        <h3>Customers</h3>
+        <div class="toolbar-actions">
+          <input id="custSearch" class="form-input" placeholder="Search customers…">
+          <button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button>
         </div>
-        <div class="bulk-bar" id="custBulkBar">
+      </div>
+      <div class="card">
+        <div id="customersTable"></div>
+        <div class="bulk-bar" id="custBulkBar" style="display:none">
           <span><b id="custSelCount">0</b> selected</span>
           <button class="btn btn-danger btn-sm" onclick="bulkDeleteCustomers()">Delete Selected</button>
         </div>
-        <div id="customersTable"><div class="empty">Loading…</div></div>
       </div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- SUPPLIERS -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: SUPPLIERS ============ -->
     <section class="module" id="module-suppliers">
-      <div class="card">
-        <div class="card-head">
-          <h3>Suppliers</h3>
-          <div class="actions">
-            <input type="text" id="supplierSearch" placeholder="Search..." style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px">
-            <select id="supplierCategoryFilter" style="padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px"><option value="">All Categories</option></select>
-            <button class="btn btn-primary" id="btnAddSupplier">+ Add Supplier</button>
-          </div>
+      <div class="toolbar">
+        <h3>Suppliers</h3>
+        <div class="toolbar-actions">
+          <input id="supplierSearch" class="form-input" placeholder="Search suppliers…">
+          <select id="supplierCategoryFilter" class="form-input"><option value="">All Categories</option></select>
+          <button class="btn btn-primary" id="btnAddSupplier">+ Add Supplier</button>
         </div>
-        <div id="suppliersTable"><div class="empty">Loading…</div></div>
       </div>
+      <div class="card"><div id="suppliersTable"></div></div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- CREDIT / UDHAR -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: CREDIT ============ -->
     <section class="module" id="module-credit">
-      <div class="card">
-        <div class="card-head">
-          <h3>Credit / Udhar</h3>
-          <div class="actions">
-            <button class="btn btn-ghost" id="btnPrintCreditAll">Print All</button>
-          </div>
+      <div class="toolbar">
+        <h3>Credit / Udhar</h3>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" id="btnPrintCreditAll">🖨️ Print All</button>
         </div>
-        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-          <div id="creditDateTabs" style="display:flex;gap:4px;background:var(--surface-2);padding:3px;border-radius:9px">
-            <button data-range="all" class="btn btn-ghost btn-sm active">All</button>
-            <button data-range="today" class="btn btn-ghost btn-sm">Today</button>
-            <button data-range="week" class="btn btn-ghost btn-sm">Week</button>
-            <button data-range="month" class="btn btn-ghost btn-sm">Month</button>
-          </div>
-          <div id="creditStatusTabs" style="display:flex;gap:4px;background:var(--surface-2);padding:3px;border-radius:9px">
-            <button data-status="all" class="btn btn-ghost btn-sm active">All</button>
-            <button data-status="pending" class="btn btn-ghost btn-sm">Pending</button>
-            <button data-status="received" class="btn btn-ghost btn-sm">Received</button>
-          </div>
-        </div>
-        <div class="card-head"><h3 style="font-size:13px">Customer Summary</h3></div>
-        <div id="creditSummaryTable" style="margin-bottom:16px"><div class="empty">Loading…</div></div>
-        <div class="card-head"><h3 style="font-size:13px">Pending Invoices</h3></div>
-        <div id="creditTable"><div class="empty">Loading…</div></div>
-        <div class="card-head" style="margin-top:16px"><h3 style="font-size:13px">Recoveries</h3></div>
-        <div id="recoveriesTable"><div class="empty">Loading…</div></div>
       </div>
+
+      <div class="tabs" id="creditDateTabs">
+        <button class="active" data-range="all">All</button>
+        <button data-range="today">Today</button>
+        <button data-range="week">This Week</button>
+        <button data-range="month">This Month</button>
+      </div>
+      <div class="tabs" id="creditStatusTabs">
+        <button class="active" data-status="all">All</button>
+        <button data-status="pending">Pending</button>
+        <button data-status="received">Received</button>
+      </div>
+
+      <div class="card"><h4>Customer-wise Summary</h4><div id="creditSummaryTable"></div></div>
+      <div class="card"><h4>Pending Invoices</h4><div id="creditTable"></div></div>
+      <div class="card"><h4>Recent Recoveries</h4><div id="recoveriesTable"></div></div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- EXPENSES -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: EXPENSES ============ -->
     <section class="module" id="module-expenses">
-      <div class="card">
-        <div class="card-head">
-          <h3>Expenses</h3>
-          <div class="actions">
-            <button class="btn btn-primary" id="btnAddExpense">+ Add Expense <span class="kbd">F9</span></button>
-          </div>
-        </div>
-        <div class="stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
-          <div class="stat"><div class="stat-icon orange">📅</div><div><strong id="expToday">PKR 0</strong><small>Today</small></div></div>
-          <div class="stat"><div class="stat-icon orange">📆</div><div><strong id="expWeek">PKR 0</strong><small>Week</small></div></div>
-          <div class="stat"><div class="stat-icon orange">🗓</div><div><strong id="expMonth">PKR 0</strong><small>Month</small></div></div>
-          <div class="stat"><div class="stat-icon red">Σ</div><div><strong id="expTotal">PKR 0</strong><small>Total</small></div></div>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:end">
-          <div class="field"><label>From</label><input type="date" id="expFilterFrom"></div>
-          <div class="field"><label>To</label><input type="date" id="expFilterTo"></div>
-          <div class="field"><label>Category</label><select id="expFilterCat"><option value="">All</option></select></div>
+      <div class="toolbar">
+        <h3>Expenses</h3>
+        <div class="toolbar-actions">
+          <input type="date" id="expFilterFrom" class="form-input">
+          <input type="date" id="expFilterTo" class="form-input">
+          <select id="expFilterCat" class="form-input"><option value="">All</option></select>
           <button class="btn btn-ghost" id="btnFilterExpenses">Filter</button>
+          <button class="btn btn-primary" id="btnAddExpense">+ Add Expense <span class="kbd">F9</span></button>
         </div>
-        <div id="expensesTable"><div class="empty">Loading…</div></div>
       </div>
+
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-icon blue">📅</div><div><strong id="expToday">PKR 0</strong><small>Today</small></div></div>
+        <div class="stat"><div class="stat-icon green">🗓️</div><div><strong id="expWeek">PKR 0</strong><small>This Week</small></div></div>
+        <div class="stat"><div class="stat-icon orange">📆</div><div><strong id="expMonth">PKR 0</strong><small>This Month</small></div></div>
+        <div class="stat"><div class="stat-icon red">💸</div><div><strong id="expTotal">PKR 0</strong><small>Total</small></div></div>
+      </div>
+
+      <div class="card"><div id="expensesTable"></div></div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- REPORTS -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: REPORTS ============ -->
     <section class="module" id="module-reports">
+      <div class="toolbar">
+        <h3>Reports & P&L</h3>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" id="btnPrintReport">🖨️ Print</button>
+          <button class="btn btn-primary" id="btnRunReport">Run Report</button>
+        </div>
+      </div>
+
       <div class="card">
-        <div class="card-head"><h3>Reports & P&L</h3></div>
-        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:end">
-          <div class="field">
-            <label>Report Type</label>
+        <div class="form-grid">
+          <div class="field"><label>Report Type</label>
             <select id="reportType">
               <option value="sales">Sales</option>
               <option value="pl">Profit & Loss</option>
@@ -547,61 +363,47 @@ table.cart-mini .num{text-align:right}
           </div>
           <div class="field"><label>From</label><input type="date" id="reportFrom"></div>
           <div class="field"><label>To</label><input type="date" id="reportTo"></div>
-          <div class="field"><label>Search</label><input id="reportSearch" placeholder="Keyword..."></div>
-          <button class="btn btn-primary" id="btnRunReport">Run Report</button>
-          <button class="btn btn-ghost" id="btnPrintReport">Print</button>
+          <div class="field"><label>Search</label><input id="reportSearch" placeholder="Search…"></div>
         </div>
-        <div id="plSummary" style="display:none;gap:12px;margin-bottom:16px"></div>
-        <div id="reportOutput"><div class="empty">Run a report to see results.</div></div>
       </div>
+
+      <div class="stats-grid" id="plSummary" style="display:none"></div>
+      <div class="card"><div id="reportOutput"></div></div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- TRANSACTIONS -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: TRANSACTIONS ============ -->
     <section class="module" id="module-transactions">
-      <div class="card">
-        <div class="card-head"><h3>Recent Transactions</h3></div>
-        <div id="transactionsTable"><div class="empty">Loading…</div></div>
-      </div>
+      <div class="toolbar"><h3>Transactions</h3></div>
+      <div class="card"><div id="transactionsTable"></div></div>
     </section>
 
-    <!-- ===================================================== -->
-    <!-- STAFF & LOGS -->
-    <!-- ===================================================== -->
+    <!-- ============ MODULE: SETTINGS ============ -->
     <section class="module" id="module-settings">
-      <div class="card">
-        <div class="card-head"><h3>Staff</h3></div>
-        <div id="staffTable"><div class="empty">Loading…</div></div>
-      </div>
-      <div class="card">
-        <div class="card-head"><h3>Activity Logs</h3></div>
-        <div id="logsTable"><div class="empty">Loading…</div></div>
-      </div>
+      <div class="toolbar"><h3>Staff & Logs</h3></div>
+      <div class="card"><h4>Staff Members</h4><div id="staffTable"></div></div>
+      <div class="card"><h4>Activity Logs</h4><div id="logsTable"></div></div>
     </section>
 
   </main>
-</div>
 
-<!-- ============ MODAL ============ -->
-<div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 id="modalTitle">Modal</h3>
-      <button class="modal-close" onclick="document.getElementById('modalBackdrop').classList.remove('open')">×</button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
-      <button class="btn btn-primary" id="modalConfirm">Save</button>
+  <!-- ============ MODAL ============ -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <header class="modal-header">
+        <h3 id="modalTitle">Modal</h3>
+        <button class="icon-btn" onclick="closeModal()">×</button>
+      </header>
+      <div class="modal-body" id="modalBody"></div>
+      <footer class="modal-footer">
+        <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+        <button class="btn btn-primary" id="modalConfirm">Save</button>
+      </footer>
     </div>
   </div>
-</div>
 
-<!-- ============ TOAST ============ -->
-<div class="toast-host" id="toastHost"></div>
+  <!-- Toast host -->
+  <div id="toastHost" class="toast-host"></div>
 
-<!-- ============ SCRIPT ============ -->
-<script type="module" src="./dashboard.js"></script>
+  <script type="module" src="./dashboard.js"></script>
 </body>
 </html>
