@@ -6,7 +6,9 @@
   <title>Dashboard — BM Mobile Zone</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jameel+Noori+Nastaleeq&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./dashboard.css">
+  
+  <!-- PATH FIXED: CSS folder ke andar wali file ko link kiya gaya hai -->
+  <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
 
@@ -140,13 +142,11 @@
       <div class="toolbar">
         <h3>🗄️ Racks Management</h3>
         <div class="toolbar-actions">
-          <!-- NEW: Search racks -->
           <input id="rackSearchInput" class="form-input" placeholder="🔍 Search racks... (Alt+F)" style="min-width:220px">
           <button class="btn btn-primary" id="btnAddRack" title="Add new rack (Alt+A)">+ Add Rack <span class="kbd">Alt+A</span></button>
         </div>
       </div>
 
-      <!-- Racks list -->
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
           <h4 style="margin:0">All Racks</h4>
@@ -157,7 +157,6 @@
         <div id="racksTable"></div>
       </div>
 
-      <!-- Rack-wise stock overview -->
       <div class="card">
         <h4>📦 Rack-wise Stock Overview</h4>
         <div id="rackStockTable"></div>
@@ -404,6 +403,7 @@
   <!-- Toast host -->
   <div id="toastHost" class="toast-host"></div>
 
-  <script type="module" src="./dashboard.js"></script>
+  <!-- PATH FIXED: JS folder ke andar wali file ko link kiya gaya hai -->
+  <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
