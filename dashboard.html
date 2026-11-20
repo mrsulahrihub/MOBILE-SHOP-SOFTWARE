@@ -6,9 +6,77 @@
   <title>Dashboard — BM Mobile Zone</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jameel+Noori+Nastaleeq&display=swap" rel="stylesheet">
-  
-  <!-- PATH FIXED: CSS folder ke andar wali file ko link kiya gaya hai -->
+
   <link rel="stylesheet" href="css/dashboard.css">
+
+  <!-- ===== PURCHASE ITEMS GRID HEADER STYLES (v34) ===== -->
+  <style>
+    /* Purchase Invoice Modal — Items header + row grid */
+    .items-header-labels,
+    .purchase-item-row {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1.1fr 0.7fr 0.9fr 0.9fr 1.2fr 1.2fr 1fr 36px;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .items-header-labels {
+      padding: 8px 6px;
+      margin-bottom: 6px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #4b5563;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .items-header-labels span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .purchase-item-row {
+      padding: 6px 4px;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+
+    .purchase-item-row input,
+    .purchase-item-row select {
+      width: 100%;
+      min-width: 0;           /* grid mein overflow rokta hai */
+      box-sizing: border-box;
+      font-size: 12px;
+      padding: 6px 6px;
+    }
+
+    /* Chhoti screens par header chhup jaye, rows stack ho jayein */
+    @media (max-width: 1100px) {
+      .items-header-labels { display: none; }
+      .purchase-item-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 10px 6px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+    }
+
+    /* Items list ka scroll container (agar JS mein wrapper ho) */
+    #purchaseItemsList,
+    .purchase-items-list {
+      max-height: 55vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+  </style>
 </head>
 <body>
 
@@ -403,7 +471,6 @@
   <!-- Toast host -->
   <div id="toastHost" class="toast-host"></div>
 
-  <!-- PATH FIXED: JS folder ke andar wali file ko link kiya gaya hai -->
   <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
