@@ -9,11 +9,13 @@
 
   <link rel="stylesheet" href="css/dashboard.css">
 
-  <!-- ===== PURCHASE ITEMS GRID HEADER STYLES (v34) ===== -->
+  <!-- ============================================================
+       PURCHASE ITEMS GRID + POS HELPERS (v36)
+       ============================================================ -->
   <style>
-    /* Purchase Invoice Modal — Items header + row grid */
+    /* ---------- Purchase Invoice Modal: Items grid ---------- */
     .items-header-labels,
-    .purchase-item-row {
+    .product-item-row {
       display: grid;
       grid-template-columns: 2fr 1.2fr 1.1fr 0.7fr 0.9fr 0.9fr 1.2fr 1.2fr 1fr 36px;
       gap: 6px;
@@ -42,24 +44,42 @@
       text-overflow: ellipsis;
     }
 
-    .purchase-item-row {
+    .product-item-row {
       padding: 6px 4px;
       border-bottom: 1px dashed #e5e7eb;
     }
 
-    .purchase-item-row input,
-    .purchase-item-row select {
+    .product-item-row input,
+    .product-item-row select {
       width: 100%;
-      min-width: 0;           /* grid mein overflow rokta hai */
+      min-width: 0;
       box-sizing: border-box;
       font-size: 12px;
       padding: 6px 6px;
     }
 
-    /* Chhoti screens par header chhup jaye, rows stack ho jayein */
+    .product-item-row .item-del-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: none;
+      background: #fee2e2;
+      color: #dc2626;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .product-item-row .item-del-btn:hover {
+      background: #fecaca;
+    }
+
+    /* ---------- Small screens: stack rows, hide header ---------- */
     @media (max-width: 1100px) {
       .items-header-labels { display: none; }
-      .purchase-item-row {
+      .product-item-row {
         grid-template-columns: 1fr 1fr;
         gap: 6px;
         padding: 10px 6px;
@@ -67,14 +87,120 @@
         border-radius: 8px;
         margin-bottom: 8px;
       }
+      .product-item-row .item-del-btn {
+        grid-column: span 2;
+        width: 100%;
+        height: 28px;
+      }
     }
 
-    /* Items list ka scroll container (agar JS mein wrapper ho) */
-    #purchaseItemsList,
-    .purchase-items-list {
-      max-height: 55vh;
+    /* ---------- Purchase items scroll container ---------- */
+    #purchaseItemsHost {
+      max-height: calc(100vh - 400px);
       overflow-y: auto;
       padding-right: 4px;
+    }
+
+    /* ---------- POS: Paid quick buttons ---------- */
+    .paid-quick {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .paid-quick button {
+      flex: 1;
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      color: #374151;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .paid-quick button:hover {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      color: #4338ca;
+    }
+
+    /* ---------- POS: udhar warning ---------- */
+    #udharWarning {
+      display: none;
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      color: #dc2626;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    /* ---------- POS: Tax row toggle ---------- */
+    .tax-row-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tax-row-inner input[type="number"] {
+      width: 60px;
+    }
+    .tax-row-inner label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted, #6b7280);
+      cursor: pointer;
+    }
+
+    /* ---------- POS: cart mini table ---------- */
+    .cart-mini {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .cart-mini th {
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #6b7280;
+      padding: 4px 3px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .cart-mini td {
+      padding: 6px 3px;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: middle;
+    }
+    .cart-mini .num { text-align: right; }
+
+    .qty-btn {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 5px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+      font-size: 12px;
+    }
+    .qty-btn:hover { background: #eef2ff; }
+
+    /* ---------- POS: split payment button ---------- */
+    #btnSplitPayment {
+      background: #f9fafb;
+      border: 1px dashed #d1d5db;
+      color: #4338ca;
+      font-weight: 600;
+    }
+    #btnSplitPayment:hover {
+      background: #eef2ff;
+      border-color: #a5b4fc;
     }
   </style>
 </head>
@@ -86,7 +212,7 @@
       <div class="brand-logo">BM</div>
       <div>
         <h1>BM Mobile Zone</h1>
-        <small>Dashboard v34</small>
+        <small>Dashboard v36</small>
       </div>
     </div>
 
@@ -205,7 +331,7 @@
       </div>
     </section>
 
-    <!-- ============ MODULE: RACKS (UPDATED v34) ============ -->
+    <!-- ============ MODULE: RACKS ============ -->
     <section class="module" id="module-racks">
       <div class="toolbar">
         <h3>🗄️ Racks Management</h3>
@@ -260,26 +386,33 @@
       </div>
     </section>
 
-    <!-- ============ MODULE: SALES / POS ============ -->
+    <!-- ============ MODULE: SALES / POS (v36 UPDATED) ============ -->
     <section class="module" id="module-sales">
       <div class="toolbar">
         <h3>Sales / POS</h3>
         <div class="toolbar-actions">
           <button class="btn btn-ghost" id="btnSalesHistory">History</button>
           <button class="btn btn-ghost" id="btnRefreshSales">↻</button>
-          <button class="btn btn-ghost" id="btnHoldSale">Hold Sale</button>
-          <button class="btn btn-ghost" id="btnResumeSale">Resume</button>
+          <button class="btn btn-ghost" id="btnHoldSale">Hold Sale <span class="kbd">F6</span></button>
+          <button class="btn btn-ghost" id="btnResumeSale">Resume <span class="kbd">F7</span></button>
         </div>
       </div>
 
       <div class="pos-grid">
+        <!-- ---------- PRODUCT CARD ---------- -->
         <div class="card">
           <h4>Product</h4>
+
+          <input id="posProductSearch" class="form-input" placeholder="🔍 Search name / SKU / IMEI / brand… (F3)" style="margin-bottom:8px">
+          <input id="posBarcodeInput" class="form-input" placeholder="📷 Scan barcode / IMEI (Enter)" style="margin-bottom:8px">
+
           <select id="saleCategoryFilter" class="form-input"></select>
           <select id="saleProductSelect" class="form-input" style="margin-top:8px"></select>
+
           <button class="btn btn-primary" id="btnAddToCart" style="margin-top:8px;width:100%">Add to Cart <span class="kbd">F2</span></button>
         </div>
 
+        <!-- ---------- CUSTOMER CARD ---------- -->
         <div class="card">
           <h4>Customer</h4>
           <input id="saleCustName" class="form-input" list="posCustomerOptions" placeholder="Customer name (Walk-in)">
@@ -290,17 +423,66 @@
           </div>
         </div>
 
+        <!-- ---------- CART CARD ---------- -->
         <div class="card">
           <h4>Cart</h4>
           <div id="cartItems"></div>
           <hr>
+
           <div class="row"><span>Subtotal</span><b id="cartSubtotal">PKR 0</b></div>
-          <div class="row"><span>Discount</span><input id="saleDiscount" type="number" value="0" style="width:80px"></div>
-          <div class="row"><span>Type</span><select id="saleDiscountType"><option value="amt">PKR</option><option value="pct">%</option></select></div>
-          <div class="row"><span>Total</span><b id="cartTotal">PKR 0</b></div>
-          <div class="row"><span>Paid</span><input id="salePaid" type="number" value="0" style="width:100px"></div>
-          <div class="row"><span>Method</span><select id="salePaymentMethod"><option>Cash</option><option>Card</option><option>JazzCash</option><option>EasyPaisa</option></select></div>
-          <div id="udharWarning" style="display:none;color:#dc2626;font-size:12px;margin-top:6px">⚠️ Udhar (Balance) rahega!</div>
+
+          <div class="row"><span>Line Discount</span><b id="cartLineDisc">PKR 0</b></div>
+
+          <div class="row">
+            <span>Bill Discount</span>
+            <input id="saleDiscount" type="number" value="0" style="width:70px">
+            <select id="saleDiscountType" style="width:60px">
+              <option value="amt">PKR</option>
+              <option value="pct">%</option>
+            </select>
+          </div>
+          <div class="row"><span>Bill Disc. Amt</span><b id="cartBillDisc">PKR 0</b></div>
+
+          <div class="row tax-row-inner" id="cartTaxRow" style="display:none">
+            <span>Tax</span>
+            <b id="cartTax" style="margin-left:auto">PKR 0</b>
+          </div>
+          <div class="row tax-row-inner">
+            <span>Tax %</span>
+            <input id="posTaxRate" type="number" value="0">
+            <label><input type="checkbox" id="posTaxEnabled"> Enable</label>
+          </div>
+
+          <div class="row" style="font-size:15px;margin-top:6px">
+            <span><b>Total</b></span>
+            <b id="cartTotal" style="color:var(--primary)">PKR 0</b>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <span>Paid</span>
+            <input id="salePaid" type="number" value="0" style="width:110px;font-weight:700" placeholder="Manual entry">
+          </div>
+          <div class="paid-quick">
+            <button type="button" onclick="setPaidFull()">💯 Full</button>
+            <button type="button" onclick="setPaidZero()">0 Zero</button>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <span>Method</span>
+            <select id="salePaymentMethod">
+              <option>Cash</option>
+              <option>Card</option>
+              <option>JazzCash</option>
+              <option>EasyPaisa</option>
+              <option>Bank</option>
+              <option>Udhar / Credit</option>
+            </select>
+          </div>
+
+          <button class="btn btn-ghost" id="btnSplitPayment" style="width:100%;margin-top:6px">💳 Split Payment</button>
+
+          <div id="udharWarning">⚠️ Udhar (Balance) rahega!</div>
+
           <button class="btn btn-primary" id="btnSaveSale" style="width:100%;margin-top:12px">Save Sale <span class="kbd">F4</span></button>
         </div>
       </div>
