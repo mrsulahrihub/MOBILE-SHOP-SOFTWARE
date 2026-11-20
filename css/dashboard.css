@@ -1,75 +1,45 @@
-/* =====================================================
-   BISMILLAH MOBILE ZONE — World-Class Premium ERP CSS v35
-   Design System: Glassmorphism + Bento Grid + SaaS-grade UI
-   Ultra-smooth · No vibration · Fully responsive
-===================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 
-/* =====================================================
-   1. DESIGN TOKENS
-===================================================== */
 :root {
-  /* Brand */
   --primary: #087F8C;
   --primary-hover: #066a75;
   --primary-light: rgba(8, 127, 140, 0.08);
   --primary-glow: rgba(8, 127, 140, 0.18);
   --navy: #123440;
   --accent: #7C3AED;
-
-  /* Surface */
   --bg: #F4F8FB;
   --card: #FFFFFF;
-  --card-hover: #FEFEFE;
-
-  /* Text */
   --text: #0F172A;
   --text-soft: #1E293B;
   --muted: #64748B;
   --muted-soft: #94A3B8;
-
-  /* Semantic */
   --success: #16A34A;
   --success-light: rgba(22, 163, 74, 0.1);
   --danger: #EF4444;
   --danger-light: rgba(239, 68, 68, 0.1);
   --warning: #F59E0B;
   --warning-light: rgba(245, 158, 11, 0.1);
-
-  /* Glass layers */
   --glass-bg: rgba(255, 255, 255, 0.72);
-  --glass-bg-strong: rgba(255, 255, 255, 0.92);
   --glass-border: rgba(255, 255, 255, 0.9);
   --glass-shadow: 0 8px 32px 0 rgba(8, 127, 140, 0.06);
   --glass-blur: blur(20px) saturate(180%);
-
-  /* Borders & shadows */
   --border: rgba(15, 23, 42, 0.08);
   --border-strong: rgba(15, 23, 42, 0.12);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
   --shadow-hover: 0 12px 32px rgba(8, 127, 140, 0.14);
   --shadow-glow: 0 0 0 4px rgba(8, 127, 140, 0.12);
   --shadow-lg: 0 16px 48px rgba(15, 23, 42, 0.12);
-
-  /* Radii */
   --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius: 20px;
   --radius-lg: 24px;
-
-  /* Motion */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Spacing */
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
   --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
 }
 
-/* =====================================================
-   2. DARK MODE
-===================================================== */
 body.dark-mode {
   --primary: #14B8CC;
   --primary-hover: #22D3EE;
@@ -78,21 +48,15 @@ body.dark-mode {
   --navy: #E2E8F0;
   --bg: #0B1220;
   --card: #1A2744;
-  --card-hover: #1F2F52;
   --text: #F1F5F9;
   --text-soft: #E2E8F0;
   --muted: #94A3B8;
   --glass-bg: rgba(26, 39, 68, 0.72);
-  --glass-bg-strong: rgba(26, 39, 68, 0.92);
   --glass-border: rgba(255, 255, 255, 0.08);
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.14);
-  --shadow-hover: 0 12px 32px rgba(20, 184, 204, 0.2);
 }
 
-/* =====================================================
-   3. RESET & BASE
-===================================================== */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
 body {
@@ -103,25 +67,19 @@ body {
   color: var(--text);
   overflow-x: hidden;
   transition: background-color 0.4s var(--ease), color 0.4s var(--ease);
-  background-image:
-    radial-gradient(ellipse at 0% 0%, var(--primary-light) 0%, transparent 45%),
+  background-image: radial-gradient(ellipse at 0% 0%, var(--primary-light) 0%, transparent 45%),
     radial-gradient(ellipse at 100% 0%, rgba(124, 58, 237, 0.05) 0%, transparent 45%);
   background-attachment: fixed;
   min-height: 100vh;
 }
 button, input, select, textarea { font-family: inherit; }
-
-/* Custom Scrollbars */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 20px; }
-::-webkit-scrollbar-thumb:hover { background: var(--muted-soft); }
 
-/* =====================================================
-   4. LAYOUT & SIDEBAR
-===================================================== */
 .dashboard { display: flex; min-height: 100vh; }
 
+/* SIDEBAR */
 .sidebar {
   width: 272px; flex-shrink: 0;
   background: var(--glass-bg);
@@ -136,13 +94,13 @@ button, input, select, textarea { font-family: inherit; }
 }
 .sidebar.show { left: 0; box-shadow: 12px 0 48px rgba(15, 23, 42, 0.12); }
 
-/* Sidebar Brand */
-.sidebar-brand {
-  display: flex; align-items: center; gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  margin-bottom: var(--space-8);
-  color: var(--navy);
+@media(min-width: 1024px) {
+  .sidebar { left: 0; }
+  .main { margin-left: 272px; }
+  .sidebar-handle { display: none; }
 }
+
+.sidebar-brand { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-8); color: var(--navy); }
 .brand-logo {
   width: 40px; height: 40px; border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--primary), var(--navy));
@@ -154,7 +112,6 @@ body.dark-mode .sidebar-brand { color: #fff; }
 .sidebar-brand h1 { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; }
 .sidebar-brand small { font-size: 11px; color: var(--muted); font-weight: 600; display: block; margin-top: 2px; }
 
-/* Sidebar Handle */
 .sidebar-handle {
   position: fixed; top: 50%; left: 0; transform: translateY(-50%);
   width: 28px; height: 88px;
@@ -169,7 +126,6 @@ body.dark-mode .sidebar-brand { color: #fff; }
 .sidebar-handle:hover { opacity: 1; width: 34px; background: var(--primary); color: #fff; }
 .sidebar-handle.open { left: 272px; background: var(--danger); color: #fff; opacity: 1; }
 
-/* Nav Items */
 .sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
 .nav-item {
   padding: 12px 16px; border-radius: var(--radius-sm);
@@ -194,9 +150,7 @@ body.dark-mode .sidebar-brand { color: #fff; }
 .user-chip b { font-size: 13px; font-weight: 700; display: block; }
 .user-chip small { font-size: 11px; color: var(--muted); font-weight: 600; }
 
-/* =====================================================
-   5. MAIN & TOPBAR
-===================================================== */
+/* MAIN */
 .main { flex: 1; min-width: 0; padding: var(--space-8) var(--space-10) var(--space-10); width: 100%; transition: margin-left 0.4s var(--ease); }
 
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-8); flex-wrap: wrap; }
@@ -205,24 +159,40 @@ body.dark-mode .topbar h2 { color: #fff; }
 .topbar small { color: var(--muted); font-size: 13px; margin-top: 4px; font-weight: 500; display: block; }
 .topbar-right { display: flex; align-items: center; gap: var(--space-3); }
 
-/* Search Bar */
 .search-bar { display: flex; align-items: center; gap: 10px; padding: 11px 16px; border-radius: var(--radius-sm); background: var(--card); border: 1.5px solid var(--border); flex: 1; min-width: 220px; max-width: 380px; transition: var(--transition); }
 .search-bar:focus-within { border-color: var(--primary); box-shadow: var(--shadow-glow); }
 .search-bar input { border: none; background: transparent; outline: none; width: 100%; color: var(--text); font-size: 13.5px; }
 
-/* Icon Button */
 .icon-btn { width: 44px; height: 44px; border-radius: var(--radius-sm); background: var(--card); border: 1.5px solid var(--border); display: grid; place-items: center; cursor: pointer; color: var(--text); font-size: 18px; transition: var(--transition); position: relative; }
 .icon-btn:hover { border-color: var(--primary); color: var(--primary); }
 .icon-btn .badge { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 20px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4); }
 
-/* =====================================================
-   6. MODULES & CARDS (Glassmorphism)
-===================================================== */
+/* NOTIFICATION PANEL */
+.notif-panel {
+  position: fixed; top: 78px; right: 32px; width: 380px; max-height: 480px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+  z-index: 999; overflow-y: auto; display: none; padding: 16px;
+  animation: slideDown 0.25s var(--ease);
+}
+.notif-panel.open { display: block; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.notif-panel h3 { font-size: 14px; font-weight: 800; margin-bottom: 10px; color: var(--navy); }
+body.dark-mode .notif-panel h3 { color: #fff; }
+.notif-section { margin-bottom: 16px; }
+.notif-section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.notif-item { padding: 10px 12px; border-radius: 8px; background: var(--bg); margin-bottom: 6px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 1px solid var(--border); }
+.notif-item b { color: var(--text); }
+.notif-item .amt { color: var(--danger); font-weight: 800; }
+.notif-item.low-stock .amt { color: var(--warning); }
+.notif-empty { color: var(--muted); font-size: 12px; padding: 8px; text-align: center; }
+
+/* MODULE */
 .module { display: none; }
 .module.active { display: flex; flex-direction: column; gap: var(--space-6); animation: fadeIn 0.3s var(--ease); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-.card, .clay {
+.card {
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -231,20 +201,20 @@ body.dark-mode .topbar h2 { color: #fff; }
   border: 1px solid var(--glass-border);
   padding: var(--space-6);
   transition: var(--transition);
-  position: relative;
-  overflow: hidden;
+  position: relative; overflow: hidden;
 }
-.card:hover, .clay:hover { box-shadow: var(--shadow-hover); border-color: var(--primary-glow); }
+.card:hover { box-shadow: var(--shadow-hover); border-color: var(--primary-glow); }
 .card h3, .card h4 { font-size: 17px; font-weight: 800; letter-spacing: -0.4px; color: var(--navy); margin-bottom: var(--space-4); }
 body.dark-mode .card h3, body.dark-mode .card h4 { color: #fff; }
 
-/* Welcome Card */
 .welcome-card { background: linear-gradient(135deg, var(--primary), var(--navy) 140%); color: #fff; padding: var(--space-8); border-radius: var(--radius); position: relative; overflow: hidden; box-shadow: 0 12px 40px var(--primary-glow); }
 .welcome-card h3 { color: #fff; font-size: 22px; margin-bottom: 6px; font-weight: 800; }
 .welcome-card p { color: rgba(255,255,255,0.85); font-size: 13.5px; }
 .welcome-card b { color: #fff; }
+.quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.quick-actions .btn-ghost { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #fff; }
+.quick-actions .btn-ghost:hover { background: rgba(255,255,255,0.25); }
 
-/* Stats Grid */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-4); }
 .stat { display: flex; align-items: center; gap: var(--space-4); background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: var(--space-5); transition: var(--transition); }
 .stat:hover { box-shadow: var(--shadow-hover); border-color: var(--primary-glow); }
@@ -258,9 +228,7 @@ body.dark-mode .card h3, body.dark-mode .card h4 { color: #fff; }
 body.dark-mode .stat strong { color: #fff; }
 .stat small { color: var(--muted); font-size: 12px; font-weight: 600; }
 
-/* =====================================================
-   7. TABLES & PILLS
-===================================================== */
+/* TABLES */
 table.data { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 600px; }
 table.data th, table.data td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border); transition: background-color 0.2s var(--ease); }
 table.data th { font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 800; background: rgba(15, 23, 42, 0.02); }
@@ -277,9 +245,7 @@ table.data tbody tr:last-child td { border-bottom: none; }
 .pill.blue { background: var(--primary-light); color: var(--primary); }
 .empty { text-align: center; padding: var(--space-10); color: var(--muted); font-size: 13.5px; }
 
-/* =====================================================
-   8. FORMS & BUTTONS
-===================================================== */
+/* FORMS */
 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-5); }
 .form-grid .full { grid-column: 1 / -1; }
 .field label { display: block; font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: var(--space-2); text-transform: uppercase; }
@@ -305,9 +271,7 @@ body.dark-mode .kbd { background: rgba(255, 255, 255, 0.06); }
 .toolbar h3 { font-size: 17px; font-weight: 800; color: var(--navy); }
 .toolbar-actions { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
 
-/* =====================================================
-   9. POS SCREEN (3-Column Bento Layout)
-===================================================== */
+/* POS */
 .pos-grid { display: grid; grid-template-columns: 1.2fr 1fr 1.3fr; gap: var(--space-5); align-items: start; }
 @media(max-width: 1280px) { .pos-grid { grid-template-columns: 1fr 1fr; } }
 @media(max-width: 900px) { .pos-grid { grid-template-columns: 1fr; } }
@@ -322,10 +286,10 @@ body.dark-mode .kbd { background: rgba(255, 255, 255, 0.06); }
 .row:last-of-type { border-bottom: none; }
 .row b { font-weight: 800; color: var(--text); }
 
-/* =====================================================
-   10. MODALS & TOASTS
-===================================================== */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(10px); z-index: 100; display: none; align-items: center; justify-content: center; padding: var(--space-6); }
+.paid-section { margin-top: 10px; padding-top: 10px; border-top: 2px solid var(--border); }
+
+/* MODAL */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(10px); z-index: 2000; display: none; align-items: center; justify-content: center; padding: var(--space-6); }
 .modal-backdrop.open { display: flex; }
 .modal { background: var(--card); border-radius: var(--radius-lg); box-shadow: 0 32px 64px -16px rgba(0, 0, 0, 0.35); width: min(760px, 100%); max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; animation: modalPop 0.3s var(--ease); }
 @keyframes modalPop { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
@@ -334,37 +298,28 @@ body.dark-mode .kbd { background: rgba(255, 255, 255, 0.06); }
 .modal-body { padding: var(--space-6); }
 .modal-footer { padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: var(--space-3); background: var(--card); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
 
-.toast-host { position: fixed; bottom: var(--space-8); right: var(--space-8); z-index: 200; display: flex; flex-direction: column; gap: 10px; }
+.toast-host { position: fixed; bottom: var(--space-8); right: var(--space-8); z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
 .toast { padding: 14px 20px; border-radius: var(--radius-md); font-size: 13.5px; font-weight: 600; background: var(--card); box-shadow: 0 12px 40px rgba(15, 23, 42, 0.2); color: var(--text); border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; animation: toastIn 0.35s var(--ease) forwards; opacity: 0; transform: translateX(80px); }
 @keyframes toastIn { to { opacity: 1; transform: translateX(0); } }
 .toast.success { border-left: 4px solid var(--success); }
 .toast.error { border-left: 4px solid var(--danger); }
 .toast.info { border-left: 4px solid var(--primary); }
 
-/* =====================================================
-   11. TABS & BULK ACTIONS
-===================================================== */
 .tabs { display: inline-flex; gap: 4px; padding: 5px; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: var(--space-4); flex-wrap: wrap; }
 .tabs button { padding: 8px 16px; border: none; background: transparent; border-radius: 7px; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; transition: var(--transition); }
 .tabs button.active { background: var(--primary); color: #fff; box-shadow: 0 3px 10px var(--primary-glow); }
 
 .bulk-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: var(--warning-light); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-sm); margin-top: var(--space-3); font-size: 13px; font-weight: 600; }
 
-/* =====================================================
-   12. RESPONSIVE
-===================================================== */
-@media(max-width: 1200px) {
-  .main { padding: var(--space-6); }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .pos-grid { grid-template-columns: 1fr; }
-}
+@media(max-width: 1200px) { .main { padding: var(--space-6); } .stats-grid { grid-template-columns: repeat(2, 1fr); } .pos-grid { grid-template-columns: 1fr; } }
 @media(max-width: 850px) {
   .sidebar { width: 260px; left: -260px; }
   .sidebar.show { left: 0; }
   .sidebar-handle.open { left: 260px; }
   .form-grid { grid-template-columns: 1fr; }
-  .main { padding: var(--space-5); }
+  .main { padding: var(--space-5); margin-left: 0 !important; }
   .topbar h2 { font-size: 20px; }
+  .notif-panel { right: 12px; left: 12px; width: auto; }
 }
 @media(max-width: 680px) {
   .dashboard { display: block; }
@@ -373,6 +328,5 @@ body.dark-mode .kbd { background: rgba(255, 255, 255, 0.06); }
   .search-bar { max-width: none; flex: 1; }
   .modal { padding: 0; }
   .modal-body { padding: var(--space-4); }
-  .modal-header, .modal-footer { padding: var(--space-4); }
   .toast-host { left: var(--space-4); right: var(--space-4); }
 }
