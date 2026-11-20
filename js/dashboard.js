@@ -1,8 +1,8 @@
 // =====================================================
-// BISMILLAH MOBILE ZONE — Dashboard Controller v35.0
-// POS Upgrade: Smart Search, Barcode, IMEI Tracking, Rack Location,
-// Discount, Tax, Multiple Payments, Customer Management,
-// Reports (13 types), Udhar same, All Shortcuts + Enter Nav.
+// BISMILLAH MOBILE ZONE — Dashboard Controller v36.0
+// POS v36: Manual Paid, Auto Udhar, Credit Method, 50+ features,
+// Enter Nav, Shortcuts, Purchase Grid Fix, Smart Search, Barcode,
+// IMEI, Rack, Line+Bill Discount, Tax, Split Payments, Held Sales.
 // =====================================================
 import { supabase } from './config.js';
 
@@ -77,7 +77,7 @@ let ALL_PRODUCTS = [];
 let ALL_RACKS = [];
 
 // =====================================================
-// SHOP SETTINGS (Tax + defaults added for POS)
+// SHOP SETTINGS
 // =====================================================
 let SHOP = {
   name: 'BM MOBILE ZONE', address: 'Chohan Mobile Market, Zafarwal',
@@ -104,7 +104,7 @@ async function loadShopSettings() {
 }
 
 // =====================================================
-// PRINT FUNCTIONS (Thermal & A4) — tax lines added
+// PRINT FUNCTIONS (Thermal & A4) — unchanged from v35
 // =====================================================
 function urduTermsBlock(type = 'sale') {
   const common = `<div>• براہِ کرم مال کاؤنٹر پر چیک کریں۔</div><div>• پھولی ہوئی بیٹری کی کوئی وارنٹی نہیں ہے۔</div><div>• بیٹری کی وارنٹی صرف 2 دن ہوگی۔</div><div>• استعمال شدہ Accessories واپس یا تبدیل نہیں ہوں گی۔</div>`;
@@ -124,14 +124,14 @@ function printThermal80mm(data, type = 'sale') {
     <tr>
       <td style="text-align:left;font-size:11px">
         ${esc(it.product_name || it.name || it.description)}
-        ${it.rack ? `<br><span style="font-size:9px;color:#666">📦 ${esc(it.rack)}</span>` : ''}
+        ${it.rack_name ? `<br><span style="font-size:9px;color:#666">📦 ${esc(it.rack_name)}</span>` : ''}
         <br><span style="font-size:9px;color:#444">${esc(it.category || '')} ${it.imei ? 'IMEI: ' + esc(it.imei) : ''}</span>
       </td>
       <td style="text-align:center;font-size:11px">${it.quantity || it.qty || 1}</td>
       <td style="text-align:right;font-size:11px">${Number(it.line_total || it.total || it.amount || 0).toLocaleString()}</td>
     </tr>`).join('');
   const taxRow = Number(data.tax || 0) > 0 ? `<div class="row"><span>Tax ${data.tax_rate || 0}%</span><span>PKR ${Number(data.tax).toLocaleString()}</span></div>` : '';
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title><style>@page{size:80mm auto;margin:4mm} body{font-family:'Courier New',monospace;width:74mm;margin:0 auto;color:#000;font-weight:bold} h2{text-align:center;margin:0 0 2px 0;font-size:18px;font-weight:900;letter-spacing:1px} .sub{text-align:center;font-size:11px;margin:1px 0} hr{border:none;border-top:2px dashed #000;margin:5px 0} table{width:100%;border-collapse:collapse;font-size:11px} th{border-bottom:2px dashed #000;padding:4px 0;font-size:11px;text-align:left} .row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0} .bold{font-weight:900;font-size:13px} .center{text-align:center;margin-top:6px;font-size:11px} .footer{text-align:center;margin-top:10px;font-size:10px;font-weight:normal;line-height:1.4}</style></head><body><h2>${esc(SHOP.name)}</h2><div class="sub">${esc(SHOP.address)}</div><div class="sub">Tel: ${esc(SHOP.phone1)} / ${esc(SHOP.phone2)}</div><hr><div class="row"><span>Invoice: <b>${esc(data.invoice)}</b></span></div><div class="row"><span>Date: ${new Date(data.date).toLocaleString('en-PK')}</span></div><div class="row"><span>Customer: ${esc(data.customer || 'Walk-in')}</span></div>${data.phone ? `<div class="row"><span>Phone: ${esc(data.phone)}</span></div>` : ''}${data.cashier ? `<div class="row"><span>Cashier: ${esc(data.cashier)}</span></div>` : ''}<hr><table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemRows}</tbody></table><hr><div class="row"><span>Subtotal</span><span>PKR ${sub.toLocaleString()}</span></div><div class="row"><span>Discount</span><span>-PKR ${Number(data.discount || 0).toLocaleString()}</span></div>${taxRow}<div class="row bold"><span>Total</span><span>PKR ${tot.toLocaleString()}</span></div><div class="row"><span>Paid</span><span>PKR ${Number(data.paid || 0).toLocaleString()}</span></div><div class="row"><span>Method</span><span>${esc(data.payment_method || 'Cash')}</span></div>${data.balance > 0 ? `<div class="row bold"><span>Due</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}${urduTermsBlock(type)}<hr><div class="center">Thank you for shopping!</div><div class="center">Visit Again</div><div class="footer"><div style="font-weight:bold">Powered by MS.TECH</div><div>03099100546</div></div><script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script></body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Receipt</title><style>@page{size:80mm auto;margin:4mm} body{font-family:'Courier New',monospace;width:74mm;margin:0 auto;color:#000;font-weight:bold} h2{text-align:center;margin:0 0 2px 0;font-size:18px;font-weight:900;letter-spacing:1px} .sub{text-align:center;font-size:11px;margin:1px 0} hr{border:none;border-top:2px dashed #000;margin:5px 0} table{width:100%;border-collapse:collapse;font-size:11px} th{border-bottom:2px dashed #000;padding:4px 0;font-size:11px;text-align:left} .row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0} .bold{font-weight:900;font-size:13px} .center{text-align:center;margin-top:6px;font-size:11px} .footer{text-align:center;margin-top:10px;font-size:10px;font-weight:normal;line-height:1.4}</style></head><body><h2>${esc(SHOP.name)}</h2><div class="sub">${esc(SHOP.address)}</div><div class="sub">Tel: ${esc(SHOP.phone1)} / ${esc(SHOP.phone2)}</div><hr><div class="row"><span>Invoice: <b>${esc(data.invoice)}</b></span></div><div class="row"><span>Date: ${new Date(data.date).toLocaleString('en-PK')}</span></div><div class="row"><span>Customer: ${esc(data.customer || 'Walk-in')}</span></div>${data.phone ? `<div class="row"><span>Phone: ${esc(data.phone)}</span></div>` : ''}${data.cashier ? `<div class="row"><span>Cashier: ${esc(data.cashier)}</span></div>` : ''}<hr><table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Total</th></tr></thead><tbody>${itemRows}</tbody></table><hr><div class="row"><span>Subtotal</span><span>PKR ${sub.toLocaleString()}</span></div><div class="row"><span>Discount</span><span>-PKR ${Number(data.discount || 0).toLocaleString()}</span></div>${taxRow}<div class="row bold"><span>Total</span><span>PKR ${tot.toLocaleString()}</span></div><div class="row"><span>Paid</span><span>PKR ${Number(data.paid || 0).toLocaleString()}</span></div><div class="row"><span>Method</span><span>${esc(data.payment_method || 'Cash')}</span></div>${data.balance > 0 ? `<div class="row bold"><span>Due (Udhar)</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}${urduTermsBlock(type)}<hr><div class="center">Thank you for shopping!</div><div class="center">Visit Again</div><div class="footer"><div style="font-weight:bold">Powered by MS.TECH</div><div>03099100546</div></div><script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script></body></html>`;
   w.document.write(html); w.document.close();
 }
 window.printThermal80mm = printThermal80mm;
@@ -143,11 +143,11 @@ function printA4Premium(data, type = 'sale') {
   const itemsSum = (data.items || []).reduce((s, it) => s + Number(it.total || it.line_total || it.amount || 0), 0);
   if (!sub || isNaN(sub)) sub = itemsSum;
   if (!tot || isNaN(tot)) tot = sub - Number(data.discount || 0) + Number(data.tax || 0);
-  const rows = (data.items || []).map((it, i) => `<tr><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;color:#333;font-size:14px">${i + 1}. ${esc(it.description || it.product_name || it.name)}${it.rack ? `<br><small style="color:#888">📦 ${esc(it.rack)}</small>` : ''}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:right;color:#333;font-size:14px">PKR ${Number(it.price || it.unit_price || it.total || 0).toLocaleString()}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:center;color:#333;font-size:14px">${it.qty || it.quantity || 1}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:right;color:#333;font-size:14px">PKR ${Number(it.total || it.line_total || it.amount || 0).toLocaleString()}</td></tr>`).join('');
+  const rows = (data.items || []).map((it, i) => `<tr><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;color:#333;font-size:14px">${i + 1}. ${esc(it.description || it.product_name || it.name)}${it.rack_name ? `<br><small style="color:#888">📦 ${esc(it.rack_name)}</small>` : ''}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:right;color:#333;font-size:14px">PKR ${Number(it.price || it.unit_price || it.total || 0).toLocaleString()}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:center;color:#333;font-size:14px">${it.qty || it.quantity || 1}</td><td style="padding:14px 10px;border-bottom:1.5px solid #5b8def;text-align:right;color:#333;font-size:14px">PKR ${Number(it.total || it.line_total || it.amount || 0).toLocaleString()}</td></tr>`).join('');
   const isReport = type === 'report'; const title = isReport ? 'REPORT' : 'INVOICE';
   const urduA4 = type === 'repair' ? `<div style="margin-top:20px;padding:15px;background:#fafbfd;border-radius:8px;direction:rtl;font-family:'Jameel Noori Nastaleeq','Noto Nastaliq Urdu',Arial,sans-serif;font-size:13px;line-height:1.9;color:#333;border:1px solid #e6e9f2"><div style="text-align:center;font-weight:bold;margin-bottom:8px">مرمت کی شرائط</div><div>• براہِ کرم مال کاؤنٹر پر چیک کریں۔</div><div>• پھولی ہوئی بیٹری کی کوئی وارنٹی نہیں ہے۔</div><div>• بیٹری کی وارنٹی صرف 2 دن ہوگی۔</div><div>• استعمال شدہ Accessories واپس یا تبدیل نہیں ہوں گی۔</div><div>• موبائل مرمت کے بعد وصول کرنے کے لیے یہ رسید لازمی ساتھ لائیں۔</div></div>` : '';
   const taxRow = Number(data.tax || 0) > 0 ? `<div class="totals-row"><span>TAX ${data.tax_rate || 0}%</span><span>PKR ${Number(data.tax).toLocaleString()}</span></div>` : '';
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'); *{margin:0;padding:0;box-sizing:border-box} body{font-family:'Inter',sans-serif;background:#fff;color:#333;-webkit-print-color-adjust:exact;print-color-adjust:exact;position:relative;min-height:100vh;padding-bottom:150px} .top-curve{position:absolute;top:0;left:0;width:100%;height:160px;background:linear-gradient(135deg,#0f172a 0%,#5b8def 50%,#7c5cff 100%);clip-path:ellipse(150% 100% at 50% 0%);z-index:1} .content{position:relative;z-index:2;padding:40px 60px} .header{display:flex;justify-content:space-between;align-items:flex-start;margin-top:60px;margin-bottom:50px} .title{font-size:48px;font-weight:800;color:#111;margin:0;line-height:1;letter-spacing:-1px} .title span{color:#5b8def;font-size:60px;line-height:0;vertical-align:bottom;margin-right:5px} .company{text-align:right;color:#fff;margin-top:-30px} .company h2{margin:0;font-size:22px;font-weight:800;letter-spacing:1px;color:#111} .company p{margin:3px 0 0;font-size:12px;color:#5b8def;font-weight:600;letter-spacing:.5px} .info{display:flex;justify-content:space-between;margin-bottom:40px;font-size:13px;color:#555} .info-col p{margin:6px 0} .info-col b{color:#333;font-weight:700} table{width:100%;border-collapse:collapse;margin-bottom:40px} th{text-align:left;color:#5b8def;font-size:16px;font-weight:700;padding:10px;text-transform:uppercase;border-bottom:2px solid #5b8def;letter-spacing:.5px} .bottom-section{display:flex;justify-content:space-between;align-items:flex-start;margin-top:40px;page-break-inside:avoid} .terms{width:45%} .terms h4{color:#5b8def;font-size:15px;font-weight:700;margin-bottom:8px} .terms p{font-size:12px;color:#666;line-height:1.6} .totals{width:40%} .totals-row{display:flex;justify-content:space-between;padding:12px 0;font-size:15px;color:#333;font-weight:600;border-bottom:1px solid #eee} .totals-row.grand{font-size:20px;color:#5b8def;font-weight:800;border-bottom:none;margin-top:5px;padding-top:15px;border-top:2px solid #5b8def} .bottom-curve{position:fixed;bottom:0;left:0;width:100%;height:100px;background:linear-gradient(135deg,#0f172a 0%,#5b8def 50%,#7c5cff 100%);clip-path:ellipse(150% 100% at 50% 100%);z-index:1} .footer{position:fixed;bottom:15px;left:0;width:100%;text-align:center;z-index:2;color:#fff;font-size:11px;line-height:1.4} @media print{body{padding-bottom:120px}.top-curve,.bottom-curve{display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div class="top-curve"></div><div class="content"><div class="header"><h1 class="title"><span>|</span>${title}</h1><div class="company"><h2>${esc(SHOP.name)}</h2><p>${esc(SHOP.tagline)}</p></div></div><div class="info"><div class="info-col"><p><b>${title} NO:</b> ${esc(data.invoice)}</p><p><b>DATE:</b> ${new Date(data.date).toLocaleDateString('en-GB')}</p>${data.cashier ? `<p><b>CASHIER:</b> ${esc(data.cashier)}</p>` : ''}</div><div class="info-col" style="text-align:right"><p><b>${isReport ? 'REPORT TYPE:' : 'INVOICE TO:'}</b> ${esc(data.customer || 'All Customers')}</p><p>${data.phone ? '<b>PHONE:</b> ' + esc(data.phone) : esc(SHOP.address)}</p></div></div><table><thead><tr><th>DESCRIPTION</th><th style="text-align:right">PRICE</th><th style="text-align:center">QTY.</th><th style="text-align:right">TOTAL</th></tr></thead><tbody>${rows}</tbody></table>${urduA4}<div class="bottom-section"><div class="terms"><h4>Terms and conditions</h4><p>${isReport ? 'This is a system generated report.' : 'Goods once sold will not be taken back or exchanged. Warranty claims are subject to manufacturer terms.'}</p></div><div class="totals"><div class="totals-row"><span>SUBTOTAL</span><span>PKR ${sub.toLocaleString()}</span></div><div class="totals-row"><span>DISCOUNT</span><span>PKR ${Number(data.discount || 0).toLocaleString()}</span></div>${taxRow}<div class="totals-row grand"><span>GRAND TOTAL</span><span>PKR ${tot.toLocaleString()}</span></div><div class="totals-row" style="border:none;padding-top:5px"><span>PAID</span><span>PKR ${Number(data.paid || 0).toLocaleString()}</span></div>${data.balance > 0 ? `<div class="totals-row" style="color:#dc2626;border:none;padding-top:5px"><span>BALANCE</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}</div></div></div><div class="bottom-curve"></div><div class="footer"><div style="font-weight:bold;font-size:12px">Powered by MS.TECH</div><div>03099100546</div></div><script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script></body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'); *{margin:0;padding:0;box-sizing:border-box} body{font-family:'Inter',sans-serif;background:#fff;color:#333;-webkit-print-color-adjust:exact;print-color-adjust:exact;position:relative;min-height:100vh;padding-bottom:150px} .top-curve{position:absolute;top:0;left:0;width:100%;height:160px;background:linear-gradient(135deg,#0f172a 0%,#5b8def 50%,#7c5cff 100%);clip-path:ellipse(150% 100% at 50% 0%);z-index:1} .content{position:relative;z-index:2;padding:40px 60px} .header{display:flex;justify-content:space-between;align-items:flex-start;margin-top:60px;margin-bottom:50px} .title{font-size:48px;font-weight:800;color:#111;margin:0;line-height:1;letter-spacing:-1px} .title span{color:#5b8def;font-size:60px;line-height:0;vertical-align:bottom;margin-right:5px} .company{text-align:right;color:#fff;margin-top:-30px} .company h2{margin:0;font-size:22px;font-weight:800;letter-spacing:1px;color:#111} .company p{margin:3px 0 0;font-size:12px;color:#5b8def;font-weight:600;letter-spacing:.5px} .info{display:flex;justify-content:space-between;margin-bottom:40px;font-size:13px;color:#555} .info-col p{margin:6px 0} .info-col b{color:#333;font-weight:700} table{width:100%;border-collapse:collapse;margin-bottom:40px} th{text-align:left;color:#5b8def;font-size:16px;font-weight:700;padding:10px;text-transform:uppercase;border-bottom:2px solid #5b8def;letter-spacing:.5px} .bottom-section{display:flex;justify-content:space-between;align-items:flex-start;margin-top:40px;page-break-inside:avoid} .terms{width:45%} .terms h4{color:#5b8def;font-size:15px;font-weight:700;margin-bottom:8px} .terms p{font-size:12px;color:#666;line-height:1.6} .totals{width:40%} .totals-row{display:flex;justify-content:space-between;padding:12px 0;font-size:15px;color:#333;font-weight:600;border-bottom:1px solid #eee} .totals-row.grand{font-size:20px;color:#5b8def;font-weight:800;border-bottom:none;margin-top:5px;padding-top:15px;border-top:2px solid #5b8def} .bottom-curve{position:fixed;bottom:0;left:0;width:100%;height:100px;background:linear-gradient(135deg,#0f172a 0%,#5b8def 50%,#7c5cff 100%);clip-path:ellipse(150% 100% at 50% 100%);z-index:1} .footer{position:fixed;bottom:15px;left:0;width:100%;text-align:center;z-index:2;color:#fff;font-size:11px;line-height:1.4} @media print{body{padding-bottom:120px}.top-curve,.bottom-curve{display:block;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div class="top-curve"></div><div class="content"><div class="header"><h1 class="title"><span>|</span>${title}</h1><div class="company"><h2>${esc(SHOP.name)}</h2><p>${esc(SHOP.tagline)}</p></div></div><div class="info"><div class="info-col"><p><b>${title} NO:</b> ${esc(data.invoice)}</p><p><b>DATE:</b> ${new Date(data.date).toLocaleDateString('en-GB')}</p>${data.cashier ? `<p><b>CASHIER:</b> ${esc(data.cashier)}</p>` : ''}</div><div class="info-col" style="text-align:right"><p><b>${isReport ? 'REPORT TYPE:' : 'INVOICE TO:'}</b> ${esc(data.customer || 'All Customers')}</p><p>${data.phone ? '<b>PHONE:</b> ' + esc(data.phone) : esc(SHOP.address)}</p></div></div><table><thead><tr><th>DESCRIPTION</th><th style="text-align:right">PRICE</th><th style="text-align:center">QTY.</th><th style="text-align:right">TOTAL</th></tr></thead><tbody>${rows}</tbody></table>${urduA4}<div class="bottom-section"><div class="terms"><h4>Terms and conditions</h4><p>${isReport ? 'This is a system generated report.' : 'Goods once sold will not be taken back or exchanged. Warranty claims are subject to manufacturer terms.'}</p></div><div class="totals"><div class="totals-row"><span>SUBTOTAL</span><span>PKR ${sub.toLocaleString()}</span></div><div class="totals-row"><span>DISCOUNT</span><span>PKR ${Number(data.discount || 0).toLocaleString()}</span></div>${taxRow}<div class="totals-row grand"><span>GRAND TOTAL</span><span>PKR ${tot.toLocaleString()}</span></div><div class="totals-row" style="border:none;padding-top:5px"><span>PAID</span><span>PKR ${Number(data.paid || 0).toLocaleString()}</span></div>${data.balance > 0 ? `<div class="totals-row" style="color:#dc2626;border:none;padding-top:5px"><span>BALANCE (UDHAR)</span><span>PKR ${Number(data.balance).toLocaleString()}</span></div>` : ''}</div></div></div><div class="bottom-curve"></div><div class="footer"><div style="font-weight:bold;font-size:12px">Powered by MS.TECH</div><div>03099100546</div></div><script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script></body></html>`;
   w.document.write(html); w.document.close();
 }
 window.printA4Premium = printA4Premium;
@@ -228,7 +228,7 @@ async function loadModule(mod) {
 }
 
 // =====================================================
-// GLOBAL KEYBOARD SHORTCUTS
+// GLOBAL KEYBOARD SHORTCUTS (v36 — extended)
 // =====================================================
 document.addEventListener('keydown', e => {
   const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName);
@@ -240,8 +240,11 @@ document.addEventListener('keydown', e => {
   if (!typing) {
     if (e.key === 'F1') { e.preventDefault(); showShortcutHelp(); }
     if (e.key === 'F2') { e.preventDefault(); $('btnAddToCart')?.click(); }
+    if (e.key === 'F3') { e.preventDefault(); $('posProductSearch')?.focus(); }
     if (e.key === 'F4') { e.preventDefault(); $('btnSaveSale')?.click(); }
     if (e.key === 'F5') { e.preventDefault(); const active = document.querySelector('.module.active')?.id.replace('module-', ''); if (active) navTo(active); toast('Refreshed', 'info'); }
+    if (e.key === 'F6') { e.preventDefault(); $('btnHoldSale')?.click(); }
+    if (e.key === 'F7') { e.preventDefault(); $('btnResumeSale')?.click(); }
     if (e.key === 'F8') { e.preventDefault(); $('btnNewPurchase')?.click(); }
     if (e.key === 'F9') { e.preventDefault(); $('btnAddExpense')?.click(); }
     if (e.key === 'F10') { e.preventDefault(); $('btnAddRepair')?.click(); }
@@ -267,7 +270,10 @@ function showShortcutHelp() {
     <div><h4 style="margin:0 0 8px">POS Actions</h4>
     <div style="line-height:1.9">
       <div><span class="kbd">F2</span> Add to Cart</div>
+      <div><span class="kbd">F3</span> Focus Product Search</div>
       <div><span class="kbd">F4</span> Save Sale</div>
+      <div><span class="kbd">F6</span> Hold Sale</div>
+      <div><span class="kbd">F7</span> Resume Sale</div>
       <div><span class="kbd">Enter</span> Next field</div>
       <div><span class="kbd">Ctrl+Enter</span> Save Form</div>
       <div><span class="kbd">Esc</span> Close Modal</div>
@@ -502,7 +508,7 @@ async function loadInventory() {
 $('inventoryRackFilter')?.addEventListener('change', loadInventory);
 
 // =====================================================
-// RACKS (from v34 — unchanged)
+// RACKS
 // =====================================================
 let RACK_SEARCH = '';
 async function loadRacks() {
@@ -638,7 +644,7 @@ window.filterAssignList = () => {
 };
 
 // =====================================================
-// PURCHASES (unchanged from v34)
+// PURCHASES — v36 with new product-item-row grid
 // =====================================================
 async function loadPurchasesModule() {
   await loadProducts();
@@ -666,7 +672,7 @@ async function openPurchaseModal(p = null) {
       <div class="field full"><label>Notes</label><input id="puNotes" value="${esc(p?.notes || '')}"></div>
     </div>
     <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div><h4 style="margin:0;font-size:15px">Products / Items</h4><p style="margin:2px 0 0;font-size:11px;color:var(--muted)">Type name to auto-fill. <b>Alt+A</b> add row, <b>Ctrl+Enter</b> save.</p></div>
         <div style="display:flex;gap:8px">
           <button type="button" class="btn btn-ghost btn-sm" onclick="addCustomCategory()">+ Category</button>
@@ -674,7 +680,18 @@ async function openPurchaseModal(p = null) {
           <button type="button" class="btn btn-primary btn-sm" onclick="addPurchaseItemRow()">+ Add Item</button>
         </div>
       </div>
-      <div class="purchase-item-row row-header"><div>Product Name (Search)</div><div>Category</div><div>Brand</div><div>Qty</div><div>Buy Price</div><div>Sale Price</div><div>IMEI 1</div><div>IMEI 2</div><div>Rack</div><div></div></div>
+      <div class="items-header-labels">
+        <span>Product Name</span>
+        <span>Category</span>
+        <span>Brand</span>
+        <span>Qty</span>
+        <span>Buy Price</span>
+        <span>Sale Price</span>
+        <span>IMEI 1</span>
+        <span>IMEI 2</span>
+        <span>Rack</span>
+        <span></span>
+      </div>
       <div id="purchaseItemsHost" style="max-height: calc(100vh - 400px);overflow-y:auto;padding-right:4px"></div>
     </div>
     <datalist id="prodMasterList">${prodOptions}</datalist>
@@ -694,7 +711,7 @@ async function openPurchaseModal(p = null) {
       if (error) throw new Error(error.message);
       purchaseId = created.id;
     }
-    const itemRows = document.querySelectorAll('#purchaseItemsHost .purchase-item-row');
+    const itemRows = document.querySelectorAll('#purchaseItemsHost .product-item-row');
     let itemsProcessed = 0;
     for (const row of itemRows) {
       const name = row.querySelector('.pi-name').value.trim(); if (!name) continue;
@@ -746,10 +763,11 @@ window.addCustomBrand = () => {
     toast('Brand added: ' + newBrand, 'success');
   }
 };
+
 window.addPurchaseItemRow = (existingData = null) => {
   const host = $('purchaseItemsHost'); if (!host) return;
   const div = document.createElement('div');
-  div.className = 'purchase-item-row';
+  div.className = 'product-item-row';
   const nameVal = existingData ? esc(existingData.product_name) : '';
   const catVal = existingData ? existingData.category : '';
   const brandVal = existingData ? esc(existingData.brand || '') : '';
@@ -759,16 +777,16 @@ window.addPurchaseItemRow = (existingData = null) => {
   const imei1Val = existingData ? esc(existingData.imei_1 || '') : '';
   const imei2Val = existingData ? esc(existingData.imei_2 || '') : '';
   div.innerHTML = `
-    <input class="pi-name" list="prodMasterList" placeholder="Search Product..." value="${nameVal}" oninput="handleProductAutoFill(this)">
+    <input type="text" class="pi-name" placeholder="Search Product..." list="prodMasterList" value="${nameVal}" oninput="handleProductAutoFill(this)">
     <select class="pi-category">${CATEGORIES.map(c => `<option ${catVal === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
-    <input class="pi-brand" placeholder="Brand" list="brandList" value="${brandVal}">
-    <input class="pi-qty" type="number" value="${qtyVal}" min="1" placeholder="Qty" oninput="updatePurchaseTotal()">
-    <input class="pi-pprice" type="number" value="${ppriceVal}" placeholder="Buy" oninput="updatePurchaseTotal()">
-    <input class="pi-sprice" type="number" value="${spriceVal}" placeholder="Sale">
-    <input class="pi-imei1" placeholder="IMEI 1" value="${imei1Val}">
-    <input class="pi-imei2" placeholder="IMEI 2" value="${imei2Val}">
+    <input type="text" class="pi-brand" placeholder="Brand" list="brandList" value="${brandVal}">
+    <input type="number" class="pi-qty" value="${qtyVal}" min="1" placeholder="1" oninput="updatePurchaseTotal()">
+    <input type="number" class="pi-pprice" value="${ppriceVal}" placeholder="0" oninput="updatePurchaseTotal()">
+    <input type="number" class="pi-sprice" value="${spriceVal}" placeholder="0">
+    <input type="text" class="pi-imei1" placeholder="IMEI 1" value="${imei1Val}">
+    <input type="text" class="pi-imei2" placeholder="IMEI 2" value="${imei2Val}">
     <select class="pi-rack"><option value="">— Rack —</option>${(($('rackMasterList')?.innerHTML || '').match(/value="([^"]+)">([^<]+)/g) || []).map(m => { const parts = m.match(/value="([^"]+)">([^<]+)/); return `<option value="${parts[1]}" ${existingData?.rack_id === parts[1] ? 'selected' : ''}>${parts[2]}</option>`; }).join('')}</select>
-    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentNode.remove(); updatePurchaseTotal();">×</button>
+    <button type="button" class="item-del-btn" onclick="this.parentElement.remove(); updatePurchaseTotal();">×</button>
   `;
   host.appendChild(div);
 };
@@ -791,7 +809,7 @@ window.handleProductAutoFill = (input) => {
 };
 window.updatePurchaseTotal = () => {
   let total = 0;
-  document.querySelectorAll('#purchaseItemsHost .purchase-item-row').forEach(row => {
+  document.querySelectorAll('#purchaseItemsHost .product-item-row').forEach(row => {
     const qty = Number(row.querySelector('.pi-qty').value) || 0;
     const pprice = Number(row.querySelector('.pi-pprice').value) || 0;
     total += qty * pprice;
@@ -800,7 +818,7 @@ window.updatePurchaseTotal = () => {
 };
 
 // =====================================================
-// SALES / POS — v35 FULL UPGRADE
+// SALES / POS — v36 (manual paid, auto udhar, credit method)
 // =====================================================
 let CART = [];
 let POS_CUSTOMERS = [];
@@ -829,12 +847,10 @@ async function updatePosCustomerDue() {
 $('saleCustName')?.addEventListener('change', updatePosCustomerDue);
 $('saleCustPhone')?.addEventListener('change', updatePosCustomerDue);
 
-// ✅ Load POS
 async function loadSaleProducts() {
   await loadPosCustomers();
   const { data } = await supabase.from('products').select('*,racks!fk_products_racks(name)').gt('quantity', 0).order('name');
   POS_ALL_PRODS = data || [];
-  // Category filter
   const cats = [...new Set(POS_ALL_PRODS.map(p => p.category).filter(Boolean))];
   if ($('saleCategoryFilter')) $('saleCategoryFilter').innerHTML = '<option value="">— All Categories —</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
   filterPosProducts();
@@ -842,7 +858,6 @@ async function loadSaleProducts() {
   loadPosTaxUI();
 }
 
-// ✅ Smart Product Search (Name, SKU, IMEI, Model, Barcode)
 window.filterPosProducts = () => {
   const cat = $('saleCategoryFilter')?.value || '';
   const q = ($('posProductSearch')?.value || '').toLowerCase().trim();
@@ -869,7 +884,6 @@ window.filterPosProducts = () => {
 $('saleCategoryFilter')?.addEventListener('change', filterPosProducts);
 $('posProductSearch')?.addEventListener('input', filterPosProducts);
 
-// ✅ Barcode Scanner — scan karte hi product add
 $('posBarcodeInput')?.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     const code = e.target.value.trim();
@@ -890,7 +904,6 @@ $('posBarcodeInput')?.addEventListener('keydown', e => {
   }
 });
 
-// ✅ Add to Cart
 function addProductToCart(productId) {
   const p = POS_ALL_PRODS.find(x => x.id === productId);
   if (!p) return toast('Product not found', 'error');
@@ -913,7 +926,6 @@ $('btnAddToCart').onclick = () => {
   addProductToCart(sel.value);
 };
 
-// ✅ Cart render with product-wise discount, rack, IMEI
 function renderCart() {
   const host = $('cartItems');
   if (!host) return;
@@ -944,21 +956,25 @@ function recalcPosTotals() {
     sub += base;
     lineDisc += d;
   });
-  // Bill-wise discount
   let billDisc = Number($('saleDiscount')?.value) || 0;
   if ($('saleDiscountType')?.value === 'pct') billDisc = ((sub - lineDisc) * billDisc) / 100;
   const afterDisc = Math.max(0, sub - lineDisc - billDisc);
-  // Tax
   const taxAmt = POS_TAX_ENABLED ? (afterDisc * POS_TAX_RATE) / 100 : 0;
-  const finalTotal = afterDisc + taxAmt + POS_PREVIOUS_DUE;
+  const finalTotal = afterDisc + taxAmt;
 
   if ($('cartSubtotal')) $('cartSubtotal').textContent = fmt(sub);
   if ($('cartLineDisc')) $('cartLineDisc').textContent = fmt(lineDisc);
   if ($('cartBillDisc')) $('cartBillDisc').textContent = fmt(billDisc);
   if ($('cartTax')) { $('cartTax').textContent = fmt(taxAmt); $('cartTaxRow') && ($('cartTaxRow').style.display = POS_TAX_ENABLED ? 'flex' : 'none'); }
   if ($('cartTotal')) $('cartTotal').textContent = fmt(finalTotal);
-  if ($('salePaid')) $('salePaid').value = finalTotal;
-  if ($('udharWarning')) $('udharWarning').style.display = (finalTotal - (Number($('salePaid')?.value) || 0) > 0) ? 'block' : 'none';
+  // Paid is manual — DO NOT auto-fill. But if empty, show placeholder hint
+  if ($('salePaid') && !$('salePaid').dataset.touched) {
+    // leave as is
+  }
+  const paid = Number($('salePaid')?.value) || 0;
+  const udhar = Math.max(0, finalTotal - paid);
+  if ($('udharWarning')) $('udharWarning').style.display = udhar > 0 ? 'block' : 'none';
+  if ($('udharWarning')) $('udharWarning').textContent = `⚠️ Udhar (Balance): ${fmt(udhar)} — Credit section mein auto add hoga`;
 }
 
 function loadPosTaxUI() {
@@ -975,11 +991,22 @@ window.updateCartDiscount = (i, val) => { const c = CART[i]; c.discount = Number
 
 $('saleDiscount')?.addEventListener('input', recalcPosTotals);
 $('saleDiscountType')?.addEventListener('change', recalcPosTotals);
-$('salePaid')?.addEventListener('input', recalcPosTotals);
+$('salePaid')?.addEventListener('input', e => {
+  e.target.dataset.touched = '1';
+  recalcPosTotals();
+});
 $('posTaxRate')?.addEventListener('input', e => { POS_TAX_RATE = Number(e.target.value) || 0; recalcPosTotals(); });
 $('posTaxEnabled')?.addEventListener('change', e => { POS_TAX_ENABLED = e.target.checked; recalcPosTotals(); });
 
-// ✅ Multiple payments split
+// ✅ Manual paid quick buttons
+window.setPaidFull = () => {
+  const total = Number(($('cartTotal')?.textContent || '0').replace(/[^0-9]/g, '')) || 0;
+  if ($('salePaid')) { $('salePaid').value = total; $('salePaid').dataset.touched = '1'; recalcPosTotals(); }
+};
+window.setPaidZero = () => {
+  if ($('salePaid')) { $('salePaid').value = 0; $('salePaid').dataset.touched = '1'; recalcPosTotals(); }
+};
+
 function openPaymentSplitModal() {
   const total = Number(($('cartTotal')?.textContent || '0').replace(/[^0-9]/g, '')) || 0;
   const body = `<div style="display:grid;gap:10px">
@@ -996,7 +1023,7 @@ function openPaymentSplitModal() {
     document.querySelectorAll('[data-pay]').forEach(inp => {
       const m = inp.dataset.pay; POS_PAYMENTS[m] = Number(inp.value) || 0; sum += POS_PAYMENTS[m];
     });
-    if ($('salePaid')) $('salePaid').value = sum;
+    if ($('salePaid')) { $('salePaid').value = sum; $('salePaid').dataset.touched = '1'; }
     closeModal(); recalcPosTotals();
   }, 'Apply');
   setTimeout(() => {
@@ -1010,7 +1037,6 @@ function openPaymentSplitModal() {
 }
 $('btnSplitPayment')?.addEventListener('click', openPaymentSplitModal);
 
-// ✅ Hold / Resume
 $('btnHoldSale')?.addEventListener('click', () => {
   if (!CART.length) return toast('Cart empty', 'error');
   const name = $('saleCustName').value.trim() || prompt('Hold name (optional):', 'Held Sale');
@@ -1031,7 +1057,7 @@ $('btnResumeSale')?.addEventListener('click', () => {
   renderCart(); toast('Sale resumed', 'success');
 });
 
-// ✅ Save Sale — includes tax, line/bill discount, rack, IMEI, cashier, payment method
+// ✅ Save Sale — v36: manual paid, auto udhar, credit method option
 $('btnSaveSale').onclick = async () => {
   if (!CART.length) return toast('Cart is empty', 'error');
   let sub = 0, lineDisc = 0;
@@ -1041,19 +1067,36 @@ $('btnSaveSale').onclick = async () => {
   const afterDisc = Math.max(0, sub - lineDisc - billDisc);
   const taxAmt = POS_TAX_ENABLED ? (afterDisc * POS_TAX_RATE) / 100 : 0;
   const totalSale = afterDisc + taxAmt;
-  const paid = Number($('salePaid').value) || 0;
+
   const custName = $('saleCustName').value.trim() || 'Walk-in Customer';
   const custPhone = $('saleCustPhone').value.trim();
-  const payMethod = $('salePaymentMethod').value || 'Cash';
-  // Choose primary method from split if any
+  let payMethod = $('salePaymentMethod').value || 'Cash';
+
+  // ✅ MANUAL PAID (editable)
+  let paid = Number($('salePaid').value) || 0;
+  // Credit / Udhar method → full amount as balance, paid = 0
+  if (payMethod === 'Udhar / Credit') {
+    paid = 0;
+  }
+  if (paid > totalSale) paid = totalSale; // cap
+  const balance = Math.max(0, totalSale - paid);
+
+  // Primary method from split if any
   let primaryMethod = payMethod;
   const splitEntries = Object.entries(POS_PAYMENTS).filter(([, v]) => Number(v) > 0);
   if (splitEntries.length > 1) primaryMethod = 'Split';
   else if (splitEntries.length === 1) primaryMethod = splitEntries[0][0];
+  if (balance > 0 && payMethod !== 'Udhar / Credit') {
+    // If some udhar remains with cash/card, mark as Udhar too? Keep primary as entered
+  }
 
   $('btnSaveSale').disabled = true; $('btnSaveSale').textContent = 'Saving...';
   try {
     let customerId = null;
+    // If balance > 0, require a customer (for credit tracking)
+    if (balance > 0 && custName === 'Walk-in Customer') {
+      throw new Error('Udhar ke liye customer name likhna zaroori hai!');
+    }
     if (custName !== 'Walk-in Customer') {
       let found = POS_CUSTOMERS.find(c => (custPhone && c.phone === custPhone) || c.name.toLowerCase() === custName.toLowerCase());
       if (!found) {
@@ -1068,7 +1111,7 @@ $('btnSaveSale').onclick = async () => {
       invoice_no: invNo, customer_id: customerId, customer_name: custName,
       customer_phone: custPhone || null, subtotal: sub, discount: lineDisc + billDisc,
       tax: taxAmt, tax_rate: POS_TAX_ENABLED ? POS_TAX_RATE : 0,
-      total: totalSale, paid, balance: totalSale - paid,
+      total: totalSale, paid, balance,
       payment_method: primaryMethod,
       payment_split: splitEntries.length > 0 ? JSON.stringify(POS_PAYMENTS) : null,
       cashier_id: CURRENT_STAFF, cashier_name: CURRENT_NAME
@@ -1091,21 +1134,25 @@ $('btnSaveSale').onclick = async () => {
       if (prod) await supabase.from('products').update({ quantity: Math.max(0, prod.quantity - item.quantity) }).eq('id', item.product_id);
     }
 
-    await logActivity('CREATE', 'sales', `Sale ${invNo} - ${fmt(totalSale)}`);
+    await logActivity('CREATE', 'sales', `Sale ${invNo} - ${fmt(totalSale)} (Paid ${fmt(paid)}, Udhar ${fmt(balance)})`);
     const printOpt = confirm('Sale saved! Print Thermal (OK) or A4 (Cancel)?');
     const payload = {
       invoice: invNo, customer: custName, phone: custPhone, cashier: CURRENT_NAME,
       subtotal: sub, discount: lineDisc + billDisc, tax: taxAmt, tax_rate: POS_TAX_ENABLED ? POS_TAX_RATE : 0,
-      total: totalSale, paid, balance: totalSale - paid, payment_method: primaryMethod,
+      total: totalSale, paid, balance, payment_method: primaryMethod,
       date: new Date(), items: [...CART]
     };
     if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'sale');
 
-    CART = []; $('saleDiscount').value = 0; $('salePaid').value = 0; $('saleCustName').value = ''; $('saleCustPhone').value = '';
+    // Reset
+    CART = []; $('saleDiscount').value = 0; $('salePaid').value = 0; $('salePaid').dataset.touched = '';
+    $('saleCustName').value = ''; $('saleCustPhone').value = '';
     POS_PAYMENTS = { Cash: 0, Card: 0, Easypaisa: 0, JazzCash: 0, Bank: 0 };
     $('previousDueBox').style.display = 'none'; POS_PREVIOUS_DUE = 0; $('saleCategoryFilter').value = '';
     if ($('posProductSearch')) $('posProductSearch').value = '';
-    renderCart(); loadSaleProducts(); loadOverview(); toast('Sale saved & POS cleared', 'success');
+    $('salePaymentMethod').value = 'Cash';
+    renderCart(); loadSaleProducts(); loadOverview();
+    toast(`Sale saved ✅ (Paid ${fmt(paid)}, Udhar ${fmt(balance)})`, 'success');
   } catch (err) { toast(err.message, 'error'); }
   finally { $('btnSaveSale').disabled = false; $('btnSaveSale').innerHTML = 'Save Sale <span class="kbd">F4</span>'; }
 };
@@ -1143,7 +1190,7 @@ window.reprintSale = async id => {
 };
 
 // =====================================================
-// REPAIRING (unchanged)
+// REPAIRING
 // =====================================================
 const COMMON_FAULTS = ['Screen Broken', 'Touch Not Working', 'Battery Drain', 'Not Charging', 'No Power', 'No Display', 'Dead', 'Water Damage', 'Camera Not Working', 'Speaker Not Working', 'Mic Not Working', 'Network Issue', 'Face ID Not Working', 'Software Update'];
 async function loadRepairs() {
@@ -1181,7 +1228,7 @@ function openRepairModal(r = null) {
 }
 
 // =====================================================
-// CUSTOMERS (unchanged)
+// CUSTOMERS
 // =====================================================
 let ALL_CUST = [];
 async function loadCustomers(filter = '') {
@@ -1211,7 +1258,7 @@ function openCustomerModal(c = null) {
 }
 
 // =====================================================
-// SUPPLIERS (unchanged)
+// SUPPLIERS
 // =====================================================
 let ALL_SUP = [];
 let SUP_FILTER = { search: '', cat: '' };
@@ -1259,7 +1306,7 @@ window.viewSupplierLedger = async (id, name) => {
 };
 
 // =====================================================
-// CREDIT / UDHAR (same function — unchanged)
+// CREDIT / UDHAR
 // =====================================================
 let CREDIT_RANGE = 'all', CREDIT_STATUS = 'all';
 $('creditDateTabs')?.querySelectorAll('button').forEach(b => b.onclick = () => { $('creditDateTabs').querySelectorAll('button').forEach(x => x.classList.remove('active')); b.classList.add('active'); CREDIT_RANGE = b.dataset.range; loadCredit(); });
@@ -1271,268 +1318,194 @@ function getDateRange(range) {
   if (range === 'month') return { from: new Date(y, m, 1).toISOString(), to: new Date(y, m, d, 23, 59, 59).toISOString() };
   return { from: null, to: null };
 }
+
 async function loadCredit() {
   const range = getDateRange(CREDIT_RANGE);
-  let q = supabase.from('sales').select('customer_id,customer_name,customer_phone,balance,total,paid,invoice_no,created_at').gt('balance', 0).order('created_at', { ascending: false });
-  if (range.from) q = q.gte('created_at', range.from); if (range.to) q = q.lte('created_at', range.to);
-  const { data: sales } = await q;
-  const { data: recov } = await supabase.from('credit_recoveries').select('*,customers(name,phone)').order('created_at', { ascending: false }).limit(100);
-  let filteredSales = sales || []; if (CREDIT_STATUS === 'received') filteredSales = [];
-  const map = {}; filteredSales.forEach(s => { const key = s.customer_id || s.customer_name || 'walkin'; if (!map[key]) map[key] = { name: s.customer_name || 'Walk-in', phone: s.customer_phone, total: 0, count: 0, id: s.customer_id }; map[key].total += Number(s.balance || 0); map[key].count++; });
-  const summary = Object.values(map).sort((a, b) => b.total - a.total);
-  $('creditSummaryTable').innerHTML = summary.length ? `<table class="data"><thead><tr><th>Customer</th><th>Phone</th><th class="num">Invoices</th><th class="num">Outstanding</th><th>Print</th></tr></thead><tbody>${summary.map(s => `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.phone || '—')}</td><td class="num">${s.count}</td><td class="num"><b>${fmt(s.total)}</b></td><td><button class="btn btn-ghost btn-sm" onclick="printCustomerUdhar('${esc(s.name)}')">Print</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding credit.</div>';
-  $('creditTable').innerHTML = filteredSales.length ? `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th><th>Recover</th></tr></thead><tbody>${filteredSales.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td><small>${new Date(s.created_at).toLocaleDateString()}</small></td><td><button class="btn btn-primary btn-sm" onclick="recoverCredit('${s.invoice_no}')">Recover</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No pending invoices in this range.</div>';
-  $('recoveriesTable').innerHTML = (recov || []).length ? `<table class="data"><thead><tr><th>Customer</th><th class="num">Amount</th><th>Method</th><th>Date</th></tr></thead><tbody>${recov.map(r => `<tr><td>${esc(r.customers?.name || '—')}</td><td class="num">${fmt(r.amount)}</td><td>${esc(r.method || 'cash')}</td><td><small>${new Date(r.created_at).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No recoveries.</div>';
-}
-window.printCustomerUdhar = async customerName => {
-  const { data: sales } = await supabase.from('sales').select('*').eq('customer_name', customerName).gt('balance', 0).order('created_at', { ascending: false });
-  if (!sales?.length) return toast('No pending for this customer', 'error');
-  const total = sales.reduce((s, x) => s + Number(x.balance || 0), 0);
-  const printOpt = confirm(`Print ${customerName}'s udhar (${fmt(total)})?\n\nOK = Thermal, Cancel = A4`);
-  const payload = { invoice: 'UDHAR-' + customerName.slice(0, 8), customer: customerName, phone: sales[0].customer_phone, subtotal: total, discount: 0, total, paid: 0, balance: total, date: new Date(), items: sales.map(s => ({ name: s.invoice_no, description: s.invoice_no, qty: 1, quantity: 1, price: s.balance, total: s.balance })) };
-  if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'report');
-};
-window.recoverCredit = async invoice => {
-  const amountStr = prompt(`Recovery for ${invoice}:`, ''); if (!amountStr) return;
-  const amount = Number(amountStr); if (!amount || amount <= 0) return toast('Invalid amount', 'error');
-  const { data: s } = await supabase.from('sales').select('*').eq('invoice_no', invoice).single(); if (!s) return;
-  const newPaid = Number(s.paid || 0) + amount; const newBal = Math.max(0, Number(s.total || 0) - newPaid);
-  await supabase.from('sales').update({ paid: newPaid, balance: newBal }).eq('id', s.id);
-  await supabase.from('credit_recoveries').insert({ customer_id: s.customer_id, sale_id: s.id, invoice_no: invoice, amount, method: 'cash' });
-  await logActivity('RECOVER', 'credit', `${invoice} - ${fmt(amount)}`);
-  toast('Recovery recorded', 'success'); loadCredit(); loadOverview();
-};
-$('btnPrintCreditAll').onclick = () => {
-  const rows = $('creditSummaryTable').querySelectorAll('tbody tr');
-  if (!rows.length) return toast('Nothing to print', 'error');
-  const printOpt = confirm('Thermal (OK) or A4 (Cancel)?');
-  let total = 0;
-  const items = Array.from(rows).map(r => {
-    const c = r.querySelectorAll('td');
-    const amt = Number(c[3].innerText.replace(/[^0-9]/g, ''));
-    total += amt;
-    return { name: c[0].innerText, description: c[0].innerText, qty: 1, quantity: 1, price: amt, total: amt };
+  let q = supabase.from('sales').select('customer_id,customer_name,customer_phone,balance,paid,total,created_at,invoice_no,id').gt('balance', 0).order('created_at', { ascending: false });
+  if (range.from) q = q.gte('created_at', range.from);
+  if (range.to) q = q.lte('created_at', range.to);
+  const { data, error } = await q;
+  if (error) { $('creditTable').innerHTML = `<div class="empty">Error: ${esc(error.message)}</div>`; return; }
+  const sales = data || [];
+
+  // Summary by customer
+  const byCust = {};
+  sales.forEach(s => {
+    const key = s.customer_name || 'Walk-in';
+    if (!byCust[key]) byCust[key] = { name: key, phone: s.customer_phone || '', total: 0, count: 0 };
+    byCust[key].total += Number(s.balance || 0);
+    byCust[key].count++;
   });
-  const payload = { invoice: 'UDHAR-ALL', customer: 'All', subtotal: total, discount: 0, total, paid: 0, balance: 0, date: new Date(), items };
-  if (printOpt) printThermal80mm(payload, 'sale'); else printA4Premium(payload, 'report');
+  const summary = Object.values(byCust).sort((a, b) => b.total - a.total);
+  $('creditSummaryTable').innerHTML = summary.length ? `<table class="data"><thead><tr><th>Customer</th><th>Phone</th><th class="num">Invoices</th><th class="num">Outstanding</th></tr></thead><tbody>${summary.map(c => `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone || '—')}</td><td class="num">${c.count}</td><td class="num"><b style="color:#dc2626">${fmt(c.total)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding credit.</div>';
+
+  // Pending invoices
+  $('creditTable').innerHTML = sales.length ? `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th><th>Action</th></tr></thead><tbody>${sales.map(s => `<tr><td><b>${esc(s.invoice_no)}</b></td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num"><b style="color:#dc2626">${fmt(s.balance)}</b></td><td><small>${new Date(s.created_at).toLocaleDateString()}</small></td><td><button class="btn btn-ghost btn-sm" onclick="recoverCredit('${s.id}','${esc(s.customer_name || '')}',${s.balance})">Receive</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No pending invoices.</div>';
+
+  // Recent recoveries
+  const { data: recovs } = await supabase.from('sales').select('*').gt('paid', 0).order('created_at', { ascending: false }).limit(20);
+  $('recoveriesTable').innerHTML = (recovs || []).length ? `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${recovs.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.paid)}</td><td><small>${new Date(s.created_at).toLocaleDateString()}</small></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No recoveries yet.</div>';
+}
+
+window.recoverCredit = async (saleId, custName, balance) => {
+  const body = `<div style="padding:12px;background:#fafbfd;border-radius:8px;margin-bottom:12px"><b>${esc(custName)}</b><br>Outstanding: <b style="color:#dc2626">${fmt(balance)}</b></div>
+    <div class="field"><label>Amount Received</label><input id="rcvAmt" type="number" value="${balance}" max="${balance}"></div>
+    <div class="field"><label>Payment Method</label><select id="rcvMethod"><option>Cash</option><option>Card</option><option>Easypaisa</option><option>JazzCash</option><option>Bank</option></select></div>`;
+  openModal('Receive Payment', body, async () => {
+    const amt = Number($('rcvAmt').value) || 0;
+    if (amt <= 0) throw new Error('Enter amount');
+    if (amt > balance) throw new Error('Amount exceeds balance');
+    const { data: sale } = await supabase.from('sales').select('paid').eq('id', saleId).single();
+    const newPaid = Number(sale?.paid || 0) + amt;
+    const { error } = await supabase.from('sales').update({ paid: newPaid, balance: balance - amt, payment_method: $('rcvMethod').value }).eq('id', saleId);
+    if (error) throw new Error(error.message);
+    await logActivity('RECOVER', 'credit', `${custName} — ${fmt(amt)}`);
+    closeModal(); toast('Payment received ✅', 'success'); loadCredit(); loadOverview();
+  }, 'Receive');
 };
 
 // =====================================================
-// EXPENSES (unchanged)
+// EXPENSES
 // =====================================================
-const EXPENSE_CATEGORIES = ['Rent', 'Utilities', 'Salary', 'Transport', 'Repair Parts', 'Tea/Food', 'Marketing', 'Other'];
+$('btnAddExpense').onclick = () => openExpenseModal();
+$('btnFilterExpenses')?.addEventListener('click', loadExpenses);
 async function loadExpenses() {
-  const catSel = $('expFilterCat'); if (catSel && catSel.options.length <= 1) catSel.innerHTML = '<option value="">All</option>' + EXPENSE_CATEGORIES.map(c => `<option>${c}</option>`).join('');
-  const from = $('expFilterFrom')?.value || ''; const to = $('expFilterTo')?.value || ''; const cat = $('expFilterCat')?.value || '';
-  let q = supabase.from('expenses').select('*').order('expense_date', { ascending: false });
-  if (from) q = q.gte('expense_date', from); if (to) q = q.lte('expense_date', to); if (cat) q = q.eq('category', cat);
-  const { data } = await q; const t = $('expensesTable');
-  t.innerHTML = !data?.length ? '<div class="empty">No expenses.</div>' : `<table class="data"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th><th></th></tr></thead><tbody>${data.map(e => `<tr><td>${esc(e.expense_date)}</td><td><span class="pill orange">${esc(e.category || 'Other')}</span></td><td>${esc(e.description || '—')}</td><td class="num">${fmt(e.amount)}</td><td><button class="btn btn-danger btn-sm" onclick="deleteExpense('${e.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
-  const all = data || []; const today = new Date().toISOString().slice(0, 10); const ws = new Date(); ws.setDate(ws.getDate() - ws.getDay()); const ms = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
-  const sum = arr => arr.reduce((s, x) => s + Number(x.amount || 0), 0);
-  $('expToday').textContent = fmt(sum(all.filter(x => x.expense_date === today))); $('expWeek').textContent = fmt(sum(all.filter(x => x.expense_date >= ws.toISOString().slice(0, 10)))); $('expMonth').textContent = fmt(sum(all.filter(x => x.expense_date >= ms))); $('expTotal').textContent = fmt(sum(all));
+  const from = $('expFilterFrom')?.value; const to = $('expFilterTo')?.value; const cat = $('expFilterCat')?.value;
+  let q = supabase.from('expenses').select('*').order('created_at', { ascending: false });
+  if (from) q = q.gte('created_at', from);
+  if (to) q = q.lte('created_at', to + 'T23:59:59');
+  if (cat) q = q.eq('category', cat);
+  const { data } = await q;
+  const list = data || [];
+  const now = new Date(), today = now.toISOString().slice(0, 10);
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay());
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const sum = (arr, key) => arr.reduce((s, r) => s + Number(r[key] || 0), 0);
+  $('expToday').textContent = fmt(sum(list.filter(e => e.created_at?.slice(0, 10) === today), 'amount'));
+  $('expWeek').textContent = fmt(sum(list.filter(e => new Date(e.created_at) >= weekStart), 'amount'));
+  $('expMonth').textContent = fmt(sum(list.filter(e => new Date(e.created_at) >= monthStart), 'amount'));
+  $('expTotal').textContent = fmt(sum(list, 'amount'));
+  const cats = [...new Set(list.map(e => e.category).filter(Boolean))];
+  if ($('expFilterCat') && $('expFilterCat').options.length <= 1) $('expFilterCat').innerHTML = '<option value="">All</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+  $('expensesTable').innerHTML = !list.length ? '<div class="empty">No expenses.</div>' : `<table class="data"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th><th>Actions</th></tr></thead><tbody>${list.map(e => `<tr><td>${new Date(e.created_at).toLocaleDateString()}</td><td><span class="pill blue">${esc(e.category || '—')}</span></td><td>${esc(e.description || '—')}</td><td class="num">${fmt(e.amount)}</td><td><button class="btn btn-ghost btn-sm" onclick="editExpense('${e.id}')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteExpense('${e.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
 }
-$('btnAddExpense').onclick = () => {
-  const body = `<div class="form-grid"><div class="field"><label>Date *</label><input type="date" id="exDate" value="${new Date().toISOString().slice(0, 10)}"></div><div class="field"><label>Category</label><select id="exCat">${EXPENSE_CATEGORIES.map(c => `<option>${c}</option>`).join('')}</select></div><div class="field"><label>Amount *</label><input type="number" id="exAmount" value="0"></div><div class="field full"><label>Description</label><input id="exDesc"></div></div>`;
-  openModal('Add Expense', body, async () => { const amount = Number($('exAmount').value) || 0; if (amount <= 0) throw new Error('Amount must be greater than 0'); await supabase.from('expenses').insert({ expense_date: $('exDate').value, category: $('exCat').value, amount, description: $('exDesc').value.trim() || null }); await logActivity('CREATE', 'expenses', fmt(amount)); closeModal(); toast('Expense added', 'success'); loadExpenses(); });
-};
-window.deleteExpense = async id => { if (!checkPermission('delete')) return; if (!confirm('Delete?')) return; await supabase.from('expenses').delete().eq('id', id); toast('Deleted'); loadExpenses(); };
-$('btnFilterExpenses').onclick = loadExpenses;
+function openExpenseModal(e = null) {
+  const CATS = ['Rent', 'Electricity', 'Salaries', 'Tea/Snacks', 'Transport', 'Marketing', 'Repair Tools', 'Misc'];
+  const body = `<div class="form-grid"><div class="field"><label>Date</label><input type="date" id="eDate" value="${e ? e.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10)}"></div><div class="field"><label>Category</label><input id="eCat" list="expCats" value="${esc(e?.category || '')}"><datalist id="expCats">${CATS.map(c => `<option value="${c}">`).join('')}</datalist></div><div class="field"><label>Amount</label><input id="eAmt" type="number" value="${e?.amount || 0}"></div><div class="field full"><label>Description</label><input id="eDesc" value="${esc(e?.description || '')}"></div></div>`;
+  openModal(e ? 'Edit Expense' : 'Add Expense', body, async () => {
+    const payload = { category: $('eCat').value.trim() || null, amount: Number($('eAmt').value) || 0, description: $('eDesc').value.trim() || null, created_at: $('eDate').value ? new Date($('eDate').value).toISOString() : new Date().toISOString() };
+    if (!payload.amount) throw new Error('Amount required');
+    if (e) await supabase.from('expenses').update(payload).eq('id', e.id); else await supabase.from('expenses').insert(payload);
+    await logActivity(e ? 'EDIT' : 'CREATE', 'expenses', `${payload.category} ${fmt(payload.amount)}`);
+    closeModal(); toast('Saved', 'success'); loadExpenses();
+  });
+}
+window.editExpense = async id => { if (!checkPermission('edit')) return; const { data: e } = await supabase.from('expenses').select('*').eq('id', id).single(); if (e) openExpenseModal(e); };
+window.deleteExpense = async id => { if (!checkPermission('delete')) return; if (!confirm('Delete expense?')) return; await supabase.from('expenses').delete().eq('id', id); toast('Deleted'); loadExpenses(); };
 
 // =====================================================
-// REPORTS — v35 FULL UPGRADE (13 types)
-// =====================================================
-$('btnRunReport').onclick = runReport;
-$('btnPrintReport').onclick = () => {
-  const printOpt = confirm('Thermal (OK) or A4 (Cancel)?');
-  const rows = $('reportOutput').querySelectorAll('tbody tr');
-  let total = 0;
-  const items = Array.from(rows).map(r => {
-    const c = r.querySelectorAll('td');
-    if (c.length < 2) return null;
-    let amtStr = c[c.length - 1]?.innerText || c[c.length - 2]?.innerText || '0';
-    const amt = Number(amtStr.replace(/[^0-9]/g, '')) || 0;
-    total += amt;
-    return { name: c[0]?.innerText || 'Item', description: c[0]?.innerText || 'Item', qty: 1, quantity: 1, price: amt, total: amt };
-  }).filter(Boolean);
-  const payload = { invoice: 'REPORT', customer: $('reportType').value.toUpperCase(), subtotal: total, discount: 0, total: total, paid: total, balance: 0, date: new Date(), items };
-  if (printOpt) printThermal80mm(payload, 'report'); else printA4Premium(payload, 'report');
-};
-
-function getReportRange() {
-  const from = $('reportFrom')?.value; const to = $('reportTo')?.value;
-  return { from, to };
-}
-
-async function runReport() {
-  const type = $('reportType').value; const { from, to } = getReportRange();
-  const search = $('reportSearch')?.value?.trim().toLowerCase() || '';
-  const out = $('reportOutput'); out.innerHTML = '<div class="empty">Loading…</div>';
-  try {
-    if (type === 'sales' || type === 'daily' || type === 'weekly' || type === 'monthly') {
-      let q = supabase.from('sales').select('*').order('created_at', { ascending: false });
-      if (type === 'daily') {
-        const today = new Date().toISOString().slice(0, 10);
-        q = q.gte('created_at', today).lte('created_at', today + 'T23:59:59');
-      } else if (type === 'weekly') {
-        const ws = new Date(); ws.setDate(ws.getDate() - 7);
-        q = q.gte('created_at', ws.toISOString());
-      } else if (type === 'monthly') {
-        const ms = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-        q = q.gte('created_at', ms.toISOString());
-      } else {
-        if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      }
-      const { data } = await q; let f = data || []; if (search) f = f.filter(s => (s.customer_name || '').toLowerCase().includes(search) || (s.invoice_no || '').toLowerCase().includes(search));
-      const total = f.reduce((s, r) => s + Number(r.total || 0), 0);
-      out.innerHTML = `<h3 style="margin-bottom:12px">${type.toUpperCase()} Sales — Total: ${fmt(total)} — Count: ${f.length}</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th>Method</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>${f.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || '')}</td><td><span class="pill">${esc(s.payment_method || 'Cash')}</span></td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleString()}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'cash' || type === 'credit') {
-      let q = supabase.from('sales').select('*').order('created_at', { ascending: false });
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      let f = data || [];
-      if (type === 'cash') f = f.filter(s => Number(s.paid) >= Number(s.total));
-      else f = f.filter(s => Number(s.balance) > 0);
-      const total = f.reduce((s, r) => s + Number(r.total || 0), 0);
-      out.innerHTML = `<h3 style="margin-bottom:12px">${type === 'cash' ? 'Cash Sales' : 'Credit Sales'} — Total: ${fmt(total)} — Count: ${f.length}</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>${f.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || '')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'payment') {
-      let q = supabase.from('sales').select('payment_method,total,paid').order('created_at', { ascending: false });
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      const map = {};
-      (data || []).forEach(s => {
-        const m = s.payment_method || 'Cash';
-        if (!map[m]) map[m] = { method: m, count: 0, total: 0, paid: 0 };
-        map[m].count++; map[m].total += Number(s.total || 0); map[m].paid += Number(s.paid || 0);
-      });
-      out.innerHTML = `<h3 style="margin-bottom:12px">Payment Method Report</h3><table class="data"><thead><tr><th>Method</th><th class="num">Count</th><th class="num">Total</th><th class="num">Paid</th></tr></thead><tbody>${Object.values(map).map(m => `<tr><td><b>${esc(m.method)}</b></td><td class="num">${m.count}</td><td class="num">${fmt(m.total)}</td><td class="num">${fmt(m.paid)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'product') {
-      let q = supabase.from('sale_items').select('product_name,quantity,line_total,created_at');
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      let f = data || []; if (search) f = f.filter(i => (i.product_name || '').toLowerCase().includes(search));
-      const map = {};
-      f.forEach(it => { const k = it.product_name; if (!map[k]) map[k] = { name: k, qty: 0, total: 0 }; map[k].qty += Number(it.quantity || 0); map[k].total += Number(it.line_total || 0); });
-      const rows = Object.values(map).sort((a, b) => b.total - a.total);
-      out.innerHTML = `<h3 style="margin-bottom:12px">Product-wise Sales</h3><table class="data"><thead><tr><th>Product</th><th class="num">Qty</th><th class="num">Revenue</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.qty}</td><td class="num">${fmt(r.total)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'category') {
-      let q = supabase.from('sale_items').select('category,quantity,line_total,created_at');
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      const map = {};
-      (data || []).forEach(it => { const k = it.category || 'Other'; if (!map[k]) map[k] = { cat: k, qty: 0, total: 0 }; map[k].qty += Number(it.quantity || 0); map[k].total += Number(it.line_total || 0); });
-      const rows = Object.values(map).sort((a, b) => b.total - a.total);
-      out.innerHTML = `<h3 style="margin-bottom:12px">Category-wise Sales</h3><table class="data"><thead><tr><th>Category</th><th class="num">Qty</th><th class="num">Revenue</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.cat)}</td><td class="num">${r.qty}</td><td class="num">${fmt(r.total)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'cashier') {
-      let q = supabase.from('sales').select('cashier_name,cashier_id,total,paid').order('created_at', { ascending: false });
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      const map = {};
-      (data || []).forEach(s => { const k = s.cashier_name || s.cashier_id || 'Admin'; if (!map[k]) map[k] = { name: k, count: 0, total: 0, paid: 0 }; map[k].count++; map[k].total += Number(s.total || 0); map[k].paid += Number(s.paid || 0); });
-      const rows = Object.values(map).sort((a, b) => b.total - a.total);
-      out.innerHTML = `<h3 style="margin-bottom:12px">Cashier-wise Sales</h3><table class="data"><thead><tr><th>Cashier</th><th class="num">Count</th><th class="num">Total</th><th class="num">Paid</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.count}</td><td class="num">${fmt(r.total)}</td><td class="num">${fmt(r.paid)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'pl') {
-      let q = supabase.from('sale_items').select('product_id,product_name,quantity,line_total,created_at');
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data: items } = await q;
-      let f = items || []; if (search) f = f.filter(i => (i.product_name || '').toLowerCase().includes(search));
-      const { data: prods } = await supabase.from('products').select('id,purchase_price');
-      const costMap = Object.fromEntries((prods || []).map(p => [p.id, Number(p.purchase_price || 0)]));
-      const map = {};
-      f.forEach(it => {
-        const k = it.product_id || it.product_name;
-        if (!map[k]) map[k] = { name: it.product_name, qty: 0, rev: 0, cost: 0 };
-        map[k].qty += Number(it.quantity || 0);
-        map[k].rev += Number(it.line_total || 0);
-        map[k].cost += Number(it.quantity || 0) * (costMap[it.product_id] || 0);
-      });
-      const rows = Object.values(map).map(r => ({ ...r, profit: r.rev - r.cost }));
-      const tr = rows.reduce((s, r) => s + r.rev, 0), tc = rows.reduce((s, r) => s + r.cost, 0), tp = tr - tc;
-      $('plSummary').style.display = 'flex';
-      $('plSummary').innerHTML = `<div class="stat"><div class="stat-icon green">↗</div><div><strong>${fmt(tr)}</strong><small>Revenue</small></div></div><div class="stat"><div class="stat-icon orange">↙</div><div><strong>${fmt(tc)}</strong><small>Cost</small></div></div><div class="stat"><div class="stat-icon purple">▨</div><div><strong>${fmt(tp)}</strong><small>Profit</small></div></div>`;
-      out.innerHTML = `<h3 style="margin-bottom:12px">P&L</h3><table class="data"><thead><tr><th>Product</th><th class="num">Qty</th><th class="num">Rev</th><th class="num">Cost</th><th class="num">Profit</th></tr></thead><tbody>${rows.sort((a, b) => b.profit - a.profit).map(r => `<tr><td>${esc(r.name)}</td><td class="num">${r.qty}</td><td class="num">${fmt(r.rev)}</td><td class="num">${fmt(r.cost)}</td><td class="num"><b>${fmt(r.profit)}</b></td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'discount') {
-      let q = supabase.from('sales').select('invoice_no,customer_name,discount,subtotal,total,created_at').gt('discount', 0).order('created_at', { ascending: false });
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      const total = (data || []).reduce((s, r) => s + Number(r.discount || 0), 0);
-      out.innerHTML = `<h3 style="margin-bottom:12px">Discount Report — Total Discount: ${fmt(total)}</h3><table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Subtotal</th><th class="num">Discount</th><th class="num">Total</th><th>Date</th></tr></thead><tbody>${(data || []).map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || '')}</td><td class="num">${fmt(s.subtotal)}</td><td class="num"><b>${fmt(s.discount)}</b></td><td class="num">${fmt(s.total)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'return') {
-      let q = supabase.from('sales').select('invoice_no,customer_name,total,paid,balance,created_at').lt('paid', 0).order('created_at', { ascending: false });
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      out.innerHTML = `<h3 style="margin-bottom:12px">Return & Refund Report</h3>${(data || []).length ? `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${(data || []).map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || '')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">No returns/refunds recorded.</div>'}`;
-    } else if (type === 'bestselling') {
-      let q = supabase.from('sale_items').select('product_name,quantity,line_total,created_at');
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      const map = {};
-      (data || []).forEach(it => { const k = it.product_name; if (!map[k]) map[k] = { name: k, qty: 0, total: 0 }; map[k].qty += Number(it.quantity || 0); map[k].total += Number(it.line_total || 0); });
-      const rows = Object.values(map).sort((a, b) => b.qty - a.qty).slice(0, 20);
-      out.innerHTML = `<h3 style="margin-bottom:12px">Best Selling Products (Top 20)</h3><table class="data"><thead><tr><th>#</th><th>Product</th><th class="num">Qty Sold</th><th class="num">Revenue</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${i + 1}</td><td>${esc(r.name)}</td><td class="num"><b>${r.qty}</b></td><td class="num">${fmt(r.total)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'lowstock') {
-      const { data } = await supabase.from('products').select('name,category,quantity,min_stock,racks!fk_products_racks(name)').order('quantity');
-      const low = (data || []).filter(p => Number(p.quantity) <= Number(p.min_stock || 3));
-      out.innerHTML = `<h3 style="margin-bottom:12px">Low Stock Alerts (${low.length})</h3>${low.length ? `<table class="data"><thead><tr><th>Product</th><th>Category</th><th>📦 Rack</th><th class="num">Stock</th><th class="num">Min</th></tr></thead><tbody>${low.map(p => `<tr><td>${esc(p.name)}</td><td>${esc(p.category || '')}</td><td>${esc(p.racks?.name || '—')}</td><td class="num"><b style="color:#dc2626">${p.quantity}</b></td><td class="num">${p.min_stock || 3}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">All products well stocked ✅</div>'}`;
-    } else if (type === 'purchases') {
-      let q = supabase.from('purchases').select('*,suppliers(name)').order('created_at', { ascending: false });
-      if (from) q = q.gte('created_at', from); if (to) q = q.lte('created_at', to + 'T23:59:59');
-      const { data } = await q;
-      out.innerHTML = `<h3 style="margin-bottom:12px">Purchase Report</h3><table class="data"><thead><tr><th>Invoice</th><th>Supplier</th><th class="num">Total</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${(data || []).map(p => `<tr><td>${esc(p.invoice_no || '—')}</td><td>${esc(p.suppliers?.name || '—')}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'expenses') {
-      let q = supabase.from('expenses').select('*').order('expense_date', { ascending: false });
-      if (from) q = q.gte('expense_date', from); if (to) q = q.lte('expense_date', to);
-      const { data } = await q;
-      out.innerHTML = `<h3 style="margin-bottom:12px">Expense Report</h3><table class="data"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th></tr></thead><tbody>${(data || []).map(e => `<tr><td>${esc(e.expense_date)}</td><td>${esc(e.category || '')}</td><td>${esc(e.description || '')}</td><td class="num">${fmt(e.amount)}</td></tr>`).join('')}</tbody></table>`;
-    } else if (type === 'customer') {
-      const { data } = await supabase.from('customers').select('*'); let f = data || []; if (search) f = f.filter(c => (c.name || '').toLowerCase().includes(search) || (c.phone || '').includes(search));
-      out.innerHTML = `<h3 style="margin-bottom:12px">Customer Report</h3><table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th></tr></thead><tbody>${f.map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td></tr>`).join('')}</tbody></table>`;
-    }
-  } catch (e) { out.innerHTML = `<div class="empty">Error: ${esc(e.message)}</div>`; }
-}
-
-// =====================================================
-// TRANSACTIONS (unchanged)
+// TRANSACTIONS
 // =====================================================
 async function loadTransactions() {
-  const { data: sales } = await supabase.from('sales').select('invoice_no,customer_name,total,paid,balance,created_at,payment_method').order('created_at', { ascending: false }).limit(50);
-  const { data: purchases } = await supabase.from('purchases').select('invoice_no,total,paid,created_at').order('created_at', { ascending: false }).limit(30);
-  const { data: expenses } = await supabase.from('expenses').select('expense_date,category,amount,description').order('expense_date', { ascending: false }).limit(30);
+  const [{ data: sales }, { data: purch }, { data: exps }] = await Promise.all([
+    supabase.from('sales').select('invoice_no,total,paid,balance,created_at,customer_name').order('created_at', { ascending: false }).limit(50),
+    supabase.from('purchases').select('invoice_no,total,paid,created_at').order('created_at', { ascending: false }).limit(50),
+    supabase.from('expenses').select('category,amount,created_at').order('created_at', { ascending: false }).limit(50)
+  ]);
   const rows = [
-    ...(sales || []).map(s => ({ date: s.created_at, type: 'SALE', ref: s.invoice_no, party: s.customer_name || 'Walk-in', in: s.paid, out: 0, note: s.payment_method || 'cash' })),
-    ...(purchases || []).map(p => ({ date: p.created_at, type: 'PURCHASE', ref: p.invoice_no, party: 'Supplier', in: 0, out: p.paid, note: 'purchase' })),
-    ...(expenses || []).map(e => ({ date: e.expense_date + 'T12:00:00', type: 'EXPENSE', ref: '—', party: e.category, in: 0, out: e.amount, note: e.description || '' }))
+    ...(sales || []).map(s => ({ type: 'SALE', ref: s.invoice_no, party: s.customer_name || 'Walk-in', amount: s.total, paid: s.paid, date: s.created_at })),
+    ...(purch || []).map(p => ({ type: 'PURCHASE', ref: p.invoice_no, party: '—', amount: p.total, paid: p.paid, date: p.created_at })),
+    ...(exps || []).map(e => ({ type: 'EXPENSE', ref: e.category, party: '—', amount: e.amount, paid: e.amount, date: e.created_at }))
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
-  $('transactionsTable').innerHTML = rows.length ? `<table class="data"><thead><tr><th>Date</th><th>Type</th><th>Ref</th><th>Party</th><th class="num">In</th><th class="num">Out</th><th>Note</th></tr></thead><tbody>${rows.map(r => `<tr><td><small>${new Date(r.date).toLocaleString()}</small></td><td><span class="pill ${r.type === 'SALE' ? 'green' : r.type === 'PURCHASE' ? 'orange' : 'red'}">${r.type}</span></td><td>${esc(r.ref)}</td><td>${esc(r.party)}</td><td class="num">${r.in ? fmt(r.in) : '—'}</td><td class="num">${r.out ? fmt(r.out) : '—'}</td><td><small>${esc(r.note)}</small></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No transactions.</div>';
+  $('transactionsTable').innerHTML = !rows.length ? '<div class="empty">No transactions.</div>' : `<table class="data"><thead><tr><th>Type</th><th>Ref</th><th>Party</th><th class="num">Amount</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${rows.map(r => `<tr><td><span class="pill ${r.type === 'SALE' ? 'green' : r.type === 'PURCHASE' ? 'blue' : 'orange'}">${r.type}</span></td><td>${esc(r.ref || '—')}</td><td>${esc(r.party || '—')}</td><td class="num">${fmt(r.amount)}</td><td class="num">${fmt(r.paid)}</td><td><small>${new Date(r.date).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>`;
 }
 
 // =====================================================
-// STAFF & LOGS (unchanged)
+// REPORTS
+// =====================================================
+$('btnRunReport').onclick = runReport;
+$('btnPrintReport')?.addEventListener('click', () => window.print());
+async function runReport() {
+  const type = $('reportType').value; const from = $('reportFrom').value; const to = $('reportTo').value;
+  const search = $('reportSearch').value.toLowerCase().trim();
+  const out = $('reportOutput'); const plBox = $('plSummary');
+  plBox.style.display = 'none';
+  let tableHTML = '';
+
+  if (type === 'sales') {
+    let q = supabase.from('sales').select('*').order('created_at', { ascending: false });
+    if (from) q = q.gte('created_at', from);
+    if (to) q = q.lte('created_at', to + 'T23:59:59');
+    const { data } = await q;
+    let rows = data || [];
+    if (search) rows = rows.filter(r => (r.invoice_no || '').toLowerCase().includes(search) || (r.customer_name || '').toLowerCase().includes(search));
+    tableHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th></tr></thead><tbody>${rows.map(s => `<tr><td>${esc(s.invoice_no)}</td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num">${fmt(s.balance)}</td><td>${new Date(s.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
+  } else if (type === 'pl') {
+    let salesQ = supabase.from('sales').select('total,discount,tax').order('created_at', { ascending: false });
+    let purQ = supabase.from('purchases').select('total').order('created_at', { ascending: false });
+    let expQ = supabase.from('expenses').select('amount').order('created_at', { ascending: false });
+    if (from) { salesQ = salesQ.gte('created_at', from); purQ = purQ.gte('created_at', from); expQ = expQ.gte('created_at', from); }
+    if (to) { salesQ = salesQ.lte('created_at', to + 'T23:59:59'); purQ = purQ.lte('created_at', to + 'T23:59:59'); expQ = expQ.lte('created_at', to + 'T23:59:59'); }
+    const [{ data: sl }, { data: pu }, { data: ex }] = await Promise.all([salesQ, purQ, expQ]);
+    const totSales = (sl || []).reduce((s, r) => s + Number(r.total || 0), 0);
+    const totDisc = (sl || []).reduce((s, r) => s + Number(r.discount || 0), 0);
+    const totTax = (sl || []).reduce((s, r) => s + Number(r.tax || 0), 0);
+    const totPurch = (pu || []).reduce((s, r) => s + Number(r.total || 0), 0);
+    const totExp = (ex || []).reduce((s, r) => s + Number(r.amount || 0), 0);
+    const gross = totSales;
+    const netSales = totSales - totDisc - totTax;
+    const profit = netSales - totPurch - totExp;
+    plBox.style.display = 'grid';
+    plBox.innerHTML = `
+      <div class="stat"><div class="stat-icon blue">💰</div><div><strong>${fmt(totSales)}</strong><small>Total Sales</small></div></div>
+      <div class="stat"><div class="stat-icon orange">🏷️</div><div><strong>${fmt(totDisc)}</strong><small>Discounts</small></div></div>
+      <div class="stat"><div class="stat-icon purple">📊</div><div><strong>${fmt(totTax)}</strong><small>Tax Collected</small></div></div>
+      <div class="stat"><div class="stat-icon red">🛒</div><div><strong>${fmt(totPurch)}</strong><small>Purchases</small></div></div>
+      <div class="stat"><div class="stat-icon orange">💸</div><div><strong>${fmt(totExp)}</strong><small>Expenses</small></div></div>
+      <div class="stat"><div class="stat-icon ${profit >= 0 ? 'green' : 'red'}">${profit >= 0 ? '📈' : '📉'}</div><div><strong>${fmt(profit)}</strong><small>Net Profit</small></div></div>
+    `;
+    tableHTML = `<div style="padding:20px;text-align:center;color:var(--muted)">P&L Summary shown above.</div>`;
+  } else if (type === 'purchases') {
+    let q = supabase.from('purchases').select('*,suppliers(name)').order('created_at', { ascending: false });
+    if (from) q = q.gte('created_at', from);
+    if (to) q = q.lte('created_at', to + 'T23:59:59');
+    const { data } = await q;
+    tableHTML = `<table class="data"><thead><tr><th>Invoice</th><th>Supplier</th><th class="num">Total</th><th class="num">Paid</th><th>Date</th></tr></thead><tbody>${(data || []).map(p => `<tr><td>${esc(p.invoice_no || p.id.slice(0, 6))}</td><td>${esc(p.suppliers?.name || '—')}</td><td class="num">${fmt(p.total)}</td><td class="num">${fmt(p.paid)}</td><td>${new Date(p.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table>`;
+  } else if (type === 'expenses') {
+    let q = supabase.from('expenses').select('*').order('created_at', { ascending: false });
+    if (from) q = q.gte('created_at', from);
+    if (to) q = q.lte('created_at', to + 'T23:59:59');
+    const { data } = await q;
+    tableHTML = `<table class="data"><thead><tr><th>Date</th><th>Category</th><th>Description</th><th class="num">Amount</th></tr></thead><tbody>${(data || []).map(e => `<tr><td>${new Date(e.created_at).toLocaleDateString()}</td><td>${esc(e.category || '—')}</td><td>${esc(e.description || '—')}</td><td class="num">${fmt(e.amount)}</td></tr>`).join('')}</tbody></table>`;
+  } else if (type === 'customer') {
+    const { data } = await supabase.from('customers').select('*').order('name');
+    tableHTML = `<table class="data"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th class="num">Opening Bal</th></tr></thead><tbody>${(data || []).map(c => `<tr><td>${esc(c.name)}</td><td>${esc(c.phone || '—')}</td><td>${esc(c.address || '—')}</td><td class="num">${fmt(c.opening_balance)}</td></tr>`).join('')}</tbody></table>`;
+  }
+  out.innerHTML = tableHTML || '<div class="empty">No data.</div>';
+}
+
+// =====================================================
+// SETTINGS / STAFF / LOGS
 // =====================================================
 async function loadStaff() {
-  const { data } = await supabase.from('staff').select('*').order('created_at', { ascending: false });
-  const { data: logs } = await supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(50);
-  $('staffTable').innerHTML = !data?.length ? '<div class="empty">No staff.</div>' : `<table class="data"><thead><tr><th>Name</th><th>Staff ID</th><th>Role</th><th>Phone</th><th>Actions</th></tr></thead><tbody>${data.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.staff_id)}</td><td>${esc(s.role || 'Staff')}</td><td>${esc(s.phone || '—')}</td><td><button class="btn btn-ghost btn-sm" onclick="viewStaffPermissions('${s.id}')">Perms</button><button class="btn btn-danger btn-sm" onclick="deleteStaff('${s.id}')">Del</button></td></tr>`).join('')}</tbody></table>`;
-  $('logsTable').innerHTML = !logs?.length ? '<div class="empty">No logs.</div>' : `<table class="data"><thead><tr><th>Staff</th><th>Action</th><th>Module</th><th>Details</th><th>Date</th></tr></thead><tbody>${logs.map(l => `<tr><td>${esc(l.staff_name || '—')}</td><td><span class="pill">${esc(l.action)}</span></td><td>${esc(l.module)}</td><td><small>${esc(l.details || '')}</small></td><td><small>${new Date(l.created_at).toLocaleString()}</small></td></tr>`).join('')}</tbody></table>`;
+  const { data: staff } = await supabase.from('staff').select('*').order('staff_id');
+  $('staffTable').innerHTML = !(staff || []).length ? '<div class="empty">No staff.</div>' : `<table class="data"><thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Permissions</th></tr></thead><tbody>${staff.map(s => `<tr><td><b>${esc(s.staff_id)}</b></td><td>${esc(s.name)}</td><td><span class="pill">${esc(s.role || 'Staff')}</span></td><td><small>${Object.entries(s.permissions || {}).filter(([, v]) => v).map(([k]) => k.replace('allow_', '')).join(', ') || 'None'}</small></td></tr>`).join('')}</tbody></table>`;
+  const { data: logs } = await supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(100);
+  $('logsTable').innerHTML = !(logs || []).length ? '<div class="empty">No logs.</div>' : `<table class="data"><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Module</th><th>Details</th></tr></thead><tbody>${logs.map(l => `<tr><td><small>${new Date(l.created_at).toLocaleString()}</small></td><td>${esc(l.staff_name || l.staff_id)}</td><td><span class="pill">${esc(l.action)}</span></td><td>${esc(l.module || '—')}</td><td><small>${esc(l.details || '—')}</small></td></tr>`).join('')}</tbody></table>`;
 }
-window.viewStaffPermissions = async id => {
-  const { data: s } = await supabase.from('staff').select('*').eq('id', id).single(); if (!s) return;
-  const perms = [['allow_pos', 'POS / Sales'], ['allow_inventory', 'Inventory'], ['allow_purchases', 'Purchases'], ['allow_repairing', 'Repairing'], ['allow_customers', 'Customers'], ['allow_suppliers', 'Suppliers'], ['allow_credit', 'Credit / Udhar'], ['allow_expenses', 'Expenses'], ['allow_reports', 'Reports'], ['allow_transactions', 'Transactions'], ['allow_staff', 'Staff Management']];
-  const body = `<h4 style="margin:0 0 10px">${esc(s.name)} (${esc(s.staff_id)})</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${perms.map(([k, label]) => `<label style="display:flex;align-items:center;gap:8px;padding:8px;background:#fafbfd;border-radius:6px"><input type="checkbox" class="perm-check" data-key="${k}" ${s[k] !== false ? 'checked' : ''}> ${label}</label>`).join('')}</div>`;
-  openModal(`Permissions — ${s.name}`, body, async () => {
-    const updates = {};
-    document.querySelectorAll('.perm-check').forEach(cb => { updates[cb.dataset.key] = cb.checked; });
-    const { error } = await supabase.from('staff').update(updates).eq('id', id);
-    if (error) throw new Error(error.message);
-    closeModal(); toast('Permissions updated', 'success'); loadStaff();
-  }, 'Save Permissions');
-};
-window.deleteStaff = async id => { if (!IS_ADMIN) return toast('Admin only', 'error'); if (!confirm('Delete staff?')) return; await supabase.from('staff').delete().eq('id', id); toast('Deleted'); loadStaff(); };
 
 // =====================================================
 // INIT
 // =====================================================
-(async () => {
+(async function init() {
   await loadShopSettings();
-  loadModule('overview');
+  POS_TAX_RATE = Number(SHOP.tax_rate || 0);
+  POS_TAX_ENABLED = SHOP.tax_enabled === true;
+  await loadOverview();
+  if (!IS_ADMIN) {
+    document.querySelectorAll('.nav-item[data-module]').forEach(btn => {
+      const m = btn.dataset.module;
+      if (m && !hasAccess(m) && m !== 'overview') btn.style.display = 'none';
+    });
+  }
 })();
