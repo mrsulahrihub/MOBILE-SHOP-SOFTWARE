@@ -5,435 +5,440 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard — BM Mobile Zone v35</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jameel+Noori+Nastaleeq&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Jameel+Noori+Nastaleeq&display=swap" rel="stylesheet">
+  <!-- CSS File Link -->
   <link rel="stylesheet" href="./dashboard.css">
 </head>
 <body>
 
-  <!-- ============ SIDEBAR ============ -->
-  <aside class="sidebar" id="mainSidebar">
-    <div class="sidebar-brand">
-      <div class="brand-logo">BM</div>
-      <div>
-        <h1>BM Mobile Zone</h1>
-        <small>Dashboard v35</small>
-      </div>
-    </div>
+  <!-- ✅ YE WRAPPER ADD KIYA HAI TAKE SIDEBAR FIXED RAHE AUR LAYOUT NA TOOTE -->
+  <div class="dashboard">
 
-    <nav class="sidebar-nav">
-      <button class="nav-item active" data-module="overview">
-        <span class="nav-icon">▦</span> <span>Dashboard</span> <span class="kbd">Alt+O</span>
-      </button>
-      <button class="nav-item" data-module="inventory">
-        <span class="nav-icon">▤</span> <span>Inventory</span> <span class="kbd">Alt+I</span>
-      </button>
-      <button class="nav-item" data-module="racks">
-        <span class="nav-icon">🗄️</span> <span>Racks</span> <span class="kbd">Alt+K</span>
-      </button>
-      <button class="nav-item" data-module="purchases">
-        <span class="nav-icon">🛒</span> <span>Purchases</span> <span class="kbd">Alt+U</span>
-      </button>
-      <button class="nav-item" data-module="sales">
-        <span class="nav-icon">💳</span> <span>Sales / POS</span> <span class="kbd">Alt+L</span>
-      </button>
-      <button class="nav-item" data-module="repairing">
-        <span class="nav-icon">🔧</span> <span>Repairing</span> <span class="kbd">Alt+R</span>
-      </button>
-      <button class="nav-item" data-module="customers">
-        <span class="nav-icon">👥</span> <span>Customers</span> <span class="kbd">Alt+C</span>
-      </button>
-      <button class="nav-item" data-module="suppliers">
-        <span class="nav-icon">🏭</span> <span>Suppliers</span> <span class="kbd">Alt+S</span>
-      </button>
-      <button class="nav-item" data-module="credit">
-        <span class="nav-icon">📒</span> <span>Credit / Udhar</span> <span class="kbd">Alt+D</span>
-      </button>
-      <button class="nav-item" data-module="expenses">
-        <span class="nav-icon">💸</span> <span>Expenses</span> <span class="kbd">Alt+E</span>
-      </button>
-      <button class="nav-item" data-module="reports">
-        <span class="nav-icon">📊</span> <span>Reports & P&L</span> <span class="kbd">Alt+P</span>
-      </button>
-      <button class="nav-item" data-module="transactions">
-        <span class="nav-icon">🔁</span> <span>Transactions</span> <span class="kbd">Alt+T</span>
-      </button>
-      <button class="nav-item" data-module="settings">
-        <span class="nav-icon">⚙️</span> <span>Staff & Logs</span> <span class="kbd">Alt+,</span>
-      </button>
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="user-chip">
-        <div class="avatar" id="userAvatar">B</div>
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar" id="mainSidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">BM</div>
         <div>
-          <b id="userName">BM MOBILE ZONE</b>
-          <small id="userRole">ADMIN</small>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <button class="sidebar-handle" id="sidebarHandle" title="Menu">☰</button>
-
-  <!-- ============ MAIN ============ -->
-  <main class="main">
-
-    <!-- Topbar -->
-    <header class="topbar">
-      <div>
-        <h2 id="pageTitle">Dashboard</h2>
-        <small id="todayDate">—</small>
-      </div>
-      <div class="topbar-right">
-        <div class="search-bar">
-          <input placeholder="Search… (Ctrl+K)" type="search">
-        </div>
-        <button class="icon-btn" id="notifBtn" title="Notifications">🔔 <span id="notifBadge" class="badge" style="display:none">0</span></button>
-        <button class="btn btn-danger btn-sm" id="logoutBtn">Logout</button>
-      </div>
-    </header>
-
-    <div class="notif-panel" id="notifPanel"></div>
-
-    <!-- ============ MODULE: OVERVIEW ============ -->
-    <section class="module active" id="module-overview">
-      <div class="welcome-card">
-        <h3>Welcome back, <span id="welcomeName">Admin</span> 👋</h3>
-        <p>Yahan se aap apna poora business manage kar sakte hain. Shortcuts ke liye <b>F1</b> dabaein.</p>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stat"><div class="stat-icon blue">📦</div><div><strong id="stProducts">0</strong><small>Products</small></div></div>
-        <div class="stat"><div class="stat-icon green">📊</div><div><strong id="stStock">0</strong><small>Total Stock</small></div></div>
-        <div class="stat"><div class="stat-icon purple">💰</div><div><strong id="stTodaySales">PKR 0</strong><small>Today Sales</small></div></div>
-        <div class="stat"><div class="stat-icon orange">📈</div><div><strong id="stMonthSales">PKR 0</strong><small>Month Sales</small></div></div>
-        <div class="stat"><div class="stat-icon blue">🛒</div><div><strong id="stPurchases">PKR 0</strong><small>Purchases</small></div></div>
-        <div class="stat"><div class="stat-icon green">👥</div><div><strong id="stCustomers">0</strong><small>Customers</small></div></div>
-        <div class="stat"><div class="stat-icon red">📒</div><div><strong id="stOutstanding">PKR 0</strong><small>Outstanding Udhar</small></div></div>
-        <div class="stat"><div class="stat-icon orange">💸</div><div><strong id="stExpenses">PKR 0</strong><small>Expenses</small></div></div>
-      </div>
-
-      <div class="card">
-        <h3>Recent Sales</h3>
-        <div id="recentSales"></div>
-      </div>
-    </section>
-
-    <!-- ============ MODULE: INVENTORY ============ -->
-    <section class="module" id="module-inventory">
-      <div class="toolbar">
-        <h3>Inventory</h3>
-        <select id="inventoryRackFilter" class="form-input"><option value="">All Racks</option></select>
-      </div>
-      <div class="card">
-        <h4>Low Stock / All Products</h4>
-        <div id="lowStockTable"></div>
-      </div>
-      <div class="card">
-        <h4>Recent Movements</h4>
-        <div id="movementsTable"></div>
-      </div>
-    </section>
-
-    <!-- ============ MODULE: RACKS (v34) ============ -->
-    <section class="module" id="module-racks">
-      <div class="toolbar">
-        <h3>🗄️ Racks Management</h3>
-        <div class="toolbar-actions">
-          <input id="rackSearchInput" class="form-input" placeholder="🔍 Search racks... (Alt+F)" style="min-width:220px">
-          <button class="btn btn-primary" id="btnAddRack" title="Add new rack (Alt+A)">+ Add Rack <span class="kbd">Alt+A</span></button>
+          <h1>BM Mobile Zone</h1>
+          <small>Dashboard v35</small>
         </div>
       </div>
 
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-          <h4 style="margin:0">All Racks</h4>
-          <small style="color:var(--muted)">
-            <b>Alt+A</b> Add &nbsp;·&nbsp; <b>Alt+E</b> Edit &nbsp;·&nbsp; <b>Alt+V</b> View &nbsp;·&nbsp; <b>Alt+D</b> Delete &nbsp;·&nbsp; <b>Alt+F</b> Search
-          </small>
-        </div>
-        <div id="racksTable"></div>
-      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-module="overview">
+          <span class="nav-icon">▦</span> <span>Dashboard</span> <span class="kbd">Alt+O</span>
+        </button>
+        <button class="nav-item" data-module="inventory">
+          <span class="nav-icon">▤</span> <span>Inventory</span> <span class="kbd">Alt+I</span>
+        </button>
+        <button class="nav-item" data-module="racks">
+          <span class="nav-icon">🗄️</span> <span>Racks</span> <span class="kbd">Alt+K</span>
+        </button>
+        <button class="nav-item" data-module="purchases">
+          <span class="nav-icon">🛒</span> <span>Purchases</span> <span class="kbd">Alt+U</span>
+        </button>
+        <button class="nav-item" data-module="sales">
+          <span class="nav-icon">💳</span> <span>Sales / POS</span> <span class="kbd">Alt+L</span>
+        </button>
+        <button class="nav-item" data-module="repairing">
+          <span class="nav-icon">🔧</span> <span>Repairing</span> <span class="kbd">Alt+R</span>
+        </button>
+        <button class="nav-item" data-module="customers">
+          <span class="nav-icon">👥</span> <span>Customers</span> <span class="kbd">Alt+C</span>
+        </button>
+        <button class="nav-item" data-module="suppliers">
+          <span class="nav-icon">🏭</span> <span>Suppliers</span> <span class="kbd">Alt+S</span>
+        </button>
+        <button class="nav-item" data-module="credit">
+          <span class="nav-icon">📒</span> <span>Credit / Udhar</span> <span class="kbd">Alt+D</span>
+        </button>
+        <button class="nav-item" data-module="expenses">
+          <span class="nav-icon">💸</span> <span>Expenses</span> <span class="kbd">Alt+E</span>
+        </button>
+        <button class="nav-item" data-module="reports">
+          <span class="nav-icon">📊</span> <span>Reports & P&L</span> <span class="kbd">Alt+P</span>
+        </button>
+        <button class="nav-item" data-module="transactions">
+          <span class="nav-icon">🔁</span> <span>Transactions</span> <span class="kbd">Alt+T</span>
+        </button>
+        <button class="nav-item" data-module="settings">
+          <span class="nav-icon">⚙️</span> <span>Staff & Logs</span> <span class="kbd">Alt+,</span>
+        </button>
+      </nav>
 
-      <div class="card">
-        <h4>📦 Rack-wise Stock Overview</h4>
-        <div id="rackStockTable"></div>
-      </div>
-    </section>
-
-    <!-- ============ MODULE: PURCHASES ============ -->
-    <section class="module" id="module-purchases">
-      <div class="toolbar">
-        <h3>Purchases / Products</h3>
-        <div class="toolbar-actions">
-          <button class="btn btn-ghost" id="btnPurchasesHistory">History</button>
-          <button class="btn btn-ghost" id="btnRefreshPurchases">↻</button>
-          <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase <span class="kbd">F8</span></button>
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <div class="avatar" id="userAvatar">B</div>
+          <div>
+            <b id="userName">BM MOBILE ZONE</b>
+            <small id="userRole">ADMIN</small>
+          </div>
         </div>
       </div>
-      <div class="card">
-        <h4>Products Catalog</h4>
+    </aside>
+
+    <button class="sidebar-handle" id="sidebarHandle" title="Menu">☰</button>
+
+    <!-- ============ MAIN ============ -->
+    <main class="main">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div>
+          <h2 id="pageTitle">Dashboard</h2>
+          <small id="todayDate">—</small>
+        </div>
+        <div class="topbar-right">
+          <div class="search-bar">
+            <input placeholder="Search… (Ctrl+K)" type="search">
+          </div>
+          <button class="icon-btn" id="notifBtn" title="Notifications">🔔 <span id="notifBadge" class="badge" style="display:none">0</span></button>
+          <button class="btn btn-danger btn-sm" id="logoutBtn">Logout</button>
+        </div>
+      </header>
+
+      <div class="notif-panel" id="notifPanel"></div>
+
+      <!-- ============ MODULE: OVERVIEW ============ -->
+      <section class="module active" id="module-overview">
+        <div class="welcome-card">
+          <h3>Welcome back, <span id="welcomeName">Admin</span> 👋</h3>
+          <p>Yahan se aap apna poora business manage kar sakte hain. Shortcuts ke liye <b>F1</b> dabaein.</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-icon blue">📦</div><div><strong id="stProducts">0</strong><small>Products</small></div></div>
+          <div class="stat"><div class="stat-icon green">📊</div><div><strong id="stStock">0</strong><small>Total Stock</small></div></div>
+          <div class="stat"><div class="stat-icon purple">💰</div><div><strong id="stTodaySales">PKR 0</strong><small>Today Sales</small></div></div>
+          <div class="stat"><div class="stat-icon orange">📈</div><div><strong id="stMonthSales">PKR 0</strong><small>Month Sales</small></div></div>
+          <div class="stat"><div class="stat-icon blue">🛒</div><div><strong id="stPurchases">PKR 0</strong><small>Purchases</small></div></div>
+          <div class="stat"><div class="stat-icon green">👥</div><div><strong id="stCustomers">0</strong><small>Customers</small></div></div>
+          <div class="stat"><div class="stat-icon red">📒</div><div><strong id="stOutstanding">PKR 0</strong><small>Outstanding Udhar</small></div></div>
+          <div class="stat"><div class="stat-icon orange">💸</div><div><strong id="stExpenses">PKR 0</strong><small>Expenses</small></div></div>
+        </div>
+
+        <div class="card">
+          <h3>Recent Sales</h3>
+          <div id="recentSales"></div>
+        </div>
+      </section>
+
+      <!-- ============ MODULE: INVENTORY ============ -->
+      <section class="module" id="module-inventory">
         <div class="toolbar">
-          <input id="productSearch" class="form-input" placeholder="Search products…">
-          <select id="productFilterCat" class="form-input"><option value="">All Categories</option></select>
-          <select id="productFilterBrand" class="form-input"><option value="">All Brands</option></select>
+          <h3>Inventory</h3>
+          <select id="inventoryRackFilter" class="form-input"><option value="">All Racks</option></select>
         </div>
-        <div id="productsTable"></div>
-        <div class="bulk-bar" id="productBulkBar" style="display:none">
-          <span><b id="productSelCount">0</b> selected</span>
-          <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()">Delete Selected</button>
-        </div>
-      </div>
-      <div class="card" id="purchasesHistoryBox" hidden>
-        <h4>Purchase History</h4>
-        <div id="purchasesTable"></div>
-      </div>
-    </section>
-
-    <!-- ============ MODULE: SALES / POS (v35 UPGRADE) ============ -->
-    <section class="module" id="module-sales">
-      <div class="toolbar">
-        <h3>💳 Sales / POS</h3>
-        <div class="toolbar-actions">
-          <button class="btn btn-ghost" id="btnSalesHistory">History</button>
-          <button class="btn btn-ghost" id="btnRefreshSales">↻</button>
-          <button class="btn btn-ghost" id="btnHoldSale">Hold Sale</button>
-          <button class="btn btn-ghost" id="btnResumeSale">Resume</button>
-        </div>
-      </div>
-
-      <div class="pos-grid">
-        <!-- LEFT: Smart Product Search + Barcode -->
         <div class="card">
-          <h4>🔍 Smart Search / Barcode</h4>
-          <div class="field">
-            <label>Search (Name / SKU / IMEI / Model / Brand)</label>
-            <input id="posProductSearch" class="form-input" placeholder="Type to filter products…" autocomplete="off">
+          <h4>Low Stock / All Products</h4>
+          <div id="lowStockTable"></div>
+        </div>
+        <div class="card">
+          <h4>Recent Movements</h4>
+          <div id="movementsTable"></div>
+        </div>
+      </section>
+
+      <!-- ============ MODULE: RACKS ============ -->
+      <section class="module" id="module-racks">
+        <div class="toolbar">
+          <h3>🗄️ Racks Management</h3>
+          <div class="toolbar-actions">
+            <input id="rackSearchInput" class="form-input" placeholder="🔍 Search racks... (Alt+F)" style="min-width:220px">
+            <button class="btn btn-primary" id="btnAddRack" title="Add new rack (Alt+A)">+ Add Rack <span class="kbd">Alt+A</span></button>
           </div>
-          <div class="field" style="margin-top:8px">
-            <label>Barcode Scanner</label>
-            <input id="posBarcodeInput" class="form-input" placeholder="Scan barcode / IMEI + Enter" autocomplete="off">
-            <small style="color:var(--muted)">Scanner se scan karein — auto add ho jayega</small>
-          </div>
-          <div class="field" style="margin-top:8px">
-            <label>Category Filter</label>
-            <select id="saleCategoryFilter" class="form-input"></select>
-          </div>
-          <div class="field" style="margin-top:8px">
-            <label>Product (with rack + stock)</label>
-            <select id="saleProductSelect" class="form-input" size="6"></select>
-          </div>
-          <button class="btn btn-primary" id="btnAddToCart" style="margin-top:8px;width:100%">Add to Cart <span class="kbd">F2</span></button>
         </div>
 
-        <!-- MIDDLE: Customer + Tax + Split -->
         <div class="card">
-          <h4>👤 Customer</h4>
-          <input id="saleCustName" class="form-input" list="posCustomerOptions" placeholder="Customer name (Walk-in)">
-          <datalist id="posCustomerOptions"></datalist>
-          <input id="saleCustPhone" class="form-input" placeholder="Phone" style="margin-top:8px">
-          <div id="previousDueBox" style="display:none;margin-top:8px;padding:8px;background:#fef2f2;border-radius:6px;color:#dc2626;font-size:13px">
-            Previous Due: <b id="previousDueAmount">PKR 0</b>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <h4 style="margin:0">All Racks</h4>
+            <small style="color:var(--muted)">
+              <b>Alt+A</b> Add &nbsp;·&nbsp; <b>Alt+E</b> Edit &nbsp;·&nbsp; <b>Alt+V</b> View &nbsp;·&nbsp; <b>Alt+D</b> Delete &nbsp;·&nbsp; <b>Alt+F</b> Search
+            </small>
           </div>
-          <hr style="margin:12px 0">
-          <h4>💰 Tax Settings</h4>
-          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px">
-            <input type="checkbox" id="posTaxEnabled"> Enable Tax
-          </label>
-          <div class="field">
-            <label>Tax Rate (%)</label>
-            <input type="number" id="posTaxRate" class="form-input" value="0" min="0" step="0.01">
-          </div>
-          <button class="btn btn-ghost" id="btnSplitPayment" style="margin-top:10px;width:100%">💳 Split Payment</button>
+          <div id="racksTable"></div>
         </div>
 
-        <!-- RIGHT: Cart + Totals -->
         <div class="card">
-          <h4>🛒 Cart</h4>
-          <div id="cartItems" style="max-height:280px;overflow-y:auto"></div>
-          <hr>
-          <div class="row"><span>Subtotal</span><b id="cartSubtotal">PKR 0</b></div>
-          <div class="row"><span>Line Discount</span><b id="cartLineDisc">PKR 0</b></div>
-          <div class="row"><span>Bill Discount</span>
-            <span><input id="saleDiscount" type="number" value="0" style="width:70px">
-            <select id="saleDiscountType"><option value="amt">PKR</option><option value="pct">%</option></select></span>
+          <h4>📦 Rack-wise Stock Overview</h4>
+          <div id="rackStockTable"></div>
+        </div>
+      </section>
+
+      <!-- ============ MODULE: PURCHASES ============ -->
+      <section class="module" id="module-purchases">
+        <div class="toolbar">
+          <h3>Purchases / Products</h3>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" id="btnPurchasesHistory">History</button>
+            <button class="btn btn-ghost" id="btnRefreshPurchases">↻</button>
+            <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase <span class="kbd">F8</span></button>
           </div>
-          <div class="row" id="cartTaxRow" style="display:none"><span>Tax</span><b id="cartTax">PKR 0</b></div>
-          <div class="row" style="font-size:16px;font-weight:800;border-top:2px solid var(--border);padding-top:8px;margin-top:8px">
-            <span>TOTAL</span><b id="cartTotal">PKR 0</b>
+        </div>
+        <div class="card">
+          <h4>Products Catalog</h4>
+          <div class="toolbar">
+            <input id="productSearch" class="form-input" placeholder="Search products…">
+            <select id="productFilterCat" class="form-input"><option value="">All Categories</option></select>
+            <select id="productFilterBrand" class="form-input"><option value="">All Brands</option></select>
           </div>
-          <div class="row"><span>Paid</span><input id="salePaid" type="number" value="0" style="width:100px"></div>
-          <div class="row"><span>Method</span>
-            <select id="salePaymentMethod">
-              <option>Cash</option><option>Card</option><option>Easypaisa</option>
-              <option>JazzCash</option><option>Bank</option>
+          <div id="productsTable"></div>
+          <div class="bulk-bar" id="productBulkBar" style="display:none">
+            <span><b id="productSelCount">0</b> selected</span>
+            <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()">Delete Selected</button>
+          </div>
+        </div>
+        <div class="card" id="purchasesHistoryBox" hidden>
+          <h4>Purchase History</h4>
+          <div id="purchasesTable"></div>
+        </div>
+      </section>
+
+      <!-- ============ MODULE: SALES / POS ============ -->
+      <section class="module" id="module-sales">
+        <div class="toolbar">
+          <h3>💳 Sales / POS</h3>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" id="btnSalesHistory">History</button>
+            <button class="btn btn-ghost" id="btnRefreshSales">↻</button>
+            <button class="btn btn-ghost" id="btnHoldSale">Hold Sale</button>
+            <button class="btn btn-ghost" id="btnResumeSale">Resume</button>
+          </div>
+        </div>
+
+        <div class="pos-grid">
+          <!-- LEFT: Smart Product Search + Barcode -->
+          <div class="card">
+            <h4>🔍 Smart Search / Barcode</h4>
+            <div class="field">
+              <label>Search (Name / SKU / IMEI / Model / Brand)</label>
+              <input id="posProductSearch" class="form-input" placeholder="Type to filter products…" autocomplete="off">
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label>Barcode Scanner</label>
+              <input id="posBarcodeInput" class="form-input" placeholder="Scan barcode / IMEI + Enter" autocomplete="off">
+              <small style="color:var(--muted)">Scanner se scan karein — auto add ho jayega</small>
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label>Category Filter</label>
+              <select id="saleCategoryFilter" class="form-input"></select>
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label>Product (with rack + stock)</label>
+              <select id="saleProductSelect" class="form-input" size="6"></select>
+            </div>
+            <button class="btn btn-primary" id="btnAddToCart" style="margin-top:8px;width:100%">Add to Cart <span class="kbd">F2</span></button>
+          </div>
+
+          <!-- MIDDLE: Customer + Tax + Split -->
+          <div class="card">
+            <h4>👤 Customer</h4>
+            <input id="saleCustName" class="form-input" list="posCustomerOptions" placeholder="Customer name (Walk-in)">
+            <datalist id="posCustomerOptions"></datalist>
+            <input id="saleCustPhone" class="form-input" placeholder="Phone" style="margin-top:8px">
+            <div id="previousDueBox" style="display:none;margin-top:8px;padding:8px;background:#fef2f2;border-radius:6px;color:#dc2626;font-size:13px">
+              Previous Due: <b id="previousDueAmount">PKR 0</b>
+            </div>
+            <hr style="margin:12px 0">
+            <h4>💰 Tax Settings</h4>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:6px">
+              <input type="checkbox" id="posTaxEnabled"> Enable Tax
+            </label>
+            <div class="field">
+              <label>Tax Rate (%)</label>
+              <input type="number" id="posTaxRate" class="form-input" value="0" min="0" step="0.01">
+            </div>
+            <button class="btn btn-ghost" id="btnSplitPayment" style="margin-top:10px;width:100%">💳 Split Payment</button>
+          </div>
+
+          <!-- RIGHT: Cart + Totals -->
+          <div class="card">
+            <h4>🛒 Cart</h4>
+            <div id="cartItems" style="max-height:280px;overflow-y:auto"></div>
+            <hr>
+            <div class="row"><span>Subtotal</span><b id="cartSubtotal">PKR 0</b></div>
+            <div class="row"><span>Line Discount</span><b id="cartLineDisc">PKR 0</b></div>
+            <div class="row"><span>Bill Discount</span>
+              <span><input id="saleDiscount" type="number" value="0" style="width:70px; padding: 6px; border-radius: 6px; border: 1px solid var(--border);">
+              <select id="saleDiscountType" style="padding: 6px; border-radius: 6px; border: 1px solid var(--border);"><option value="amt">PKR</option><option value="pct">%</option></select></span>
+            </div>
+            <div class="row" id="cartTaxRow" style="display:none"><span>Tax</span><b id="cartTax">PKR 0</b></div>
+            <div class="row" style="font-size:16px;font-weight:800;border-top:2px solid var(--border);padding-top:8px;margin-top:8px">
+              <span>TOTAL</span><b id="cartTotal">PKR 0</b>
+            </div>
+            <div class="row"><span>Paid</span><input id="salePaid" type="number" value="0" style="width:100px; padding: 6px; border-radius: 6px; border: 1px solid var(--border); font-weight: bold;"></div>
+            <div class="row"><span>Method</span>
+              <select id="salePaymentMethod" style="padding: 6px; border-radius: 6px; border: 1px solid var(--border);">
+                <option>Cash</option><option>Card</option><option>Easypaisa</option>
+                <option>JazzCash</option><option>Bank</option>
+              </select>
+            </div>
+            <div id="udharWarning" style="display:none;color:#dc2626;font-size:12px;margin-top:6px">⚠️ Udhar (Balance) rahega!</div>
+            <button class="btn btn-primary" id="btnSaveSale" style="width:100%;margin-top:12px">Save Sale <span class="kbd">F4</span></button>
+          </div>
+        </div>
+
+        <div class="card" id="salesHistoryBox" hidden>
+          <h4>Sales History</h4>
+          <div id="salesHistoryTable"></div>
+        </div>
+      </section>
+
+      <!-- ============ MODULE: REPAIRING ============ -->
+      <section class="module" id="module-repairing">
+        <div class="toolbar">
+          <h3>Repairing</h3>
+          <div class="toolbar-actions">
+            <input id="repairSearch" class="form-input" placeholder="Search…">
+            <select id="repairStatusFilter" class="form-input">
+              <option value="">All Status</option>
+              <option>Received</option><option>In Progress</option><option>Ready</option><option>Delivered</option>
             </select>
+            <button class="btn btn-primary" id="btnAddRepair">+ New Repair <span class="kbd">F10</span></button>
           </div>
-          <div id="udharWarning" style="display:none;color:#dc2626;font-size:12px;margin-top:6px">⚠️ Udhar (Balance) rahega!</div>
-          <button class="btn btn-primary" id="btnSaveSale" style="width:100%;margin-top:12px">Save Sale <span class="kbd">F4</span></button>
         </div>
-      </div>
+        <div class="card"><div id="repairsTable"></div></div>
+      </section>
 
-      <div class="card" id="salesHistoryBox" hidden>
-        <h4>Sales History</h4>
-        <div id="salesHistoryTable"></div>
-      </div>
-    </section>
-
-    <!-- ============ MODULE: REPAIRING ============ -->
-    <section class="module" id="module-repairing">
-      <div class="toolbar">
-        <h3>Repairing</h3>
-        <div class="toolbar-actions">
-          <input id="repairSearch" class="form-input" placeholder="Search…">
-          <select id="repairStatusFilter" class="form-input">
-            <option value="">All Status</option>
-            <option>Received</option><option>In Progress</option><option>Ready</option><option>Delivered</option>
-          </select>
-          <button class="btn btn-primary" id="btnAddRepair">+ New Repair <span class="kbd">F10</span></button>
-        </div>
-      </div>
-      <div class="card"><div id="repairsTable"></div></div>
-    </section>
-
-    <!-- ============ MODULE: CUSTOMERS ============ -->
-    <section class="module" id="module-customers">
-      <div class="toolbar">
-        <h3>Customers</h3>
-        <div class="toolbar-actions">
-          <input id="custSearch" class="form-input" placeholder="Search customers…">
-          <button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button>
-        </div>
-      </div>
-      <div class="card">
-        <div id="customersTable"></div>
-        <div class="bulk-bar" id="custBulkBar" style="display:none">
-          <span><b id="custSelCount">0</b> selected</span>
-          <button class="btn btn-danger btn-sm" onclick="bulkDeleteCustomers()">Delete Selected</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ MODULE: SUPPLIERS ============ -->
-    <section class="module" id="module-suppliers">
-      <div class="toolbar">
-        <h3>Suppliers</h3>
-        <div class="toolbar-actions">
-          <input id="supplierSearch" class="form-input" placeholder="Search suppliers…">
-          <select id="supplierCategoryFilter" class="form-input"><option value="">All Categories</option></select>
-          <button class="btn btn-primary" id="btnAddSupplier">+ Add Supplier</button>
-        </div>
-      </div>
-      <div class="card"><div id="suppliersTable"></div></div>
-    </section>
-
-    <!-- ============ MODULE: CREDIT / UDHAR ============ -->
-    <section class="module" id="module-credit">
-      <div class="toolbar">
-        <h3>Credit / Udhar</h3>
-        <div class="toolbar-actions">
-          <button class="btn btn-ghost" id="btnPrintCreditAll">🖨️ Print All</button>
-        </div>
-      </div>
-
-      <div class="tabs" id="creditDateTabs">
-        <button class="active" data-range="all">All</button>
-        <button data-range="today">Today</button>
-        <button data-range="week">This Week</button>
-        <button data-range="month">This Month</button>
-      </div>
-      <div class="tabs" id="creditStatusTabs">
-        <button class="active" data-status="all">All</button>
-        <button data-status="pending">Pending</button>
-        <button data-status="received">Received</button>
-      </div>
-
-      <div class="card"><h4>Customer-wise Summary</h4><div id="creditSummaryTable"></div></div>
-      <div class="card"><h4>Pending Invoices</h4><div id="creditTable"></div></div>
-      <div class="card"><h4>Recent Recoveries</h4><div id="recoveriesTable"></div></div>
-    </section>
-
-    <!-- ============ MODULE: EXPENSES ============ -->
-    <section class="module" id="module-expenses">
-      <div class="toolbar">
-        <h3>Expenses</h3>
-        <div class="toolbar-actions">
-          <input type="date" id="expFilterFrom" class="form-input">
-          <input type="date" id="expFilterTo" class="form-input">
-          <select id="expFilterCat" class="form-input"><option value="">All</option></select>
-          <button class="btn btn-ghost" id="btnFilterExpenses">Filter</button>
-          <button class="btn btn-primary" id="btnAddExpense">+ Add Expense <span class="kbd">F9</span></button>
-        </div>
-      </div>
-
-      <div class="stats-grid">
-        <div class="stat"><div class="stat-icon blue">📅</div><div><strong id="expToday">PKR 0</strong><small>Today</small></div></div>
-        <div class="stat"><div class="stat-icon green">🗓️</div><div><strong id="expWeek">PKR 0</strong><small>This Week</small></div></div>
-        <div class="stat"><div class="stat-icon orange">📆</div><div><strong id="expMonth">PKR 0</strong><small>This Month</small></div></div>
-        <div class="stat"><div class="stat-icon red">💸</div><div><strong id="expTotal">PKR 0</strong><small>Total</small></div></div>
-      </div>
-
-      <div class="card"><div id="expensesTable"></div></div>
-    </section>
-
-    <!-- ============ MODULE: REPORTS (v35 UPGRADE — 18 types) ============ -->
-    <section class="module" id="module-reports">
-      <div class="toolbar">
-        <h3>📊 Reports & P&L</h3>
-        <div class="toolbar-actions">
-          <button class="btn btn-ghost" id="btnPrintReport">🖨️ Print</button>
-          <button class="btn btn-primary" id="btnRunReport">Run Report</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="form-grid">
-          <div class="field"><label>Report Type</label>
-            <select id="reportType">
-              <option value="daily">1. Daily Sales</option>
-              <option value="weekly">2. Weekly Sales</option>
-              <option value="monthly">3. Monthly Sales</option>
-              <option value="sales">Sales (Custom Range)</option>
-              <option value="cash">4. Cash Sales</option>
-              <option value="credit">5. Credit Sales</option>
-              <option value="payment">6. Payment Method Report</option>
-              <option value="product">7. Product-wise Sales</option>
-              <option value="category">8. Category-wise Sales</option>
-              <option value="cashier">9. Cashier-wise Sales</option>
-              <option value="pl">10. Gross Profit (P&L)</option>
-              <option value="discount">11. Discount Report</option>
-              <option value="return">12. Return & Refund</option>
-              <option value="bestselling">13. Best Selling Products</option>
-              <option value="lowstock">14. Low Stock Alerts</option>
-              <option value="purchases">Purchases</option>
-              <option value="expenses">Expenses</option>
-              <option value="customer">Customers</option>
-            </select>
+      <!-- ============ MODULE: CUSTOMERS ============ -->
+      <section class="module" id="module-customers">
+        <div class="toolbar">
+          <h3>Customers</h3>
+          <div class="toolbar-actions">
+            <input id="custSearch" class="form-input" placeholder="Search customers…">
+            <button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button>
           </div>
-          <div class="field"><label>From</label><input type="date" id="reportFrom"></div>
-          <div class="field"><label>To</label><input type="date" id="reportTo"></div>
-          <div class="field"><label>Search</label><input id="reportSearch" placeholder="Search…"></div>
         </div>
-      </div>
+        <div class="card">
+          <div id="customersTable"></div>
+          <div class="bulk-bar" id="custBulkBar" style="display:none">
+            <span><b id="custSelCount">0</b> selected</span>
+            <button class="btn btn-danger btn-sm" onclick="bulkDeleteCustomers()">Delete Selected</button>
+          </div>
+        </div>
+      </section>
 
-      <div class="stats-grid" id="plSummary" style="display:none"></div>
-      <div class="card"><div id="reportOutput"></div></div>
-    </section>
+      <!-- ============ MODULE: SUPPLIERS ============ -->
+      <section class="module" id="module-suppliers">
+        <div class="toolbar">
+          <h3>Suppliers</h3>
+          <div class="toolbar-actions">
+            <input id="supplierSearch" class="form-input" placeholder="Search suppliers…">
+            <select id="supplierCategoryFilter" class="form-input"><option value="">All Categories</option></select>
+            <button class="btn btn-primary" id="btnAddSupplier">+ Add Supplier</button>
+          </div>
+        </div>
+        <div class="card"><div id="suppliersTable"></div></div>
+      </section>
 
-    <!-- ============ MODULE: TRANSACTIONS ============ -->
-    <section class="module" id="module-transactions">
-      <div class="toolbar"><h3>Transactions</h3></div>
-      <div class="card"><div id="transactionsTable"></div></div>
-    </section>
+      <!-- ============ MODULE: CREDIT / UDHAR ============ -->
+      <section class="module" id="module-credit">
+        <div class="toolbar">
+          <h3>Credit / Udhar</h3>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" id="btnPrintCreditAll">🖨️ Print All</button>
+          </div>
+        </div>
 
-    <!-- ============ MODULE: SETTINGS ============ -->
-    <section class="module" id="module-settings">
-      <div class="toolbar"><h3>Staff & Logs</h3></div>
-      <div class="card"><h4>Staff Members</h4><div id="staffTable"></div></div>
-      <div class="card"><h4>Activity Logs</h4><div id="logsTable"></div></div>
-    </section>
+        <div class="tabs" id="creditDateTabs">
+          <button class="active" data-range="all">All</button>
+          <button data-range="today">Today</button>
+          <button data-range="week">This Week</button>
+          <button data-range="month">This Month</button>
+        </div>
+        <div class="tabs" id="creditStatusTabs">
+          <button class="active" data-status="all">All</button>
+          <button data-status="pending">Pending</button>
+          <button data-status="received">Received</button>
+        </div>
 
-  </main>
+        <div class="card"><h4>Customer-wise Summary</h4><div id="creditSummaryTable"></div></div>
+        <div class="card"><h4>Pending Invoices</h4><div id="creditTable"></div></div>
+        <div class="card"><h4>Recent Recoveries</h4><div id="recoveriesTable"></div></div>
+      </section>
+
+      <!-- ============ MODULE: EXPENSES ============ -->
+      <section class="module" id="module-expenses">
+        <div class="toolbar">
+          <h3>Expenses</h3>
+          <div class="toolbar-actions">
+            <input type="date" id="expFilterFrom" class="form-input">
+            <input type="date" id="expFilterTo" class="form-input">
+            <select id="expFilterCat" class="form-input"><option value="">All</option></select>
+            <button class="btn btn-ghost" id="btnFilterExpenses">Filter</button>
+            <button class="btn btn-primary" id="btnAddExpense">+ Add Expense <span class="kbd">F9</span></button>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-icon blue">📅</div><div><strong id="expToday">PKR 0</strong><small>Today</small></div></div>
+          <div class="stat"><div class="stat-icon green">🗓️</div><div><strong id="expWeek">PKR 0</strong><small>This Week</small></div></div>
+          <div class="stat"><div class="stat-icon orange">📆</div><div><strong id="expMonth">PKR 0</strong><small>This Month</small></div></div>
+          <div class="stat"><div class="stat-icon red">💸</div><div><strong id="expTotal">PKR 0</strong><small>Total</small></div></div>
+        </div>
+
+        <div class="card"><div id="expensesTable"></div></div>
+      </section>
+
+      <!-- ============ MODULE: REPORTS ============ -->
+      <section class="module" id="module-reports">
+        <div class="toolbar">
+          <h3>📊 Reports & P&L</h3>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" id="btnPrintReport">🖨️ Print</button>
+            <button class="btn btn-primary" id="btnRunReport">Run Report</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-grid">
+            <div class="field"><label>Report Type</label>
+              <select id="reportType">
+                <option value="daily">1. Daily Sales</option>
+                <option value="weekly">2. Weekly Sales</option>
+                <option value="monthly">3. Monthly Sales</option>
+                <option value="sales">Sales (Custom Range)</option>
+                <option value="cash">4. Cash Sales</option>
+                <option value="credit">5. Credit Sales</option>
+                <option value="payment">6. Payment Method Report</option>
+                <option value="product">7. Product-wise Sales</option>
+                <option value="category">8. Category-wise Sales</option>
+                <option value="cashier">9. Cashier-wise Sales</option>
+                <option value="pl">10. Gross Profit (P&L)</option>
+                <option value="discount">11. Discount Report</option>
+                <option value="return">12. Return & Refund</option>
+                <option value="bestselling">13. Best Selling Products</option>
+                <option value="lowstock">14. Low Stock Alerts</option>
+                <option value="purchases">Purchases</option>
+                <option value="expenses">Expenses</option>
+                <option value="customer">Customers</option>
+              </select>
+            </div>
+            <div class="field"><label>From</label><input type="date" id="reportFrom"></div>
+            <div class="field"><label>To</label><input type="date" id="reportTo"></div>
+            <div class="field"><label>Search</label><input id="reportSearch" placeholder="Search…"></div>
+          </div>
+        </div>
+
+        <div class="stats-grid" id="plSummary" style="display:none"></div>
+        <div class="card"><div id="reportOutput"></div></div>
+      </section>
+
+      <!-- ============ MODULE: TRANSACTIONS ============ -->
+      <section class="module" id="module-transactions">
+        <div class="toolbar"><h3>Transactions</h3></div>
+        <div class="card"><div id="transactionsTable"></div></div>
+      </section>
+
+      <!-- ============ MODULE: SETTINGS ============ -->
+      <section class="module" id="module-settings">
+        <div class="toolbar"><h3>Staff & Logs</h3></div>
+        <div class="card"><h4>Staff Members</h4><div id="staffTable"></div></div>
+        <div class="card"><h4>Activity Logs</h4><div id="logsTable"></div></div>
+      </section>
+
+    </main>
+  </div> <!-- /dashboard -->
 
   <!-- ============ MODAL ============ -->
   <div class="modal-backdrop" id="modalBackdrop">
