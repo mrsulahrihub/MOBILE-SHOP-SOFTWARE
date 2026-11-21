@@ -29,18 +29,8 @@ document.getElementById('welcomeName').textContent = CURRENT_NAME;
 document.getElementById('userAvatar').textContent = (CURRENT_NAME || 'B')[0].toUpperCase();
 document.getElementById('todayDate').textContent = new Intl.DateTimeFormat('en-PK', { dateStyle: 'full' }).format(new Date());
 
-/* v37.1 — Dark Mode (tumhari CSS: [data-theme="dark"]) */
-const BM_THEME_TOGGLE = document.getElementById('themeToggle');
-if (localStorage.getItem('bm_theme') === 'dark') document.documentElement.setAttribute('data-theme','dark');
-BM_THEME_TOGGLE?.addEventListener('click', () => {
-  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  if (next === 'dark') document.documentElement.setAttribute('data-theme','dark'); else document.documentElement.removeAttribute('data-theme');
-  localStorage.setItem('bm_theme', next);
-  if (BM_THEME_TOGGLE) BM_THEME_TOGGLE.textContent = next === 'dark' ? '☀️' : '🌙';
-});
-if (BM_THEME_TOGGLE) BM_THEME_TOGGLE.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
-function BM_SET_MODULE_THEME(m){ if(m) document.body.dataset.module=m; }
-document.querySelectorAll('.nav-item[data-module]').forEach(b=>b.addEventListener('click',()=>BM_SET_MODULE_THEME(b.dataset.module)));
+/* v37.1 HTML — Dark mode toggle (HTML me #themeToggle button hai) */
+(function(){ var saved=localStorage.getItem('bm_theme'); if(saved==='dark') document.documentElement.setAttribute('data-theme','dark'); var b=document.getElementById('themeToggle'); if(b){ b.textContent=document.documentElement.getAttribute('data-theme')==='dark'?'☀️':'🌙'; b.addEventListener('click',function(){ var d=document.documentElement.getAttribute('data-theme')==='dark'; if(d){document.documentElement.removeAttribute('data-theme');localStorage.setItem('bm_theme','light');b.textContent='🌙';}else{document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('bm_theme','dark');b.textContent='☀️';} }); } })();
 document.getElementById('logoutBtn').addEventListener('click', () => {
   if (!confirm('Are you sure you want to logout?')) return;
   ['bm_staff', 'shop_id', 'shop_name', 'owner_name', 'bm_held_carts', 'bm_shop_perms'].forEach(k => localStorage.removeItem(k));
