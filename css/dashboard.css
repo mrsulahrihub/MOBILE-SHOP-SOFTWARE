@@ -1,3 +1,4 @@
+
 /* BM MOBILE ZONE — dashboard.css v37.1 FULL | Light + Dark + Per-section themes | HTML v37.1 se 100% synced */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
 :root{--bg-main:#F4F6FB;--bg-body-grad:linear-gradient(135deg,#F9FAFC 0%,#EEF2F9 100%);--bg-card:#fff;--bg-soft:#F8FAFC;--bg-input:#F9FAFB;--primary:#4F46E5;--primary-hover:#4338CA;--primary-light:#EEF2FF;--primary-soft:#E0E7FF;--primary-gradient:linear-gradient(135deg,#6366F1 0%,#3B82F6 100%);--primary-shadow:0 8px 24px rgba(79,70,229,.25);--text-main:#0F172A;--text-soft:#334155;--text-muted:#64748B;--text-faint:#94A3B8;--border-light:#E2E8F0;--border:#E5E7EB;--border-strong:#CBD5E1;--success:#059669;--success-bg:#ECFDF5;--success-border:#A7F3D0;--danger:#DC2626;--danger-bg:#FEF2F2;--danger-border:#FECACA;--warning:#D97706;--warning-bg:#FFFBEB;--warning-border:#FDE68A;--info:#0284C7;--info-bg:#EFF6FF;--info-border:#BFDBFE;--shadow-xs:0 1px 2px rgba(15,23,42,.04);--shadow-sm:0 1px 3px rgba(15,23,42,.06),0 1px 2px rgba(15,23,42,.04);--shadow-md:0 4px 12px rgba(15,23,42,.08);--shadow-lg:0 12px 32px rgba(15,23,42,.10);--shadow-xl:0 24px 48px rgba(15,23,42,.15);--shadow-focus:0 0 0 4px rgba(79,70,229,.15);--radius:16px;--radius-md:10px;--radius-sm:8px;--transition:all .2s cubic-bezier(.4,0,.2,1);--muted:#64748B;--card:#fff}
@@ -208,7 +209,16 @@ table.data td strong,table.data td b{color:var(--text-main)}
 .export-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
 @media(max-width:850px){.sidebar{width:260px;left:-260px}.sidebar.show{left:0}.sidebar-handle.open{left:260px}.form-grid{grid-template-columns:1fr}.main{padding:18px;margin-left:0!important;width:100%!important}.topbar h2{font-size:20px}.modal{border-radius:var(--radius-md)}.modal-body{padding:16px}.card{padding:16px}.stats-grid{grid-template-columns:1fr 1fr}.notif-panel{right:12px;left:12px;width:auto}.toast-host{right:12px;left:12px}.floating-help{bottom:16px;left:16px;width:40px;height:40px;font-size:16px}}
 @media(max-width:480px){.stats-grid{grid-template-columns:1fr}.topbar-right{width:100%}.search-bar{max-width:100%;width:100%}.credit-grid{grid-template-columns:1fr}}
-@media print{body *{visibility:hidden}#modalBackdrop,#modalBackdrop *{visibility:visible}.modal{position:absolute;inset:0}}
+/* PRINT (main window): never hide everything. Hide chrome, print content cleanly. Actual receipts use hidden iframe, so this only affects Ctrl+P on dashboard. */
+@media print{
+  .sidebar, header.topbar, .sidebar-handle, .floating-help, .toast-host, .notif-panel, .theme-toggle, .icon-btn, .toolbar-actions button, .btn { display:none !important; }
+  body{ background:#fff !important; }
+  .main{ margin-left:0 !important; width:100% !important; padding:0 !important; }
+  .card{ box-shadow:none !important; border:1px solid #ddd !important; break-inside:avoid; }
+  .module{ display:none !important; }
+  .module.active{ display:block !important; }
+  a{ text-decoration:none !important; color:#000 !important; }
+}
 
 /* =====================================================
    BM MOBILE ZONE — v38 PREMIUM (appended, overrides v37)
@@ -294,3 +304,10 @@ table.data tbody tr:hover{background:#F1F5FF}
 /* ---------- Responsive: POS first on mobile ---------- */
 @media(max-width:900px){.pos-grid-premium{grid-template-columns:1fr}.pos-dynamic-input{font-size:14px}}
 @media(max-width:1400px){.pos-grid-premium{grid-template-columns:1fr 1fr}.pos-grid-premium>.pos-pay-card{grid-column:1/-1}}
+
+/* v39 additions: command palette, POS dynamic, target bar */
+.pos-dynamic-results .pos-results{ max-height:340px; overflow-y:auto; }
+.pos-result-item.active{ outline:2px solid #6366F1; outline-offset:-2px; }
+#bmPrintFrame{ display:none !important; }
+.kbd{ background:#F1F5F9; border:1px solid #E2E8F0; border-bottom-width:2px; padding:2px 6px; border-radius:6px; font-size:11px; font-weight:700; }
+
