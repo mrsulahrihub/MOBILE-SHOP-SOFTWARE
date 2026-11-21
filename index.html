@@ -2,135 +2,430 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mobile Shop — Premium Phones & Accessories</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="css/landing.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BISMILLAH MOBILE ZONE — Powered by MS.TECH COMPANY</title>
+<meta name="description" content="BISMILLAH MOBILE ZONE — Complete Mobile Shop Management System. POS, Inventory, Credit, Repairing, Reports & P&L. Built by MS.TECH COMPANY.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--navy:#0F172A;--navy2:#1E293B;--indigo:#6366F1;--blue:#3B82F6;--cyan:#06B6D4;--gold:#F59E0B;--gold2:#FBBF24;--green:#10B981;--red:#EF4444;--bg:#F8FAFC;--card:#fff;--text:#0F172A;--muted:#64748B;--line:#E2E8F0;--radius:22px}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--bg);line-height:1.6;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer}
+.container{max-width:1180px;margin:0 auto;padding:0 20px}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(15,23,42,.82);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-in{max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#6366F1,#06B6D4);display:grid;place-items:center;font-size:22px;box-shadow:0 8px 24px rgba(99,102,241,.45)}
+.logo b{color:#fff;font-size:16px;line-height:1.1;display:block;letter-spacing:.2px}
+.logo small{color:#CBD5E1;font-size:11px;letter-spacing:1.2px;text-transform:uppercase}
+.nav-links{display:flex;gap:26px;align-items:center}
+.nav-links a{color:#E2E8F0;font-size:13.5px;font-weight:600}
+.nav-links a:hover{color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;padding:13px 24px;font-weight:800;font-size:14px;transition:.2s}
+.btn-primary{background:linear-gradient(135deg,#6366F1,#3B82F6,#06B6D4);color:#fff;box-shadow:0 10px 28px rgba(99,102,241,.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(99,102,241,.5)}
+.btn-gold{background:linear-gradient(135deg,#F59E0B,#FBBF24);color:#1E293B;box-shadow:0 10px 28px rgba(245,158,11,.35)}
+.btn-gold:hover{transform:translateY(-2px)}
+.btn-ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18)}
+.btn-white{background:#fff;color:#0F172A}
+.btn-outline{background:#fff;color:#0F172A;border:1.5px solid var(--line)}
+.btn-sm{padding:9px 16px;font-size:13px}
+@media(max-width:820px){.nav-links{display:none}.logo b{font-size:14px}}
+.hero{background:radial-gradient(1000px 500px at 85% -5%,rgba(99,102,241,.45),transparent 60%),radial-gradient(800px 500px at -10% 110%,rgba(6,182,212,.35),transparent 55%),linear-gradient(180deg,#0F172A 0%,#1E293B 55%,#0F172A 100%);color:#fff;padding:128px 0 60px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.14) 1px,transparent 1px);background-size:26px 26px;opacity:.25;pointer-events:none}
+.hero-grid{position:relative;display:grid;grid-template-columns:1.08fr .92fr;gap:36px;align-items:center}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero{padding-top:110px}}
+.bismillah{text-align:center;font-size:26px;line-height:1.8;color:#FDE68A;font-weight:700;margin-bottom:10px}
+.badge{display:inline-flex;gap:8px;align-items:center;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);padding:7px 13px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.badge i{width:8px;height:8px;border-radius:50%;background:#34D399;box-shadow:0 0 0 5px rgba(52,211,153,.18);display:inline-block}
+.hero h1{font-family:'Plus Jakarta Sans',Inter,sans-serif;font-size:clamp(42px,6vw,68px);line-height:.95;font-weight:900;letter-spacing:-1.5px;margin:16px 0 14px}
+.hero h1 span{background:linear-gradient(90deg,#818CF8,#38BDF8,#22D3EE,#FBBF24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p.sub{color:#CBD5E1;font-size:17px;max-width:560px}
+.hero p.sub b{color:#fff}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.hero-note{margin-top:16px;font-size:12.5px;color:#94A3B8}
+.hero-note b{color:#FDE68A}
+.trust{display:flex;gap:18px;flex-wrap:wrap;margin-top:22px}
+.trust div{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:700;color:#E2E8F0}
+.trust span{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center}
+.phone{position:relative}
+.phone-card{background:#fff;color:#0F172A;border-radius:26px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.2);transform:rotate(1deg)}
+.phone-top{background:linear-gradient(135deg,#0F172A,#4F46E5,#06B6D4);color:#fff;padding:18px 18px 14px}
+.phone-top small{opacity:.8;font-size:11px;letter-spacing:1px;text-transform:uppercase}
+.phone-top b{font-size:20px;display:block;margin-top:2px}
+.phone-search{margin:12px 18px 0;background:#F1F5F9;border:1.5px solid #E2E8F0;border-radius:12px;padding:11px 12px;display:flex;gap:8px;align-items:center;font-size:13px;color:#64748B}
+.phone-search input{border:none;background:transparent;outline:none;width:100%;font-size:13px;font-weight:600;color:#0F172A}
+.phone-list{padding:12px 12px 6px;display:grid;gap:8px}
+.mini-prod{display:flex;align-items:center;gap:10px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:14px;padding:10px 12px}
+.mini-prod .ico{width:38px;height:38px;border-radius:11px;background:#E0E7FF;display:grid;place-items:center;font-size:18px}
+.mini-prod b{font-size:13.5px;display:block}
+.mini-prod small{color:#64748B;font-size:11.5px}
+.mini-prod .price{margin-left:auto;font-weight:900;font-size:13px}
+.mini-prod .add{background:#0F172A;color:#fff;border:none;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:800}
+.phone-total{padding:12px 18px 16px;border-top:1px dashed #E2E8F0;display:flex;justify-content:space-between;align-items:center}
+.phone-total b{font-size:18px}
+.float-card{position:absolute;background:#fff;color:#0F172A;border-radius:16px;padding:12px 14px;box-shadow:0 18px 40px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center;font-size:13px;font-weight:800}
+.float-card small{display:block;color:#64748B;font-weight:600;font-size:11px}
+.float-1{left:-18px;top:34%;animation:float 3.5s ease-in-out infinite}
+.float-2{right:-14px;bottom:18%;animation:float 4.2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media(max-width:900px){.float-1{left:6px}.float-2{right:6px}}
+.marquee{background:#0F172A;color:#fff;overflow:hidden;padding:13px 0;border-top:1px solid rgba(255,255,255,.08)}
+.marquee-track{display:flex;gap:36px;white-space:nowrap;animation:scroll 22s linear infinite;font-weight:800;letter-spacing:1px;font-size:12.5px}
+.marquee-track span{color:#FBBF24}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.stats{padding:36px 0 10px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:820px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 4px 20px rgba(15,23,42,.05)}
+.stat b{font-size:32px;line-height:1;display:block}
+.stat small{color:var(--muted);font-weight:700;font-size:12px;letter-spacing:.5px;text-transform:uppercase}
+.stat p{font-size:13px;color:#475569;margin-top:6px}
+.section{padding:64px 0}
+.section-head{max-width:720px;margin-bottom:28px}
+.eyebrow{font-size:12px;font-weight:900;letter-spacing:1.6px;text-transform:uppercase;color:#6366F1}
+.section-head h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(30px,4vw,44px);line-height:1.05;letter-spacing:-1px;margin:10px 0 10px}
+.section-head p{color:var(--muted);font-size:16px}
+.section-head.center{margin-left:auto;margin-right:auto;text-align:center}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.tab{border:1.5px solid var(--line);background:#fff;padding:9px 15px;border-radius:999px;font-weight:700;font-size:13px}
+.tab.active{background:#0F172A;color:#fff;border-color:#0F172A}
+.modules{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.modules{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.modules{grid-template-columns:1fr}}
+.mod{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;transition:.2s;position:relative;overflow:hidden}
+.mod:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(15,23,42,.1);border-color:#C7D2FE}
+.mod .ico{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:24px;margin-bottom:14px}
+.mod h3{font-size:18px;margin-bottom:6px}
+.mod p{font-size:13.5px;color:var(--muted)}
+.mod ul{margin:12px 0 0;padding-left:18px;font-size:13px;color:#334155}
+.mod ul li{margin:4px 0}
+.mod .tag{position:absolute;top:16px;right:16px;background:#FEF3C7;color:#92400E;font-size:11px;font-weight:800;padding:5px 9px;border-radius:999px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:stretch}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+.panel{background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 10px 30px rgba(15,23,42,.05)}
+.panel.dark{background:linear-gradient(180deg,#0F172A,#1E293B);color:#fff;border-color:#1E293B}
+.panel h3{font-size:20px;margin-bottom:6px}
+.panel p{font-size:13.5px;color:var(--muted)}
+.panel.dark p{color:#CBD5E1}
+.demo-input{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font-size:14px;font-weight:600;outline:none;margin:14px 0 10px}
+.demo-input:focus{border-color:#6366F1;box-shadow:0 0 0 4px rgba(99,102,241,.15)}
+.demo-row{display:flex;justify-content:space-between;align-items:center;background:#F8FAFC;border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:8px;font-size:13.5px}
+.demo-row b{font-size:13.5px}
+.demo-row small{color:#64748B}
+.chip{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px}
+.chip.green{background:#DCFCE7;color:#166534}.chip.amber{background:#FEF3C7;color:#92400E}.chip.red{background:#FEE2E2;color:#991B1B}
+.print-toggle{display:flex;gap:8px;margin:14px 0}
+.print-toggle button{flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:800;font-size:13px}
+.print-toggle button.active{background:#0F172A;color:#fff;border-color:#0F172A}
+.receipt{background:#fff;color:#0F172A;border-radius:12px;padding:18px;border:1px dashed #CBD5E1;font-family:ui-monospace,monospace;font-size:12px;line-height:1.7}
+.receipt.a4{font-family:Inter,sans-serif}
+.receipt .r-head{text-align:center;border-bottom:2px dashed #0F172A;padding-bottom:10px;margin-bottom:10px}
+.receipt .r-head b{font-size:16px}
+.receipt .r-row{display:flex;justify-content:space-between}
+.chart{height:170px;display:flex;align-items:flex-end;gap:10px;margin-top:18px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1)}
+.bar{flex:1;border-radius:10px 10px 4px 4px;position:relative;min-height:12px;transition:.4s}
+.bar span{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:800;color:#fff;white-space:nowrap}
+.bar small{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:10px;color:#94A3B8;white-space:nowrap}
+.mstech{background:linear-gradient(135deg,#0F172A 0%,#312E81 45%,#0E7490 100%);color:#fff;border-radius:28px;padding:40px;position:relative;overflow:hidden}
+.mstech::after{content:"MS.TECH";position:absolute;right:-10px;bottom:-28px;font-size:130px;font-weight:900;opacity:.06;letter-spacing:-4px}
+.mstech-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;position:relative}
+@media(max-width:900px){.mstech-grid{grid-template-columns:1fr}.mstech{padding:28px 20px}}
+.mstech h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(30px,4vw,44px);line-height:1.02;letter-spacing:-1px}
+.mstech h2 span{color:#FBBF24}
+.mstech p{color:#CBD5E1;margin-top:12px}
+.service-list{display:grid;gap:10px;margin-top:20px}
+.service-list div{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.service-list b{display:block;font-size:14px}
+.service-list small{color:#CBD5E1;font-size:12.5px}
+.ms-card{background:#fff;color:#0F172A;border-radius:20px;padding:22px}
+.ms-card h3{font-size:19px}
+.ms-card ul{list-style:none;margin-top:12px;display:grid;gap:9px;font-size:13.5px;color:#334155}
+.ms-card ul li::before{content:"✓ ";color:#059669;font-weight:900}
+.ms-contact{margin-top:16px;background:#0F172A;color:#fff;border-radius:16px;padding:16px;text-align:center}
+.ms-contact b{font-size:22px;letter-spacing:1px}
+.ms-contact small{display:block;color:#CBD5E1;font-size:12px;margin-top:2px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.plans{grid-template-columns:1fr}}
+.plan{background:#fff;border:1.5px solid var(--line);border-radius:24px;padding:26px;position:relative}
+.plan.pop{border-color:#6366F1;box-shadow:0 20px 50px rgba(99,102,241,.18);transform:scale(1.02)}
+.plan .pop-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#6366F1,#06B6D4);color:#fff;font-size:11px;font-weight:900;letter-spacing:1px;padding:6px 12px;border-radius:999px;white-space:nowrap}
+.plan h3{font-size:18px}
+.plan .price{font-size:38px;font-weight:900;margin:10px 0 2px}
+.plan .price small{font-size:13px;color:#64748B;font-weight:700}
+.plan ul{list-style:none;margin:16px 0;display:grid;gap:9px;font-size:13.5px;color:#334155}
+.plan ul li::before{content:"✓ ";color:#059669;font-weight:900}
+.plan .btn{width:100%}
+.testi{overflow:hidden}
+.testi-track{display:flex;transition:transform .5s ease}
+.testi-card{min-width:100%;background:#fff;border:1px solid var(--line);border-radius:24px;padding:28px}
+.testi-card p{font-size:17px;line-height:1.7}
+.testi-who{display:flex;gap:12px;align-items:center;margin-top:18px}
+.avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#6366F1,#06B6D4);color:#fff;display:grid;place-items:center;font-weight:900}
+.dots{display:flex;gap:8px;justify-content:center;margin-top:16px}
+.dot{width:9px;height:9px;border-radius:50%;background:#CBD5E1;border:none}
+.dot.active{background:#6366F1;width:28px;border-radius:999px}
+.faq{border:1px solid var(--line);background:#fff;border-radius:16px;margin-bottom:10px;overflow:hidden}
+.faq summary{padding:17px 20px;font-weight:800;font-size:14.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq summary::-webkit-details-marker{display:none}
+.faq p{padding:0 20px 18px;color:#64748B;font-size:13.5px}
+.cta{background:linear-gradient(135deg,#F59E0B,#FBBF24);border-radius:28px;padding:36px;text-align:center;color:#1E293B;position:relative;overflow:hidden}
+.cta h2{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(28px,4vw,42px);line-height:1.05;letter-spacing:-1px}
+.cta p{font-weight:600;opacity:.85;margin:10px auto 20px;max-width:620px}
+.cta .btn{box-shadow:0 12px 30px rgba(0,0,0,.2)}
+footer{background:#0F172A;color:#CBD5E1;padding:36px 0 22px;margin-top:20px}
+.foot-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:24px}
+@media(max-width:820px){.foot-grid{grid-template-columns:1fr}}
+footer h4{color:#fff;margin-bottom:10px}
+footer a{display:block;padding:4px 0;font-size:13.5px}
+footer a:hover{color:#fff}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.1);margin-top:22px;padding-top:16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px}
+.reveal{opacity:0;transform:translateY(18px);transition:.6s ease}
+.reveal.in{opacity:1;transform:none}
+</style>
 </head>
 <body>
-
-<!-- Liquid blobs -->
-<div class="blob blob-1"></div>
-<div class="blob blob-2"></div>
-<div class="blob blob-3"></div>
-<div class="blob blob-4"></div>
-
-<!-- NAV -->
-<header class="nav glass">
-    <a href="#" class="brand">
-        <span class="brand-mark">M</span>
-        <span>MOBILE<b>SHOP</b></span>
-    </a>
-    <nav class="nav-links">
-        <a href="#phones">Phones</a>
-        <a href="#accessories">Accessories</a>
-        <a href="#about">About</a>
-    </nav>
-    <a href="login.html" class="btn-login">
-        <i class="fa-solid fa-right-to-bracket"></i> Login
-    </a>
-</header>
-
-<!-- HERO -->
-<section class="hero">
-    <div class="hero-text">
-        <span class="chip glass"><i class="fa-solid fa-bolt"></i> New arrivals weekly</span>
-        <h1>The <span>finest</span> mobile<br>experience, curated.</h1>
-        <p>Discover the latest flagship phones, accessories, and unbeatable prices — all in one premium store.</p>
-        <div class="hero-actions">
-            <a href="#phones" class="btn-primary">Browse Phones <i class="fa-solid fa-arrow-right"></i></a>
-            <a href="login.html" class="btn-ghost glass"><i class="fa-solid fa-lock"></i> Admin Login</a>
-        </div>
-        <div class="stats glass">
-            <div><strong>120+</strong><small>Models</small></div>
-            <div><strong>15k+</strong><small>Happy buyers</small></div>
-            <div><strong>4.9★</strong><small>Rating</small></div>
-        </div>
+<header class="nav"><div class="nav-in">
+  <a class="logo" href="#top"><span class="logo-mark">📱</span><span><b>BISMILLAH MOBILE ZONE</b><small>Powered by MS.TECH</small></span></a>
+  <nav class="nav-links"><a href="#system">System</a><a href="#demo">Live Demo</a><a href="#mstech">MS.TECH</a><a href="#plans">Get System</a><a href="#faq">FAQ</a></nav>
+  <a class="btn btn-primary btn-sm" href="login.html">🔐 Enter System → Login</a>
+</div></header>
+<section class="hero" id="top"><div class="container hero-grid">
+  <div>
+    <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+    <span class="badge"><i></i> Welcome • Live System • Ready to Use</span>
+    <h1>Welcome to<br><span>BISMILLAH<br>MOBILE ZONE</span></h1>
+    <p class="sub">Pakistan&apos;s smartest, fastest, and most premium Mobile Shop Management System. Sales, Stock, Credit, Repairing, Expenses, and Profit &amp; Loss — <b>everything in one place, in one click.</b></p>
+    <div class="hero-ctas">
+      <a class="btn btn-gold" href="login.html">🚀 Enter System — Login Now</a>
+      <a class="btn btn-ghost" href="#system">✨ Explore System ↓</a>
     </div>
-    <div class="hero-visual glass">
-        <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=700&q=80" alt="iPhone">
-        <div class="floating-card fc1 glass">
-            <i class="fa-solid fa-shield-halved"></i>
-            <span>Genuine warranty</span>
-        </div>
-        <div class="floating-card fc2 glass">
-            <i class="fa-solid fa-truck-fast"></i>
-            <span>Fast delivery</span>
-        </div>
+    <p class="hero-note">No setup headache. Log in, sell, and see your profit. <b>Built with care by MS.TECH COMPANY.</b></p>
+    <div class="trust">
+      <div><span>✓</span> 12+ Modules</div><div><span>✓</span> 100+ Features</div><div><span>✓</span> Daily P&amp;L Graph</div><div><span>✓</span> Thermal + A4 Print</div>
     </div>
-</section>
-
-<!-- PHONES -->
-<section id="phones" class="section">
-    <div class="section-head">
-        <h2>All Mobile Phones</h2>
-        <p>Latest flagships & budget picks with verified specs.</p>
+  </div>
+  <div class="phone">
+    <div class="phone-card">
+      <div class="phone-top"><small>Bismillah Mobile Zone • POS</small><b>Today Sales — PKR 148,500</b><small style="text-transform:none;letter-spacing:0">Profit Today: <b style="display:inline;font-size:14px;color:#A7F3D0">PKR 32,400</b> • 14 Orders</small></div>
+      <div class="phone-search"><span>🔍</span><input id="heroSearch" placeholder="Search iPhone, IMEI, Barcode…"></div>
+      <div class="phone-list" id="heroList"></div>
+      <div class="phone-total"><span>Cart Total <small style="display:block;color:#64748B;font-size:11px">2 items • Paid PKR 120,000</small></span><b id="heroTotal">PKR 0</b></div>
+      <div style="padding:0 18px 18px"><a href="login.html" class="btn btn-primary" style="width:100%">Open Real POS → Login</a></div>
     </div>
-    <div class="grid" id="phoneGrid"></div>
-</section>
-
-<!-- ACCESSORIES -->
-<section id="accessories" class="section">
-    <div class="section-head">
-        <h2>Accessories</h2>
-        <p>Cases, chargers, earbuds and more.</p>
+    <div class="float-card float-1"><span style="font-size:20px">📈</span><span>Profit +18%<small>This month vs last month</small></span></div>
+    <div class="float-card float-2"><span style="font-size:20px">💳</span><span>Credit Recovered<small>PKR 45,000 today</small></span></div>
+  </div>
+</div></section>
+<div class="marquee"><div class="marquee-track" id="marqueeTrack"></div></div>
+<section class="stats"><div class="container"><div class="stats-grid">
+  <div class="stat"><b><span data-count="12">0</span>+</b><small>Complete Modules</small><p>From POS to Staff &amp; Logs — your entire shop in one system.</p></div>
+  <div class="stat"><b><span data-count="100">0</span>+</b><small>Premium Features</small><p>Fuzzy search, split payment, hold sale, barcode, backup, and much more.</p></div>
+  <div class="stat"><b><span data-count="99">0</span>%</b><small>Print Success</small><p>Iframe print engine — no popup block, no blank page.</p></div>
+  <div class="stat"><b>24/7</b><small>MS.TECH Support</small><p>The system was built by MS.TECH, and MS.TECH provides the support.</p></div>
+</div></div></section>
+<section class="section" id="system"><div class="container">
+  <div class="section-head"><span class="eyebrow">Complete System • One Dashboard</span><h2>Your entire shop, <span style="color:#6366F1">on one screen.</span></h2><p>Explore every module below — everything included is listed. This is not just a demo, it is the full list of the real system.</p></div>
+  <div class="tabs" id="modTabs">
+    <button class="tab active" data-filter="all">All Modules</button><button class="tab" data-filter="sale">Sales &amp; POS</button><button class="tab" data-filter="stock">Stock</button><button class="tab" data-filter="money">Money &amp; Reports</button><button class="tab" data-filter="people">People &amp; Control</button>
+  </div>
+  <div class="modules" id="modulesGrid"></div>
+  <div style="margin-top:18px;text-align:center"><a class="btn btn-primary" href="login.html">Try All Modules → Login</a></div>
+</div></section>
+<section class="section" id="demo" style="padding-top:10px"><div class="container">
+  <div class="section-head center"><span class="eyebrow">Live Demo • Try It Here</span><h2>Try the POS search right here.</h2><p>This is a small demo — in the real system, the same search finds what you need in seconds across 1000+ products, customers, and invoices.</p></div>
+  <div class="split">
+    <div class="panel">
+      <h3>🔍 Dynamic POS Search — Live Demo</h3><p>Type: <b>iPhone, Samsung, IMEI, Barcode</b> or a price range like <b>50000-150000</b>.</p>
+      <input class="demo-input" id="demoSearch" placeholder="Product / Brand / IMEI / Barcode / Price range…">
+      <div id="demoResults"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:12px;font-size:13px"><span>Cart: <b id="demoCartCount">0 items</b></span><b>Total: <span id="demoCartTotal">PKR 0</span></b></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="window.location.href='login.html'">Open Real POS → Login</button>
     </div>
-    <div class="grid accessories" id="accGrid"></div>
-</section>
-
-<!-- ABOUT -->
-<section id="about" class="section about glass">
-    <h2>Why Mobile Shop?</h2>
-    <div class="about-grid">
-        <div><i class="fa-solid fa-certificate"></i><h3>100% Genuine</h3><p>Every device is verified and sealed.</p></div>
-        <div><i class="fa-solid fa-headset"></i><h3>24/7 Support</h3><p>Talk to real humans any time.</p></div>
-        <div><i class="fa-solid fa-rotate-left"></i><h3>Easy Returns</h3><p>7-day no-questions return policy.</p></div>
-        <div><i class="fa-solid fa-tags"></i><h3>Best Prices</h3><p>Price-matched with any local store.</p></div>
+    <div class="panel dark">
+      <h3>📊 Daily Profit &amp; Loss — Live</h3><p>Daily profit, daily loss — in a graph. Green = Profit, Red = Loss, Blue = Revenue.</p>
+      <div class="chart" id="plChart"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:38px">
+        <span style="background:rgba(255,255,255,.1);padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700">📈 Today Profit: <b style="color:#34D399">PKR 32,400</b></span>
+        <span style="background:rgba(255,255,255,.1);padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700">📦 Orders Today: <b>14</b></span>
+        <span style="background:rgba(255,255,255,.1);padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700">💰 Month Profit: <b style="color:#34D399">PKR 412,000</b></span>
+      </div>
+      <p style="margin-top:14px">In the real system, this graph is built from <b>your real sales, purchase cost, and expenses</b> — no estimates, only exact numbers.</p>
     </div>
-</section>
-
-<footer class="footer">
-    <span>© 2024 Mobile Shop. All rights reserved.</span>
-    <a href="login.html"><i class="fa-solid fa-user-shield"></i> Staff Login</a>
-</footer>
-
-<script>
-/* ---------- Product data ---------- */
-const phones = [
-  { name:"iPhone 15 Pro Max", brand:"Apple", price:"PKR 549,999", img:"https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=500&q=80", tag:"New" },
-  { name:"Samsung Galaxy S24 Ultra", brand:"Samsung", price:"PKR 429,999", img:"https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500&q=80", tag:"Hot" },
-  { name:"Google Pixel 8 Pro", brand:"Google", price:"PKR 329,999", img:"https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=500&q=80", tag:"" },
-  { name:"OnePlus 12", brand:"OnePlus", price:"PKR 249,999", img:"https://images.unsplash.com/photo-1567581935884-3349723552ca?w=500&q=80", tag:"" },
-  { name:"Xiaomi 14 Ultra", brand:"Xiaomi", price:"PKR 289,999", img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&q=80", tag:"Hot" },
-  { name:"Infinix Zero 30", brand:"Infinix", price:"PKR 89,999", img:"https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=500&q=80", tag:"Value" },
-  { name:"Realme GT 5 Pro", brand:"Realme", price:"PKR 179,999", img:"https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=500&q=80", tag:"" },
-  { name:"Oppo Find X7", brand:"Oppo", price:"PKR 219,999", img:"https://images.unsplash.com/photo-1580910051074-3eb694886505?w=500&q=80", tag:"" },
-];
-
-const accessories = [
-  { name:"AirPods Pro 2", price:"PKR 74,999", img:"https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=500&q=80" },
-  { name:"MagSafe Charger", price:"PKR 12,999", img:"https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=500&q=80" },
-  { name:"Galaxy Watch 6", price:"PKR 89,999", img:"https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80" },
-  { name:"Pro Phone Case", price:"PKR 4,999", img:"https://images.unsplash.com/photo-1541877944-ac82a091518a?w=500&q=80" },
-];
-
-/* ---------- Render ---------- */
-const card = (p) => `
-  <article class="product glass">
-    ${p.tag ? `<span class="tag">${p.tag}</span>` : ""}
-    <div class="product-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
-    <div class="product-info">
-      ${p.brand ? `<small>${p.brand}</small>` : ""}
-      <h3>${p.name}</h3>
-      <div class="price-row">
-        <strong>${p.price}</strong>
-        <button class="btn-cart" aria-label="Add to cart"><i class="fa-solid fa-cart-shopping"></i></button>
+  </div>
+  <div class="split" style="margin-top:20px">
+    <div class="panel">
+      <h3>🖨️ Print — Thermal vs A4 Premium</h3><p>Press a button and the receipt style changes. In the real system, Preview + Copies + Auto-print are also included.</p>
+      <div class="print-toggle"><button id="btnThermal" class="active">🧾 Thermal 80mm</button><button id="btnA4">📄 A4 Premium</button></div>
+      <div class="receipt" id="receiptBox"></div>
+    </div>
+    <div class="panel" style="background:linear-gradient(180deg,#FFFBEB,#fff)">
+      <h3>⚡ Why Is This System the Fastest?</h3><p>Shortcuts + smart features for your everyday work.</p>
+      <div style="display:grid;gap:10px;margin-top:14px">
+        <div style="display:flex;gap:10px"><span style="font-size:20px">⌨️</span><div><b style="font-size:14px">Keyboard Shortcuts</b><p style="font-size:12.5px">F2 Add • F3 Search • F4 Save • F6 Hold • Alt+K Command Palette</p></div></div>
+        <div style="display:flex;gap:10px"><span style="font-size:20px">🧲</span><div><b style="font-size:14px">Auto Credit</b><p style="font-size:12.5px">Any remaining balance goes to the Credit section automatically — nothing gets forgotten.</p></div></div>
+        <div style="display:flex;gap:10px"><span style="font-size:20px">🔁</span><div><b style="font-size:14px">Hold &amp; Resume Sale</b><p style="font-size:12.5px">Customer stepped away? Hold the sale and resume it when they return.</p></div></div>
+        <div style="display:flex;gap:10px"><span style="font-size:20px">💾</span><div><b style="font-size:14px">Cart Autosave + Backup</b><p style="font-size:12.5px">Your cart stays safe even if the power goes out. Download a full backup in one click.</p></div></div>
+      </div>
+      <a href="login.html" class="btn btn-gold" style="width:100%;margin-top:16px">Start Selling Today → Login</a>
+    </div>
+  </div>
+</div></section>
+<section class="section" id="mstech" style="padding-top:10px"><div class="container"><div class="mstech reveal">
+  <div class="mstech-grid">
+    <div>
+      <span class="badge" style="background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.3);color:#FDE68A">★ Main Purpose • MS.TECH COMPANY</span>
+      <h2>This system was built by <span>MS.TECH COMPANY</span> — and we can build one for your business too.</h2>
+      <p>This complete system for BISMILLAH MOBILE ZONE is a live example from MS.TECH COMPANY. If you need a premium system like this for your shop, business, or company — POS, Inventory, Website, App, or Custom Software — MS.TECH will build it for you.</p>
+      <div class="service-list">
+        <div><span style="font-size:20px">📱</span><div><b>Mobile Shop POS Systems</b><small>Like this system — Sales, Stock, Credit, Repairing, Reports.</small></div></div>
+        <div><span style="font-size:20px">🌐</span><div><b>Websites &amp; Landing Pages</b><small>World-class UI/UX, fast, mobile-friendly, search-ready.</small></div></div>
+        <div><span style="font-size:20px">⚙️</span><div><b>Custom Business Software</b><small>Built around your work — no template, fully custom.</small></div></div>
+        <div><span style="font-size:20px">🛠️</span><div><b>Support &amp; Upgrades</b><small>MS.TECH stays with you after the system — new features, fixes, training.</small></div></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">
+        <a class="btn btn-gold" href="tel:03099100546">📞 Call MS.TECH — 0309 9100546</a>
+        <a class="btn btn-ghost" href="https://wa.me/923099100546?text=Hello%2C%20I%20want%20a%20system%20for%20my%20business%20from%20MS.TECH." target="_blank" rel="noopener">💬 WhatsApp MS.TECH</a>
       </div>
     </div>
-  </article>`;
-
-document.getElementById('phoneGrid').innerHTML = phones.map(card).join('');
-document.getElementById('accGrid').innerHTML = accessories.map(card).join('');
+    <div>
+      <div class="ms-card">
+        <h3>🏆 Why MS.TECH?</h3>
+        <ul>
+          <li><b>Real system, real results</b> — this page itself is the proof, not just words</li>
+          <li><b>World-class UI/UX</b> — premium to look at, easy to use</li>
+          <li><b>Fast delivery</b> — small work in days, larger systems in weeks</li>
+          <li><b>Clear English support</b> — your team will understand it easily</li>
+          <li><b>Secure &amp; reliable</b> — your data, your control</li>
+          <li><b>Training included</b> — we will teach your staff how to use it</li>
+        </ul>
+        <div class="ms-contact"><small>MS.TECH COMPANY • Get Your System Today</small><b>0309 9100546</b><small>Call / WhatsApp • Mon–Sat</small><a href="login.html" class="btn btn-primary" style="width:100%;margin-top:12px">See System Live → Login</a></div>
+      </div>
+    </div>
+  </div>
+</div></div></section>
+<section class="section" id="plans" style="padding-top:10px"><div class="container">
+  <div class="section-head center"><span class="eyebrow">MS.TECH • Get Your Own System</span><h2>Want your own system?<br>Talk to MS.TECH.</h2><p>The plans below are just an idea — MS.TECH will share the final price based on your work. First step: call or WhatsApp.</p></div>
+  <div class="plans">
+    <div class="plan"><h3>✨ Starter</h3><div class="price">Demo <small>• Free to See</small></div><p style="color:#64748B;font-size:13.5px">See it, understand it, then decide.</p><ul><li>Live demo of this system</li><li>Tour of all modules</li><li>Free consultation from MS.TECH</li><li>No commitment</li></ul><a class="btn btn-outline" href="login.html">See Live Demo →</a></div>
+    <div class="plan pop"><span class="pop-tag">★ MOST POPULAR</span><h3>🚀 Business System</h3><div class="price">Custom <small>• Best Value</small></div><p style="color:#64748B;font-size:13.5px">Like the BISMILLAH MOBILE ZONE system — for your shop.</p><ul><li>POS + Inventory + Credit + Repairing</li><li>Reports, P&amp;L, Print (Thermal + A4)</li><li>Staff login + Permissions</li><li>Training + 1 Month Support</li></ul><a class="btn btn-primary" href="https://wa.me/923099100546?text=Hello%2C%20I%20want%20the%20Business%20System%20from%20MS.TECH" target="_blank" rel="noopener">Get This System → WhatsApp</a></div>
+    <div class="plan"><h3>👑 Premium Custom</h3><div class="price">Custom <small>• For Big Business</small></div><p style="color:#64748B;font-size:13.5px">Website + App + Custom software — everything.</p><ul><li>Everything in Business System</li><li>Website / Landing Page (like this page)</li><li>Custom features built around your work</li><li>Priority support</li></ul><a class="btn btn-outline" href="tel:03099100546">Call MS.TECH → 0309 9100546</a></div>
+  </div>
+</div></section>
+<section class="section" style="padding-top:10px"><div class="container">
+  <div class="section-head center"><span class="eyebrow">What Shop Owners Say</span><h2>The people who use it every day will tell you.</h2></div>
+  <div class="testi"><div class="testi-track" id="testiTrack">
+    <div class="testi-card"><p>“Earlier we wrote everything in a copy. Now, as soon as we make a sale, we know the profit. Credit is no longer a worry — everything is recorded automatically. MS.TECH has built an amazing system.”</p><div class="testi-who"><span class="avatar">B</span><div><b>BISMILLAH MOBILE ZONE</b><br><small style="color:#64748B">Owner • Mobile Shop</small></div><span style="margin-left:auto;color:#F59E0B">★★★★★</span></div></div>
+    <div class="testi-card"><p>“The POS search is so fast that we never feel embarrassed in front of a customer. Scan the barcode, make the bill, print it — the work is done in 30 seconds.”</p><div class="testi-who"><span class="avatar">S</span><div><b>Shop Manager</b><br><small style="color:#64748B">Daily User • POS</small></div><span style="margin-left:auto;color:#F59E0B">★★★★★</span></div></div>
+    <div class="testi-card"><p>“Repair slip, credit print, daily report — everything in one click. MS.TECH support is also fast. If there is any issue, it is resolved right away.”</p><div class="testi-who"><span class="avatar">M</span><div><b>MS.TECH Client</b><br><small style="color:#64748B">Business Owner</small></div><span style="margin-left:auto;color:#F59E0B">★★★★★</span></div></div>
+  </div></div>
+  <div class="dots" id="testiDots"></div>
+</div></section>
+<section class="section" id="faq" style="padding-top:10px"><div class="container" style="max-width:820px">
+  <div class="section-head center"><span class="eyebrow">FAQ</span><h2>Frequently asked questions.</h2></div>
+  <details class="faq" open><summary>How do I log in to the system? <span>＋</span></summary><p>Press the <b>Enter System — Login</b> button above, or open <b>login.html</b>. Enter your username and password and the dashboard will open. Staff logins are created from Super Admin.</p></details>
+  <details class="faq"><summary>Will this system work on mobile? <span>＋</span></summary><p>Yes — the full system is responsive on mobile, tablet, and computer. POS, print, and reports all work on mobile too.</p></details>
+  <details class="faq"><summary>Print is not working / popup is blocked — what should I do? <span>＋</span></summary><p>The new print engine does not need a popup — it prints through a hidden iframe. If there is still an issue, open Print Settings and print a Test Page, or call MS.TECH: <b>0309 9100546</b>.</p></details>
+  <details class="faq"><summary>I want a system like this for my business — what should I do? <span>＋</span></summary><p>Contact MS.TECH COMPANY — Call <b>0309 9100546</b> or send a WhatsApp message saying “I want a system”. They will look at your work and suggest the best plan.</p></details>
+  <details class="faq"><summary>Will my data stay safe? <span>＋</span></summary><p>Yes — every staff member has a separate login and permissions, everything is recorded in activity logs, and you can download a full backup in one click.</p></details>
+</div></section>
+<section class="section" style="padding-top:10px"><div class="container"><div class="cta reveal">
+  <p style="font-weight:900;letter-spacing:1.5px;font-size:12px">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ • BISMILLAH MOBILE ZONE</p>
+  <h2>The time is now —<br>enter the system.</h2>
+  <p>Sell, check stock, manage credit, and grow profit. And if you want your own system, MS.TECH COMPANY is with you.</p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <a class="btn" style="background:#0F172A;color:#fff" href="login.html">🔐 Login — Enter System</a>
+    <a class="btn btn-white" href="https://wa.me/923099100546?text=Hello%2C%20I%20want%20a%20system%20from%20MS.TECH." target="_blank" rel="noopener">💬 Talk to MS.TECH</a>
+  </div>
+  <p style="font-size:12px;margin-top:14px;opacity:.8">Powered by <b>MS.TECH COMPANY</b> • 0309 9100546 • BISMILLAH MOBILE ZONE</p>
+</div></div></section>
+<footer><div class="container">
+  <div class="foot-grid">
+    <div><div style="display:flex;gap:10px;align-items:center"><span style="font-size:26px">📱</span><div><b style="color:#fff;font-size:16px">BISMILLAH MOBILE ZONE</b><br><small>Complete Mobile Shop Management System</small></div></div><p style="font-size:13px;margin-top:12px;max-width:360px">POS, Inventory, Purchases, Repairing, Customers, Credit, Expenses, Reports &amp; P&amp;L — everything in one premium system.</p></div>
+    <div><h4>System</h4><a href="login.html">🔐 Login — Enter System</a><a href="#system">All Modules</a><a href="#demo">Live Demo</a><a href="#plans">Get Your System</a><a href="#faq">FAQ</a></div>
+    <div><h4>MS.TECH COMPANY</h4><a href="tel:03099100546">📞 0309 9100546</a><a href="https://wa.me/923099100546" target="_blank" rel="noopener">💬 WhatsApp MS.TECH</a><a href="#mstech">Our Services</a><a href="#mstech">Custom Software</a></div>
+  </div>
+  <div class="foot-bottom"><span>© 2026 BISMILLAH MOBILE ZONE • All rights reserved.</span><span>Designed &amp; Built by <b style="color:#fff">MS.TECH COMPANY</b> • <a href="login.html" style="display:inline;color:#FBBF24;font-weight:800">Login →</a></span></div>
+</div></footer>
+<script>
+const MODULES=[
+ {cat:'sale',icon:'🛒',bg:'#E0E7FF',title:'Sales / POS',tag:'Most Used',desc:'The heart of the shop — the fastest sales system.',list:['Fuzzy Dynamic Search (Product / IMEI / Barcode)','Barcode scan + Split Payment','Hold / Resume + Cart Autosave','Discount, Tax, Cash Tendered + Change']},
+ {cat:'stock',icon:'📦',bg:'#DCFCE7',title:'Inventory & Racks',tag:'Stock Control',desc:'Every item, every rack — all in view.',list:['Low Stock alerts + Stock Transfer','Rack-wise stock view','Stock movements log','Bulk price update']},
+ {cat:'stock',icon:'🧾',bg:'#FEF3C7',title:'Purchases & Products',tag:'Buying',desc:'Full record from purchase to sale.',list:['Same Brand+Product+Category auto-merge','Purchase history + Supplier link','Product search (name only)','Import Products (CSV)']},
+ {cat:'sale',icon:'🔧',bg:'#FEE2E2',title:'Repairing',tag:'Service',desc:'Complete record of mobile repairing.',list:['Slip No + Status timeline','Advance + Balance auto','Repair print (Thermal / A4)','WhatsApp status update']},
+ {cat:'people',icon:'👥',bg:'#E0E7FF',title:'Customers',tag:'CRM',desc:'Full record of every customer.',list:['Total spent + Last visit','Customer-wise Credit print','Bulk WhatsApp reminders','Aging 30 / 60 / 90 days']},
+ {cat:'people',icon:'🏭',bg:'#FEF3C7',title:'Suppliers',tag:'Partners',desc:'Record of everyone you buy from.',list:['Supplier ledger','Supplier performance','Category-wise suppliers','Quick add from Purchase']},
+ {cat:'money',icon:'💳',bg:'#FCE7F3',title:'Credit',tag:'Auto',desc:'Now it is impossible to forget credit.',list:['Auto Credit on balance','Customer-wise statement print','All customers queue print','Recovery tracking']},
+ {cat:'money',icon:'💸',bg:'#FEE2E2',title:'Expenses',tag:'Spending',desc:'Every expense recorded, every day.',list:['Today / Week / Month totals','Category filter + Date filter','Recurring expense copy','Expense reports']},
+ {cat:'money',icon:'📊',bg:'#DCFCE7',title:'Reports & P&L',tag:'Profit',desc:'Profit or loss — everything is clear.',list:['Daily P&L Graph (animated)','Profit by Category','Top Products + Payment Breakdown','Export CSV / Print']},
+ {cat:'money',icon:'🔁',bg:'#E0E7FF',title:'Transactions',tag:'History',desc:'Where money came from, where it went.',list:['All money movements','Filter by type / date','Sale / Purchase / Expense link','One-click reprint']},
+ {cat:'people',icon:'👨‍💼',bg:'#EDE9FE',title:'Staff & Logs',tag:'Control',desc:'Who did what — everything is recorded.',list:['Staff login (from Super Admin)','Separate permission for each action','Activity Logs (full audit)','Role-wise access']},
+ {cat:'people',icon:'👑',bg:'#FEF3C7',title:'Super Admin',tag:'Owner Only',desc:'The full system in your hands.',list:['Staff create + Permissions','Billing & Plans','Live Activity + System control','Backup & Data Health']},
+];
+function renderModules(filter){
+  const grid=document.getElementById('modulesGrid');
+  const list=MODULES.filter(m=>filter==='all'||m.cat===filter);
+  grid.innerHTML=list.map(m=>'<article class="mod reveal in"><span class="tag">'+m.tag+'</span><div class="ico" style="background:'+m.bg+'">'+m.icon+'</div><h3>'+m.title+'</h3><p>'+m.desc+'</p><ul>'+m.list.map(x=>'<li>'+x+'</li>').join('')+'</ul></article>').join('');
+}
+renderModules('all');
+document.getElementById('modTabs').addEventListener('click',e=>{
+  const b=e.target.closest('.tab'); if(!b) return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); b.classList.add('active');
+  renderModules(b.dataset.filter);
+});
+const words=['BISMILLAH MOBILE ZONE','★','MS.TECH COMPANY','★','POS • INVENTORY • CREDIT • REPAIRING','★','THERMAL + A4 PRINT','★','DAILY P&L GRAPH','★','LOGIN → login.html','★'];
+document.getElementById('marqueeTrack').innerHTML=(words.join(' &nbsp; ')+' &nbsp; ').repeat(3);
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in'); const c=e.target.querySelector('[data-count]'); if(c&&!c.dataset.done){c.dataset.done='1'; const end=+c.dataset.count; let n=0; const t=setInterval(()=>{n+=Math.ceil(end/28); if(n>=end){n=end; clearInterval(t);} c.textContent=n;},28);} } }),{threshold:.2});
+document.querySelectorAll('.reveal, .stat').forEach(el=>io.observe(el));
+const DEMO=[
+ {name:'iPhone 14 Pro Max',brand:'Apple',cat:'Mobile',price:285000,stock:4,imei:'3521…8842',barcode:'IPH14PM001'},
+ {name:'Samsung Galaxy S23',brand:'Samsung',cat:'Mobile',price:215000,stock:2,imei:'8642…1190',barcode:'SAM S23'},
+ {name:'AirPods Pro (2nd Gen)',brand:'Apple',cat:'Accessories',price:38500,stock:12,imei:'—',barcode:'AP PRO2'},
+ {name:'Vivo Y100',brand:'Vivo',cat:'Mobile',price:78500,stock:6,imei:'8690…5531',barcode:'VIVOY100'},
+ {name:'Mi 20000mAh Power Bank',brand:'Xiaomi',cat:'Accessories',price:7500,stock:18,imei:'—',barcode:'MI PB20K'},
+ {name:'iPhone 13',brand:'Apple',cat:'Mobile',price:198000,stock:0,imei:'3533…7721',barcode:'IPH13'},
+];
+let cart=[];
+function fmt(n){return 'PKR '+Number(n||0).toLocaleString('en-PK');}
+function renderDemo(q){
+  q=(q||'').trim().toLowerCase();
+  let list=DEMO;
+  const rm=q.match(/^(\d+)\s*-\s*(\d+)$/);
+  if(rm){const lo=+rm[1],hi=+rm[2]; list=DEMO.filter(p=>p.price>=lo&&p.price<=hi);}
+  else if(q){list=DEMO.filter(p=>((p.name+' '+p.brand+' '+p.cat+' '+p.imei+' '+p.barcode).toLowerCase().includes(q)));}
+  const box=document.getElementById('demoResults');
+  box.innerHTML=list.map((p,i)=>'<div class="demo-row"><span><b>'+p.name+'</b><br><small>'+p.brand+' • '+p.cat+' • IMEI '+p.imei+'</small></span><span style="text-align:right"><b>'+fmt(p.price)+'</b><br>'+(p.stock<=0?'<span class="chip red">OUT</span>':p.stock<=3?'<span class="chip amber">LOW '+p.stock+'</span>':'<span class="chip green">IN '+p.stock+'</span>')+' <button class="btn btn-primary btn-sm" style="margin-left:6px" onclick="addDemo('+DEMO.indexOf(p)+')">+ Add</button></span></div>').join('')||'<div style="padding:14px;background:#FEF3C7;border-radius:12px;font-size:13px">No match. In the real system, a <b>+ Add as New Product</b> button appears here.</div>';
+}
+function addDemo(idx){cart.push(DEMO[idx]); document.getElementById('demoCartCount').textContent=cart.length+' items'; document.getElementById('demoCartTotal').textContent=fmt(cart.reduce((s,p)=>s+p.price,0));}
+renderDemo('');
+document.getElementById('demoSearch').addEventListener('input',e=>renderDemo(e.target.value));
+function renderHero(q){
+  q=(q||'').toLowerCase();
+  const list=DEMO.filter(p=>(p.name+' '+p.brand).toLowerCase().includes(q)).slice(0,3);
+  document.getElementById('heroList').innerHTML=list.map(p=>'<div class="mini-prod"><span class="ico">📱</span><span><b>'+p.name+'</b><small>'+p.brand+' • Stock '+p.stock+'</small></span><span class="price">'+fmt(p.price)+'</span><button class="add" onclick="heroAdd('+DEMO.indexOf(p)+')">Add</button></div>').join('');
+  document.getElementById('heroTotal').textContent=fmt(heroCart.reduce((s,p)=>s+p.price,0));
+}
+let heroCart=[];
+function heroAdd(i){heroCart.push(DEMO[i]); renderHero(document.getElementById('heroSearch').value);}
+renderHero('');
+document.getElementById('heroSearch').addEventListener('input',e=>renderHero(e.target.value));
+const PL=[{d:'Mon',net:18400},{d:'Tue',net:22400},{d:'Wed',net:-4200},{d:'Thu',net:26800},{d:'Fri',net:31200},{d:'Sat',net:32400},{d:'Sun',net:15800}];
+const maxPL=Math.max(...PL.map(x=>Math.abs(x.net)));
+document.getElementById('plChart').innerHTML=PL.map(p=>'<div class="bar" style="height:'+(18+Math.abs(p.net)/maxPL*68)+'%;background:'+(p.net>=0?'linear-gradient(180deg,#34D399,#059669)':'linear-gradient(180deg,#FCA5A5,#DC2626)')+'"><span>'+(p.net>=0?'+':'')+fmt(p.net).replace('PKR ','')+'</span><small>'+p.d+'</small></div>').join('');
+function receiptHTML(mode){
+  if(mode==='a4') return '<div class="r-head"><b style="font-size:20px">INVOICE</b><br><b>BISMILLAH MOBILE ZONE</b><br><small>Main Bazaar • 0309 9100546</small></div><div class="r-row"><span><b>INVOICE NO:</b> INV-284501</span><span><b>DATE:</b> 21 Nov 2026</span></div><div class="r-row"><span><b>TO:</b> Ahmed Khan</span><span><b>CASHIER:</b> Bismillah Team</span></div><hr style="margin:10px 0"><div class="r-row"><span>1. iPhone 14 Pro Max</span><span>PKR 285,000</span></div><div class="r-row"><span>2. AirPods Pro</span><span>PKR 38,500</span></div><hr style="margin:10px 0"><div class="r-row"><span>SUBTOTAL</span><span>PKR 323,500</span></div><div class="r-row"><span>DISCOUNT</span><span>PKR 3,500</span></div><div class="r-row" style="font-weight:900;font-size:14px"><span>GRAND TOTAL</span><span>PKR 320,000</span></div><div class="r-row"><span>PAID</span><span>PKR 320,000</span></div><p style="text-align:center;margin-top:10px;color:#64748B">Powered by MS.TECH • Thank you!</p>';
+  return '<div class="r-head"><b>BISMILLAH MOBILE ZONE</b><br><small>Main Bazaar • Tel: 0309 9100546</small></div><div class="r-row"><span>Invoice: <b>INV-284501</b></span></div><div class="r-row"><span>Date: 21 Nov 2026</span></div><div class="r-row"><span>Customer: Ahmed Khan</span></div><div>--------------------------------</div><div class="r-row"><span>iPhone 14 Pro Max x1</span><span>285,000</span></div><div class="r-row"><span>AirPods Pro x1</span><span>38,500</span></div><div>--------------------------------</div><div class="r-row"><span>Subtotal</span><span>323,500</span></div><div class="r-row"><span>Discount</span><span>-3,500</span></div><div class="r-row" style="font-weight:900"><span>TOTAL</span><span>320,000</span></div><div class="r-row"><span>Paid</span><span>320,000</span></div><div style="text-align:center;margin-top:8px">Thank you! Visit Again<br><small>Powered by MS.TECH</small></div>';
+}
+const rb=document.getElementById('receiptBox'); rb.innerHTML=receiptHTML('thermal');
+document.getElementById('btnThermal').onclick=()=>{document.getElementById('btnThermal').classList.add('active');document.getElementById('btnA4').classList.remove('active');rb.classList.remove('a4');rb.innerHTML=receiptHTML('thermal');};
+document.getElementById('btnA4').onclick=()=>{document.getElementById('btnA4').classList.add('active');document.getElementById('btnThermal').classList.remove('active');rb.classList.add('a4');rb.innerHTML=receiptHTML('a4');};
+let ti=0; const track=document.getElementById('testiTrack'); const dots=document.getElementById('testiDots');
+for(let i=0;i<3;i++){const d=document.createElement('button'); d.className='dot'+(i===0?' active':''); d.onclick=()=>{ti=i; updateTesti();}; dots.appendChild(d);}
+function updateTesti(){track.style.transform='translateX(-'+(ti*100)+'%)'; document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===ti));}
+setInterval(()=>{ti=(ti+1)%3; updateTesti();},5000);
 </script>
 </body>
 </html>
