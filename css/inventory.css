@@ -1,0 +1,492 @@
+/* =====================================================
+   INVENTORY MODULE — Complete Stylesheet
+   BM Mobile Zone POS v36
+   ===================================================== */
+
+/* ---------- ROOT VARIABLES ---------- */
+:root {
+  --primary: #5b8def;
+  --primary-dark: #3b6fd4;
+  --primary-light: #eef4ff;
+  --success: #16a34a;
+  --success-light: #f0fdf4;
+  --danger: #dc2626;
+  --danger-light: #fef2f2;
+  --warning: #f59e0b;
+  --warning-light: #fffbeb;
+  --orange: #ea580c;
+  --orange-light: #fff7ed;
+  --text: #1e293b;
+  --muted: #6b7896;
+  --border: #e6e9f2;
+  --bg: #f5f7fb;
+  --card-bg: #ffffff;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+/* ---------- BASE ---------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 24px;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ---------- PAGE HEAD / TOOLBAR ---------- */
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+}
+
+.page-head h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toolbar label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ---------- SELECT / INPUT ---------- */
+select,
+.input {
+  padding: 9px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  outline: none;
+  min-width: 160px;
+}
+
+select:hover,
+.input:hover {
+  border-color: var(--primary);
+}
+
+select:focus,
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.15);
+}
+
+/* ---------- CARD ---------- */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #fbfcff 0%, #ffffff 100%);
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+
+/* ---------- TABLE (DATA) ---------- */
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: var(--card-bg);
+}
+
+table.data thead th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  background: #fafbfd;
+  border-bottom: 1.5px solid var(--border);
+  white-space: nowrap;
+}
+
+table.data tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f2f7;
+  color: var(--text);
+  vertical-align: middle;
+}
+
+table.data tbody tr {
+  transition: background 0.15s ease;
+}
+
+table.data tbody tr:hover {
+  background: var(--primary-light);
+}
+
+table.data tbody tr:last-child td {
+  border-bottom: none;
+}
+
+table.data td small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+table.data .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+table.data .actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* ---------- PILLS / BADGES ---------- */
+.pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.pill.blue {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.pill.green {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.pill.red {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.pill.orange {
+  background: var(--orange-light);
+  color: var(--orange);
+}
+
+.pill.yellow,
+.pill.warning {
+  background: var(--warning-light);
+  color: var(--warning);
+}
+
+/* ---------- EMPTY STATE ---------- */
+.empty {
+  padding: 50px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--card-bg);
+}
+
+.empty::before {
+  content: '📭';
+  display: block;
+  font-size: 36px;
+  margin-bottom: 10px;
+  opacity: 0.6;
+}
+
+/* ---------- BUTTONS ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-decoration: none;
+  white-space: nowrap;
+  outline: none;
+  line-height: 1.2;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(91, 141, 239, 0.3);
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(91, 141, 239, 0.4);
+}
+
+.btn-ghost {
+  background: #fff;
+  color: var(--text);
+  border: 1.5px solid var(--border);
+}
+
+.btn-ghost:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.btn-danger {
+  background: var(--danger-light);
+  color: var(--danger);
+  border: 1.5px solid transparent;
+}
+
+.btn-danger:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* ---------- REFRESH BUTTON SPECIAL ---------- */
+#btnRefreshInventory {
+  font-size: 13px;
+  padding: 9px 16px;
+}
+
+#btnRefreshInventory:hover {
+  transform: rotate(-3deg) scale(1.02);
+}
+
+/* ---------- STOCK NUMBER EMPHASIS ---------- */
+table.data td.num b[style*="dc2626"],
+table.data td.num b[style*="16a34a"] {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* ---------- MOVEMENT TYPE COLORS ---------- */
+.pill.green::before {
+  content: '↑ ';
+}
+
+.pill.orange::before {
+  content: '↓ ';
+}
+
+/* ---------- BACK LINK ---------- */
+a.btn-ghost {
+  text-decoration: none;
+  display: inline-flex;
+}
+
+/* ---------- SCROLLBAR (subtle) ---------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f3f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd3e6;
+  border-radius: 8px;
+  border: 2px solid #f1f3f9;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 768px) {
+  body {
+    padding: 14px;
+  }
+
+  .page-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-head h2 {
+    font-size: 20px;
+  }
+
+  .toolbar {
+    width: 100%;
+  }
+
+  .toolbar select,
+  .toolbar .input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  table.data {
+    font-size: 12px;
+  }
+
+  table.data thead th,
+  table.data tbody td {
+    padding: 10px 10px;
+  }
+
+  /* Card table becomes scrollable on mobile */
+  .card {
+    overflow-x: auto;
+  }
+
+  table.data {
+    min-width: 640px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-header {
+    padding: 14px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .btn-sm {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
+
+/* ---------- PRINT ---------- */
+@media print {
+  body {
+    padding: 0;
+    background: #fff;
+  }
+
+  .toolbar,
+  #btnRefreshInventory,
+  a.btn-ghost,
+  .card:hover {
+    display: none !important;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+
+  table.data tbody tr:hover {
+    background: transparent;
+  }
+
+  .pill {
+    border: 1px solid currentColor;
+  }
+}
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card {
+  animation: fadeIn 0.3s ease both;
+}
+
+.card:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+/* ---------- LOADING STATE (optional) ---------- */
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
