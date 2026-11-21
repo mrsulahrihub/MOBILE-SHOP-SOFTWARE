@@ -1,207 +1,658 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BM Mobile Zone — Dashboard v38 Premium</title>
-<link rel="stylesheet" href="./dashboard.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — BISMILLAH Mobile Zone</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Jameel+Noori+Nastaleeq&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/dashboard.css">
+
+  <!-- ============================================================
+       PURCHASE ITEMS GRID + POS HELPERS (v36)
+       ============================================================ -->
+  <style>
+    /* ---------- Purchase Invoice Modal: Items grid ---------- */
+    .items-header-labels,
+    .product-item-row {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr 1.1fr 0.7fr 0.9fr 0.9fr 1.2fr 1.2fr 1fr 36px;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .items-header-labels {
+      padding: 8px 6px;
+      margin-bottom: 6px;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #4b5563;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .items-header-labels span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-item-row {
+      padding: 6px 4px;
+      border-bottom: 1px dashed #e5e7eb;
+    }
+
+    .product-item-row input,
+    .product-item-row select {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      font-size: 12px;
+      padding: 6px 6px;
+    }
+
+    .product-item-row .item-del-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: none;
+      background: #fee2e2;
+      color: #dc2626;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .product-item-row .item-del-btn:hover {
+      background: #fecaca;
+    }
+
+    /* ---------- Small screens: stack rows, hide header ---------- */
+    @media (max-width: 1100px) {
+      .items-header-labels { display: none; }
+      .product-item-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 10px 6px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      .product-item-row .item-del-btn {
+        grid-column: span 2;
+        width: 100%;
+        height: 28px;
+      }
+    }
+
+    /* ---------- Purchase items scroll container ---------- */
+    #purchaseItemsHost {
+      max-height: calc(100vh - 400px);
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    /* ---------- POS: Paid quick buttons ---------- */
+    .paid-quick {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .paid-quick button {
+      flex: 1;
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      color: #374151;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .paid-quick button:hover {
+      background: #eef2ff;
+      border-color: #c7d2fe;
+      color: #4338ca;
+    }
+
+    /* ---------- POS: udhar warning ---------- */
+    #udharWarning {
+      display: none;
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      color: #dc2626;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+
+    /* ---------- POS: Tax row toggle ---------- */
+    .tax-row-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tax-row-inner input[type="number"] {
+      width: 60px;
+    }
+    .tax-row-inner label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--muted, #6b7280);
+      cursor: pointer;
+    }
+
+    /* ---------- POS: cart mini table ---------- */
+    .cart-mini {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .cart-mini th {
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #6b7280;
+      padding: 4px 3px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .cart-mini td {
+      padding: 6px 3px;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: middle;
+    }
+    .cart-mini .num { text-align: right; }
+
+    .qty-btn {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      border-radius: 5px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1;
+      font-size: 12px;
+    }
+    .qty-btn:hover { background: #eef2ff; }
+
+    /* ---------- POS: split payment button ---------- */
+    #btnSplitPayment {
+      background: #f9fafb;
+      border: 1px dashed #d1d5db;
+      color: #4338ca;
+      font-weight: 600;
+    }
+    #btnSplitPayment:hover {
+      background: #eef2ff;
+      border-color: #a5b4fc;
+    }
+  </style>
 </head>
-<body data-module="overview">
-<div class="dashboard">
-  <button id="sidebarHandle" class="sidebar-handle" aria-label="Toggle sidebar">☰</button>
+<body>
+
   <!-- ============ SIDEBAR ============ -->
-  <aside id="mainSidebar" class="sidebar">
-    <div class="sidebar-brand"><div class="brand-logo">BM</div><div><h1>BM MOBILE ZONE</h1><small>Premium POS • v38</small></div></div>
+  <aside class="sidebar" id="mainSidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">BM</div>
+      <div>
+        <h1>BM Mobile Zone</h1>
+        <small>Dashboard v36</small>
+      </div>
+    </div>
+
     <nav class="sidebar-nav">
-      <button class="nav-item active" data-module="overview"><span class="nav-icon">🏠</span>Dashboard<span class="kbd">Alt+O</span></button>
-      <button class="nav-item" data-module="inventory"><span class="nav-icon">📦</span>Inventory<span class="kbd">Alt+I</span></button>
-      <button class="nav-item" data-module="racks"><span class="nav-icon">🗄️</span>Racks<span class="kbd">Alt+K</span></button>
-      <button class="nav-item" data-module="purchases"><span class="nav-icon">🛒</span>Purchases / Products<span class="kbd">Alt+U</span></button>
-      <button class="nav-item" data-module="sales"><span class="nav-icon">🧾</span>Sales / POS<span class="kbd">Alt+L</span></button>
-      <button class="nav-item" data-module="repairing"><span class="nav-icon">🔧</span>Repairing<span class="kbd">Alt+R</span></button>
-      <button class="nav-item" data-module="customers"><span class="nav-icon">👥</span>Customers<span class="kbd">Alt+C</span></button>
-      <button class="nav-item" data-module="suppliers"><span class="nav-icon">🚚</span>Suppliers<span class="kbd">Alt+S</span></button>
-      <button class="nav-item" data-module="credit"><span class="nav-icon">💳</span>Credit<span class="kbd">Alt+D</span></button>
-      <button class="nav-item" data-module="expenses"><span class="nav-icon">💸</span>Expenses<span class="kbd">Alt+E</span></button>
-      <button class="nav-item" data-module="reports"><span class="nav-icon">📊</span>Reports &amp; P&amp;L<span class="kbd">Alt+P</span></button>
-      <button class="nav-item" data-module="transactions"><span class="nav-icon">🔁</span>Transactions<span class="kbd">Alt+T</span></button>
-      <button class="nav-item" data-module="settings"><span class="nav-icon">⚙️</span>Staff &amp; Logs<span class="kbd">Alt+,</span></button>
+      <button class="nav-item active" data-module="overview">
+        <span class="nav-icon">▦</span> <span>Dashboard</span> <span class="kbd">Alt+O</span>
+      </button>
+      <button class="nav-item" data-module="inventory">
+        <span class="nav-icon">▤</span> <span>Inventory</span> <span class="kbd">Alt+I</span>
+      </button>
+      <button class="nav-item" data-module="racks">
+        <span class="nav-icon">🗄️</span> <span>Racks</span> <span class="kbd">Alt+K</span>
+      </button>
+      <button class="nav-item" data-module="purchases">
+        <span class="nav-icon">🛒</span> <span>Purchases</span> <span class="kbd">Alt+U</span>
+      </button>
+      <button class="nav-item" data-module="sales">
+        <span class="nav-icon">💳</span> <span>Sales / POS</span> <span class="kbd">Alt+L</span>
+      </button>
+      <button class="nav-item" data-module="repairing">
+        <span class="nav-icon">🔧</span> <span>Repairing</span> <span class="kbd">Alt+R</span>
+      </button>
+      <button class="nav-item" data-module="customers">
+        <span class="nav-icon">👥</span> <span>Customers</span> <span class="kbd">Alt+C</span>
+      </button>
+      <button class="nav-item" data-module="suppliers">
+        <span class="nav-icon">🏭</span> <span>Suppliers</span> <span class="kbd">Alt+S</span>
+      </button>
+      <button class="nav-item" data-module="credit">
+        <span class="nav-icon">📒</span> <span>Credit / Udhar</span> <span class="kbd">Alt+D</span>
+      </button>
+      <button class="nav-item" data-module="expenses">
+        <span class="nav-icon">💸</span> <span>Expenses</span> <span class="kbd">Alt+E</span>
+      </button>
+      <button class="nav-item" data-module="reports">
+        <span class="nav-icon">📊</span> <span>Reports & P&L</span> <span class="kbd">Alt+P</span>
+      </button>
+      <button class="nav-item" data-module="transactions">
+        <span class="nav-icon">🔁</span> <span>Transactions</span> <span class="kbd">Alt+T</span>
+      </button>
+      <button class="nav-item" data-module="settings">
+        <span class="nav-icon">⚙️</span> <span>Staff & Logs</span> <span class="kbd">Alt+,</span>
+      </button>
     </nav>
+
     <div class="sidebar-footer">
-      <div class="user-chip"><div class="avatar" id="userAvatar">B</div><div><b id="userName">BM MOBILE ZONE</b><small id="userRole">ADMIN</small></div></div>
-      <button id="logoutBtn" class="btn btn-danger" style="width:100%;margin-top:10px">🚪 Logout</button>
-      <p style="font-size:11px;color:var(--muted,#64748B);text-align:center;margin:10px 0 0">Shortcuts: <span class="kbd">F1</span> Help &nbsp; <span class="kbd">Alt+K</span> Command</p>
+      <div class="user-chip">
+        <div class="avatar" id="userAvatar">B</div>
+        <div>
+          <b id="userName">BM MOBILE ZONE</b>
+          <small id="userRole">ADMIN</small>
+        </div>
+      </div>
     </div>
   </aside>
 
+  <button class="sidebar-handle" id="sidebarHandle" title="Menu">☰</button>
+
   <!-- ============ MAIN ============ -->
   <main class="main">
+
+    <!-- Topbar -->
     <header class="topbar">
-      <div><h2 id="pageTitle">Dashboard</h2><small id="todayDate"></small></div>
+      <div>
+        <h2 id="pageTitle">Dashboard</h2>
+        <small id="todayDate">—</small>
+      </div>
       <div class="topbar-right">
-        <label class="search-bar">🔍<input type="search" placeholder="Global search… (Ctrl+K)"></label>
-        <button id="themeToggle" class="theme-toggle" title="Dark / Light mode">🌙</button> <button class="icon-btn" title="Print Settings" onclick="window.openPrintSettings && window.openPrintSettings()">🖨️</button> <button class="icon-btn" title="Command Palette (Ctrl+K)" onclick="window.openCommandPalette && window.openCommandPalette()">⌘K</button>
-        <button class="icon-btn" title="Pending Credit" onclick="document.getElementById('notifPanel').classList.toggle('open')">🔔<span class="badge" id="notifBadge" style="display:none">0</span></button>
-        <button class="icon-btn" title="Keyboard shortcuts (F1)" onclick="document.dispatchEvent(new KeyboardEvent('keydown',{key:'F1'}))">⌨️</button>
+        <div class="search-bar">
+          <input placeholder="Search… (Ctrl+K)" type="search">
+        </div>
+        <button class="icon-btn" id="notifBtn" title="Notifications">🔔 <span id="notifBadge" class="badge" style="display:none">0</span></button>
+        <button class="btn btn-danger btn-sm" id="logoutBtn">Logout</button>
       </div>
     </header>
-    <div id="notifPanel" class="notif-panel"></div>
 
-    <!-- OVERVIEW -->
-    <section id="module-overview" class="module active">
-      <div class="welcome-card"><h3>Welcome back, <span id="welcomeName">Admin</span> 👋</h3><p>BM Mobile Zone — Your Trusted Mobile Shop • Chohan Mobile Market, Zafarwal</p></div>
+    <div class="notif-panel" id="notifPanel"></div>
+
+    <!-- ============ MODULE: OVERVIEW ============ -->
+    <section class="module active" id="module-overview">
+      <div class="welcome-card">
+        <h3>Welcome back, <span id="welcomeName">Admin</span> 👋</h3>
+        <p>Yahan se aap apna poora business manage kar sakte hain. Shortcuts ke liye <b>F1</b> dabaein.</p>
+      </div>
+
       <div class="stats-grid">
-        <div class="stat"><div class="stat-icon blue">📱</div><div><strong id="stProducts">0</strong><small>Products</small></div></div>
-        <div class="stat"><div class="stat-icon green">📦</div><div><strong id="stStock">0</strong><small>Total Stock</small></div></div>
-        <div class="stat"><div class="stat-icon orange">💰</div><div><strong id="stTodaySales">PKR 0</strong><small>Today Sales</small></div></div>
-        <div class="stat"><div class="stat-icon purple">📈</div><div><strong id="stMonthSales">PKR 0</strong><small>Month Sales</small></div></div>
-        <div class="stat"><div class="stat-icon teal">🛒</div><div><strong id="stPurchases">PKR 0</strong><small>Purchases</small></div></div>
-        <div class="stat"><div class="stat-icon pink">👥</div><div><strong id="stCustomers">0</strong><small>Customers</small></div></div>
-        <div class="stat"><div class="stat-icon red">💳</div><div><strong id="stOutstanding">PKR 0</strong><small>Outstanding Credit</small></div></div>
+        <div class="stat"><div class="stat-icon blue">📦</div><div><strong id="stProducts">0</strong><small>Products</small></div></div>
+        <div class="stat"><div class="stat-icon green">📊</div><div><strong id="stStock">0</strong><small>Total Stock</small></div></div>
+        <div class="stat"><div class="stat-icon purple">💰</div><div><strong id="stTodaySales">PKR 0</strong><small>Today Sales</small></div></div>
+        <div class="stat"><div class="stat-icon orange">📈</div><div><strong id="stMonthSales">PKR 0</strong><small>Month Sales</small></div></div>
+        <div class="stat"><div class="stat-icon blue">🛒</div><div><strong id="stPurchases">PKR 0</strong><small>Purchases</small></div></div>
+        <div class="stat"><div class="stat-icon green">👥</div><div><strong id="stCustomers">0</strong><small>Customers</small></div></div>
+        <div class="stat"><div class="stat-icon red">📒</div><div><strong id="stOutstanding">PKR 0</strong><small>Outstanding Udhar</small></div></div>
         <div class="stat"><div class="stat-icon orange">💸</div><div><strong id="stExpenses">PKR 0</strong><small>Expenses</small></div></div>
       </div>
-      <div class="card pl-chart-card" id="plChartCard"><div class="toolbar"><h3>📈 Daily Profit / Loss — Premium Graph</h3><div class="toolbar-actions"><select id="plRange" class="form-input"><option value="7">Last 7 Days</option><option value="14">Last 14 Days</option><option value="30" selected>Last 30 Days</option></select><button class="btn btn-ghost" onclick="window.exportDailyPL && window.exportDailyPL()">⬇ Export CSV</button><button class="btn btn-ghost" onclick="loadDailyPL()">↻ Refresh</button></div></div><div class="stats-grid pl-stats"><div class="stat"><div class="stat-icon green">P</div><div><strong id="plTodayProfit">PKR 0</strong><small>Today Net Profit</small></div></div><div class="stat"><div class="stat-icon purple">M</div><div><strong id="plMonthProfit">PKR 0</strong><small>Month Net Profit</small></div></div><div class="stat"><div class="stat-icon red">L</div><div><strong id="plMonthLoss">PKR 0</strong><small>Month Loss Days Total</small></div></div><div class="stat"><div class="stat-icon blue">B</div><div><strong id="plBestDay">-</strong><small>Best Profit Day</small></div></div></div><div class="pl-chart-wrap"><canvas id="plChartCanvas" width="1000" height="280"></canvas><div id="plChartTooltip" class="pl-tooltip" style="display:none"></div></div><div id="plDailyTable" style="margin-top:14px"></div><p class="pl-formula">Formula: <b>Net = Revenue − COGS (purchase cost) − Expenses</b> &nbsp;•&nbsp; Hover any bar for details &nbsp;•&nbsp; Green = Profit, Red = Loss, Blue line = Revenue, Orange dashed = Trend</p></div>
-      <div class="card"><h3>🧾 Recent Sales</h3><div id="recentSales"><div class="empty">No sales yet.</div></div></div>
-      <div class="card"><h3>⚡ Quick Actions</h3><div class="toolbar-actions">
-        <button class="btn btn-primary" onclick="document.querySelector('[data-module=&quot;sales&quot;]').click()">+ New Sale</button>
-        <button class="btn btn-ghost" onclick="document.querySelector('[data-module=&quot;purchases&quot;]').click()">+ New Purchase</button>
-        <button class="btn btn-ghost" onclick="document.querySelector('[data-module=&quot;credit&quot;]').click()">🖨️ Credit Print</button>
-        <button class="btn btn-ghost" onclick="window.quickExportProducts && window.quickExportProducts()">⬇ Export Products</button>
-        <button class="btn btn-ghost" onclick="window.toggleFocusMode && window.toggleFocusMode()">🎯 Focus Mode</button>
-      </div><p style="font-size:12px;color:var(--muted,#64748B);margin-top:10px">Purchase search shows only the <b>product name</b>. A purchase with the same Brand + Product + Category <b>merges into the same stock</b> — no duplicate product is created.</p></div>
+
+      <div class="card">
+        <h3>Recent Sales</h3>
+        <div id="recentSales"></div>
+      </div>
     </section>
 
-    <!-- INVENTORY -->
-    <section id="module-inventory" class="module">
-      <div class="card"><div class="toolbar"><h3>📦 Low Stock &amp; Inventory</h3><select id="inventoryRackFilter" class="form-input"><option value="">All Racks</option></select></div><div id="lowStockTable"><div class="empty">Loading…</div></div></div>
-      <div class="card"><h3>🔁 Stock Movements (IN / OUT)</h3><div id="movementsTable"><div class="empty">No movements.</div></div></div>
+    <!-- ============ MODULE: INVENTORY ============ -->
+    <section class="module" id="module-inventory">
+      <div class="toolbar">
+        <h3>Inventory</h3>
+        <select id="inventoryRackFilter" class="form-input"><option value="">All Racks</option></select>
+      </div>
+      <div class="card">
+        <h4>Low Stock / All Products</h4>
+        <div id="lowStockTable"></div>
+      </div>
+      <div class="card">
+        <h4>Recent Movements</h4>
+        <div id="movementsTable"></div>
+      </div>
     </section>
 
-    <!-- RACKS -->
-    <section id="module-racks" class="module">
-      <div class="card"><div class="toolbar"><h3>🗄️ Racks</h3><div class="toolbar-actions"><input id="rackSearchInput" class="form-input" placeholder="Search rack… (Alt+F)"><button id="btnAddRack" class="btn btn-primary">+ Add Rack <span class="kbd">Alt+A</span></button></div></div><div id="racksTable"><div class="empty">Loading…</div></div></div>
-      <div class="card"><h3>📦 Rack-wise Stock</h3><div id="rackStockTable"><div class="empty">Loading…</div></div></div>
-    </section>
-
-    <!-- PURCHASES / PRODUCTS -->
-    <section id="module-purchases" class="module">
-      <div class="card"><div class="toolbar"><h3>🛒 Purchases / Products</h3><div class="toolbar-actions"><button id="btnNewPurchase" class="btn btn-primary">+ New Purchase <span class="kbd">F8</span></button><button id="btnPurchasesHistory" class="btn btn-ghost">📜 History</button><button id="btnRefreshPurchases" class="btn btn-ghost">↻ Refresh</button></div></div>
-        <p style="font-size:12px;color:var(--muted,#64748B)">💡 Purchase search shows only the <b>product name</b>. Purchasing the same <b>Brand + Product + Category</b> again <b>adds it to the same stock</b>, with weighted-average cost.</p>
-        <div id="purchasesHistoryBox" hidden><div id="purchasesTable"><div class="empty">No purchases yet.</div></div></div></div>
-      <div class="card"><div class="toolbar"><h3>📱 All Products</h3><div class="toolbar-actions"><input id="productSearch" class="form-input" placeholder="Search product / IMEI…"><select id="productFilterCat" class="form-input"><option value="">All Categories</option></select><select id="productFilterBrand" class="form-input"><option value="">All Brands</option></select><button class="btn btn-ghost" onclick="window.quickExportProducts && window.quickExportProducts()">⬇ Export</button></div></div><div id="productsTable"><div class="empty">No products. Add from Purchase section.</div></div><div id="productBulkBar" class="bulk-bar" style="display:none"><span><span id="productSelCount">0</span> selected</span><button class="btn btn-danger btn-sm" onclick="window.bulkDeleteProducts && window.bulkDeleteProducts()">Delete Selected</button></div></div>
-    </section>
-
-    <!-- SALES / POS -->
-    <section id="module-sales" class="module">
-      <div class="pos-grid pos-grid-premium">
-        <div class="card pos-card pos-search-card"><h4>👤 Customer &amp; Product</h4>
-          <div class="form-grid"><div class="field"><label>Customer Name</label><input id="saleCustName" list="posCustomerOptions" placeholder="Walk-in / Customer name"><datalist id="posCustomerOptions"></datalist></div><div class="field"><label>Phone</label><input id="saleCustPhone" placeholder="03xx-xxxxxxx"></div></div>
-          <div id="previousDueBox" class="pos-due-box" style="display:none">Previous Credit: <b id="previousDueAmount">PKR 0</b></div>
-          <div class="field pos-dynamic-field"><label>✨ Dynamic Search — Search Everything (F3)</label><div class="pos-dynamic-wrap"><span class="pos-dynamic-ico">🔍</span><input id="posDynamicSearch" class="pos-dynamic-input" placeholder="Product / Brand / IMEI / Barcode / Customer / Invoice…" autocomplete="off"><span class="kbd">F3</span></div><div id="posDynamicResults" class="pos-dynamic-results"></div><small class="pos-dynamic-hint">Products, customers and invoices — use ↑ ↓ + Enter to select.</small></div>
-          <div class="field"><label>Category Filter</label><select id="saleCategoryFilter"><option value="">— All Categories —</option></select></div>
-          <div class="field"><label>Barcode / IMEI Scan</label><input id="posBarcodeInput" placeholder="Scan barcode / IMEI + Enter"></div>
-          <div class="field"><label>Select Product</label><select id="saleProductSelect"><option value="">— Choose Product —</option></select></div>
-          <button id="btnAddToCart" class="btn btn-primary pos-add-btn">+ Add to Cart <span class="kbd">F2</span></button>
+    <!-- ============ MODULE: RACKS ============ -->
+    <section class="module" id="module-racks">
+      <div class="toolbar">
+        <h3>🗄️ Racks Management</h3>
+        <div class="toolbar-actions">
+          <input id="rackSearchInput" class="form-input" placeholder="🔍 Search racks... (Alt+F)" style="min-width:220px">
+          <button class="btn btn-primary" id="btnAddRack" title="Add new rack (Alt+A)">+ Add Rack <span class="kbd">Alt+A</span></button>
         </div>
-        <div class="card pos-card pos-cart-card"><h4>🛒 Cart</h4><div id="cartItems"><div class="empty">Cart is empty</div></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <h4 style="margin:0">All Racks</h4>
+          <small style="color:var(--muted)">
+            <b>Alt+A</b> Add &nbsp;·&nbsp; <b>Alt+E</b> Edit &nbsp;·&nbsp; <b>Alt+V</b> View &nbsp;·&nbsp; <b>Alt+D</b> Delete &nbsp;·&nbsp; <b>Alt+F</b> Search
+          </small>
+        </div>
+        <div id="racksTable"></div>
+      </div>
+
+      <div class="card">
+        <h4>📦 Rack-wise Stock Overview</h4>
+        <div id="rackStockTable"></div>
+      </div>
+    </section>
+
+    <!-- ============ MODULE: PURCHASES ============ -->
+    <section class="module" id="module-purchases">
+      <div class="toolbar">
+        <h3>Purchases / Products</h3>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" id="btnPurchasesHistory">History</button>
+          <button class="btn btn-ghost" id="btnRefreshPurchases">↻</button>
+          <button class="btn btn-primary" id="btnNewPurchase">+ New Purchase <span class="kbd">F8</span></button>
+        </div>
+      </div>
+      <div class="card">
+        <h4>Products Catalog</h4>
+        <div class="toolbar">
+          <input id="productSearch" class="form-input" placeholder="Search products…">
+          <select id="productFilterCat" class="form-input"><option value="">All Categories</option></select>
+          <select id="productFilterBrand" class="form-input"><option value="">All Brands</option></select>
+        </div>
+        <div id="productsTable"></div>
+        <div class="bulk-bar" id="productBulkBar" style="display:none">
+          <span><b id="productSelCount">0</b> selected</span>
+          <button class="btn btn-danger btn-sm" onclick="bulkDeleteProducts()">Delete Selected</button>
+        </div>
+      </div>
+      <div class="card" id="purchasesHistoryBox" hidden>
+        <h4>Purchase History</h4>
+        <div id="purchasesTable"></div>
+      </div>
+    </section>
+
+    <!-- ============ MODULE: SALES / POS (v36 UPDATED) ============ -->
+    <section class="module" id="module-sales">
+      <div class="toolbar">
+        <h3>Sales / POS</h3>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" id="btnSalesHistory">History</button>
+          <button class="btn btn-ghost" id="btnRefreshSales">↻</button>
+          <button class="btn btn-ghost" id="btnHoldSale">Hold Sale <span class="kbd">F6</span></button>
+          <button class="btn btn-ghost" id="btnResumeSale">Resume <span class="kbd">F7</span></button>
+        </div>
+      </div>
+
+      <div class="pos-grid">
+        <!-- ---------- PRODUCT CARD ---------- -->
+        <div class="card">
+          <h4>Product</h4>
+
+          <input id="posProductSearch" class="form-input" placeholder="🔍 Search name / SKU / IMEI / brand… (F3)" style="margin-bottom:8px">
+          <input id="posBarcodeInput" class="form-input" placeholder="📷 Scan barcode / IMEI (Enter)" style="margin-bottom:8px">
+
+          <select id="saleCategoryFilter" class="form-input"></select>
+          <select id="saleProductSelect" class="form-input" style="margin-top:8px"></select>
+
+          <button class="btn btn-primary" id="btnAddToCart" style="margin-top:8px;width:100%">Add to Cart <span class="kbd">F2</span></button>
+        </div>
+
+        <!-- ---------- CUSTOMER CARD ---------- -->
+        <div class="card">
+          <h4>Customer</h4>
+          <input id="saleCustName" class="form-input" list="posCustomerOptions" placeholder="Customer name (Walk-in)">
+          <datalist id="posCustomerOptions"></datalist>
+          <input id="saleCustPhone" class="form-input" placeholder="Phone" style="margin-top:8px">
+          <div id="previousDueBox" style="display:none;margin-top:8px;padding:8px;background:#fef2f2;border-radius:6px;color:#dc2626;font-size:13px">
+            Previous Due: <b id="previousDueAmount">PKR 0</b>
+          </div>
+        </div>
+
+        <!-- ---------- CART CARD ---------- -->
+        <div class="card">
+          <h4>Cart</h4>
+          <div id="cartItems"></div>
+          <hr>
+
           <div class="row"><span>Subtotal</span><b id="cartSubtotal">PKR 0</b></div>
+
           <div class="row"><span>Line Discount</span><b id="cartLineDisc">PKR 0</b></div>
-          <div class="row"><span>Bill Discount</span><b id="cartBillDisc">PKR 0</b></div>
-          <div class="row" id="cartTaxRow" style="display:none"><span>Tax</span><b id="cartTax">PKR 0</b></div>
-          <div class="row"><span>Total</span><b id="cartTotal">PKR 0</b></div>
-          <div class="field"><label>Bill Discount</label><input id="saleDiscount" type="number" value="0"></div>
-          <div class="field"><label>Discount Type</label><select id="saleDiscountType"><option value="amt">Amount (PKR)</option><option value="pct">Percent (%)</option></select></div>
-        </div>
-        <div class="card pos-card pos-pay-card"><h4>💳 Payment</h4>
-          <div class="field"><label>Payment Method</label><select id="salePaymentMethod"><option>Cash</option><option>Card</option><option>Easypaisa</option><option>JazzCash</option><option>Bank</option><option>Credit</option></select></div>
-          <div class="field"><label>Paid (PKR) — Manual</label><input id="salePaid" type="number" value="0"></div>
-          <div class="paid-quick"><button type="button" onclick="window.setPaidFull && window.setPaidFull()">Full Paid</button><button type="button" onclick="window.setPaidZero && window.setPaidZero()">Credit (0)</button></div>
-          <button id="btnSplitPayment" class="btn btn-ghost" style="width:100%;margin-top:8px">✂️ Split Payment</button>
-          <div class="form-grid" style="margin-top:12px"><div class="field"><label>Tax Rate %</label><input id="posTaxRate" type="number" value="0"></div><div class="field"><label>Tax Enabled</label><select id="posTaxEnabled"><option value="false">Off</option><option value="true">On</option></select></div></div>
-          <p style="font-size:11px;color:var(--muted,#64748B)">The tax toggle also supports a JS checkbox — this select works too.</p>
-          <div id="creditWarning"></div>
-          <div style="display:flex;gap:8px;margin-top:12px"><button id="btnHoldSale" class="btn btn-ghost" style="flex:1">⏸ Hold <span class="kbd">F6</span></button><button id="btnResumeSale" class="btn btn-ghost" style="flex:1">▶ Resume <span class="kbd">F7</span></button></div>
-          <button id="btnSaveSale" class="btn btn-primary">Save Sale <span class="kbd">F4</span></button>
-          <div style="display:flex;gap:8px;margin-top:10px"><button id="btnSalesHistory" class="btn btn-ghost" style="flex:1">📜 History</button><button id="btnRefreshSales" class="btn btn-ghost">↻</button></div>
+
+          <div class="row">
+            <span>Bill Discount</span>
+            <input id="saleDiscount" type="number" value="0" style="width:70px">
+            <select id="saleDiscountType" style="width:60px">
+              <option value="amt">PKR</option>
+              <option value="pct">%</option>
+            </select>
+          </div>
+          <div class="row"><span>Bill Disc. Amt</span><b id="cartBillDisc">PKR 0</b></div>
+
+          <div class="row tax-row-inner" id="cartTaxRow" style="display:none">
+            <span>Tax</span>
+            <b id="cartTax" style="margin-left:auto">PKR 0</b>
+          </div>
+          <div class="row tax-row-inner">
+            <span>Tax %</span>
+            <input id="posTaxRate" type="number" value="0">
+            <label><input type="checkbox" id="posTaxEnabled"> Enable</label>
+          </div>
+
+          <div class="row" style="font-size:15px;margin-top:6px">
+            <span><b>Total</b></span>
+            <b id="cartTotal" style="color:var(--primary)">PKR 0</b>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <span>Paid</span>
+            <input id="salePaid" type="number" value="0" style="width:110px;font-weight:700" placeholder="Manual entry">
+          </div>
+          <div class="paid-quick">
+            <button type="button" onclick="setPaidFull()">💯 Full</button>
+            <button type="button" onclick="setPaidZero()">0 Zero</button>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <span>Method</span>
+            <select id="salePaymentMethod">
+              <option>Cash</option>
+              <option>Card</option>
+              <option>JazzCash</option>
+              <option>EasyPaisa</option>
+              <option>Bank</option>
+              <option>Udhar / Credit</option>
+            </select>
+          </div>
+
+          <button class="btn btn-ghost" id="btnSplitPayment" style="width:100%;margin-top:6px">💳 Split Payment</button>
+
+          <div id="udharWarning">⚠️ Udhar (Balance) rahega!</div>
+
+          <button class="btn btn-primary" id="btnSaveSale" style="width:100%;margin-top:12px">Save Sale <span class="kbd">F4</span></button>
         </div>
       </div>
-      <div class="card" id="salesHistoryBox" hidden><h3>📜 Sales History</h3><div id="salesHistoryTable"><div class="empty">No sales.</div></div></div>
-    </section>
 
-    <!-- REPAIRING -->
-    <section id="module-repairing" class="module">
-      <div class="card"><div class="toolbar"><h3>🔧 Repairing</h3><div class="toolbar-actions"><input id="repairSearch" class="form-input" placeholder="Search customer / mobile / slip…"><select id="repairStatusFilter" class="form-input"><option value="">All Status</option><option>Pending</option><option>In Progress</option><option>Ready</option><option>Delivered</option></select><button id="btnAddRepair" class="btn btn-primary">+ Add Repair <span class="kbd">F10</span></button></div></div><div id="repairsTable"><div class="empty">No repairs.</div></div></div>
-    </section>
-
-    <!-- CUSTOMERS -->
-    <section id="module-customers" class="module">
-      <div class="card"><div class="toolbar"><h3>👥 Customers</h3><div class="toolbar-actions"><input id="custSearch" class="form-input" placeholder="Search customer…"><button id="btnAddCustomer" class="btn btn-primary">+ Add Customer</button></div></div><div id="customersTable"><div class="empty">No customers.</div></div><div id="custBulkBar" class="bulk-bar" style="display:none"><span><span id="custSelCount">0</span> selected</span><button class="btn btn-danger btn-sm" onclick="window.bulkDeleteCustomers && window.bulkDeleteCustomers()">Delete Selected</button></div></div>
-    </section>
-
-    <!-- SUPPLIERS -->
-    <section id="module-suppliers" class="module">
-      <div class="card"><div class="toolbar"><h3>🚚 Suppliers</h3><div class="toolbar-actions"><input id="supplierSearch" class="form-input" placeholder="Search supplier / phone…"><select id="supplierCategoryFilter" class="form-input"><option value="">All Categories</option></select><button id="btnAddSupplier" class="btn btn-primary">+ Add Supplier</button></div></div><div id="suppliersTable"><div class="empty">No suppliers.</div></div></div>
-    </section>
-
-    <!-- CREDIT -->
-    <section id="module-credit" class="module">
-      <div class="card"><div class="toolbar"><h3>💳 Credit — Customer Wise</h3><div class="toolbar-actions"><button class="btn btn-primary" onclick="window.printAllCreditCustomerWise && window.printAllCreditCustomerWise()">🖨️ Print All Customers</button><button class="btn btn-ghost" onclick="window.quickExportCredit && window.quickExportCredit()">⬇ Export Credit</button></div></div>
-        <div class="tabs" id="creditDateTabs"><button class="active" data-range="all">All</button><button data-range="today">Today</button><button data-range="week">This Week</button><button data-range="month">This Month</button></div>
-        <div class="tabs" id="creditStatusTabs"><button class="active" data-status="all">All</button><button data-status="pending">Pending</button><button data-status="recovered">Recovered</button></div>
-        <h4 style="margin:14px 0 8px">👥 Customer-wise Summary — A4 / Thermal Print in each row</h4><div id="creditSummaryTable"><div class="empty">No credit outstanding.</div></div>
+      <div class="card" id="salesHistoryBox" hidden>
+        <h4>Sales History</h4>
+        <div id="salesHistoryTable"></div>
       </div>
-      <div class="card"><h3>🧾 Pending Invoices</h3><div id="creditTable"><div class="empty">No pending invoices.</div></div></div>
-      <div class="card"><h3>✅ Recent Recoveries</h3><div id="recoveriesTable"><div class="empty">No recoveries.</div></div></div>
     </section>
 
-    <!-- EXPENSES -->
-    <section id="module-expenses" class="module">
-      <div class="stats-grid"><div class="stat"><div class="stat-icon orange">📅</div><div><strong id="expToday">PKR 0</strong><small>Today</small></div></div><div class="stat"><div class="stat-icon purple">🗓️</div><div><strong id="expWeek">PKR 0</strong><small>This Week</small></div></div><div class="stat"><div class="stat-icon blue">📆</div><div><strong id="expMonth">PKR 0</strong><small>This Month</small></div></div><div class="stat"><div class="stat-icon red">💸</div><div><strong id="expTotal">PKR 0</strong><small>Total</small></div></div></div>
-      <div class="card"><div class="toolbar"><h3>💸 Expenses</h3><div class="toolbar-actions"><input id="expFilterFrom" type="date" class="form-input"><input id="expFilterTo" type="date" class="form-input"><select id="expFilterCat" class="form-input"><option value="">All</option></select><button id="btnFilterExpenses" class="btn btn-ghost">Filter</button><button id="btnAddExpense" class="btn btn-primary">+ Add Expense <span class="kbd">F9</span></button></div></div><div id="expensesTable"><div class="empty">No expenses.</div></div></div>
+    <!-- ============ MODULE: REPAIRING ============ -->
+    <section class="module" id="module-repairing">
+      <div class="toolbar">
+        <h3>Repairing</h3>
+        <div class="toolbar-actions">
+          <input id="repairSearch" class="form-input" placeholder="Search…">
+          <select id="repairStatusFilter" class="form-input">
+            <option value="">All Status</option>
+            <option>Received</option><option>In Progress</option><option>Ready</option><option>Delivered</option>
+          </select>
+          <button class="btn btn-primary" id="btnAddRepair">+ New Repair <span class="kbd">F10</span></button>
+        </div>
+      </div>
+      <div class="card"><div id="repairsTable"></div></div>
     </section>
 
-    <!-- REPORTS -->
-    <section id="module-reports" class="module">
-      <div class="card"><div class="toolbar"><h3>📊 Reports &amp; P&amp;L</h3><div class="toolbar-actions"><select id="reportType" class="form-input"><option value="sales">Sales</option><option value="pl">P&amp;L Summary</option><option value="purchases">Purchases</option><option value="expenses">Expenses</option><option value="customer">Customers</option></select><input id="reportFrom" type="date" class="form-input"><input id="reportTo" type="date" class="form-input"><input id="reportSearch" class="form-input" placeholder="Search invoice / customer…"><button id="btnRunReport" class="btn btn-primary">Run Report</button><button id="btnPrintReport" class="btn btn-ghost">🖨️ Print</button></div></div><div id="plSummary" class="stats-grid" style="display:none"></div><div id="reportOutput"><div class="empty">Select type + Run Report.</div></div></div>
+    <!-- ============ MODULE: CUSTOMERS ============ -->
+    <section class="module" id="module-customers">
+      <div class="toolbar">
+        <h3>Customers</h3>
+        <div class="toolbar-actions">
+          <input id="custSearch" class="form-input" placeholder="Search customers…">
+          <button class="btn btn-primary" id="btnAddCustomer">+ Add Customer</button>
+        </div>
+      </div>
+      <div class="card">
+        <div id="customersTable"></div>
+        <div class="bulk-bar" id="custBulkBar" style="display:none">
+          <span><b id="custSelCount">0</b> selected</span>
+          <button class="btn btn-danger btn-sm" onclick="bulkDeleteCustomers()">Delete Selected</button>
+        </div>
+      </div>
     </section>
 
-    <!-- TRANSACTIONS -->
-    <section id="module-transactions" class="module"><div class="card"><h3>🔁 All Transactions (Sales + Purchases + Expenses)</h3><div id="transactionsTable"><div class="empty">No transactions.</div></div></div></section>
+    <!-- ============ MODULE: SUPPLIERS ============ -->
+    <section class="module" id="module-suppliers">
+      <div class="toolbar">
+        <h3>Suppliers</h3>
+        <div class="toolbar-actions">
+          <input id="supplierSearch" class="form-input" placeholder="Search suppliers…">
+          <select id="supplierCategoryFilter" class="form-input"><option value="">All Categories</option></select>
+          <button class="btn btn-primary" id="btnAddSupplier">+ Add Supplier</button>
+        </div>
+      </div>
+      <div class="card"><div id="suppliersTable"></div></div>
+    </section>
 
-    <!-- SETTINGS -->
-    <section id="module-settings" class="module"><div class="card"><h3>👨‍💼 Staff</h3><div id="staffTable"><div class="empty">No staff.</div></div></div><div class="card"><h3>📜 Activity Logs</h3><div id="logsTable"><div class="empty">No logs.</div></div></div></section>
+    <!-- ============ MODULE: CREDIT ============ -->
+    <section class="module" id="module-credit">
+      <div class="toolbar">
+        <h3>Credit / Udhar</h3>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" id="btnPrintCreditAll">🖨️ Print All</button>
+        </div>
+      </div>
+
+      <div class="tabs" id="creditDateTabs">
+        <button class="active" data-range="all">All</button>
+        <button data-range="today">Today</button>
+        <button data-range="week">This Week</button>
+        <button data-range="month">This Month</button>
+      </div>
+      <div class="tabs" id="creditStatusTabs">
+        <button class="active" data-status="all">All</button>
+        <button data-status="pending">Pending</button>
+        <button data-status="received">Received</button>
+      </div>
+
+      <div class="card"><h4>Customer-wise Summary</h4><div id="creditSummaryTable"></div></div>
+      <div class="card"><h4>Pending Invoices</h4><div id="creditTable"></div></div>
+      <div class="card"><h4>Recent Recoveries</h4><div id="recoveriesTable"></div></div>
+    </section>
+
+    <!-- ============ MODULE: EXPENSES ============ -->
+    <section class="module" id="module-expenses">
+      <div class="toolbar">
+        <h3>Expenses</h3>
+        <div class="toolbar-actions">
+          <input type="date" id="expFilterFrom" class="form-input">
+          <input type="date" id="expFilterTo" class="form-input">
+          <select id="expFilterCat" class="form-input"><option value="">All</option></select>
+          <button class="btn btn-ghost" id="btnFilterExpenses">Filter</button>
+          <button class="btn btn-primary" id="btnAddExpense">+ Add Expense <span class="kbd">F9</span></button>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-icon blue">📅</div><div><strong id="expToday">PKR 0</strong><small>Today</small></div></div>
+        <div class="stat"><div class="stat-icon green">🗓️</div><div><strong id="expWeek">PKR 0</strong><small>This Week</small></div></div>
+        <div class="stat"><div class="stat-icon orange">📆</div><div><strong id="expMonth">PKR 0</strong><small>This Month</small></div></div>
+        <div class="stat"><div class="stat-icon red">💸</div><div><strong id="expTotal">PKR 0</strong><small>Total</small></div></div>
+      </div>
+
+      <div class="card"><div id="expensesTable"></div></div>
+    </section>
+
+    <!-- ============ MODULE: REPORTS ============ -->
+    <section class="module" id="module-reports">
+      <div class="toolbar">
+        <h3>Reports & P&L</h3>
+        <div class="toolbar-actions">
+          <button class="btn btn-ghost" id="btnPrintReport">🖨️ Print</button>
+          <button class="btn btn-primary" id="btnRunReport">Run Report</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="form-grid">
+          <div class="field"><label>Report Type</label>
+            <select id="reportType">
+              <option value="sales">Sales</option>
+              <option value="pl">Profit & Loss</option>
+              <option value="purchases">Purchases</option>
+              <option value="expenses">Expenses</option>
+              <option value="customer">Customers</option>
+            </select>
+          </div>
+          <div class="field"><label>From</label><input type="date" id="reportFrom"></div>
+          <div class="field"><label>To</label><input type="date" id="reportTo"></div>
+          <div class="field"><label>Search</label><input id="reportSearch" placeholder="Search…"></div>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="plSummary" style="display:none"></div>
+      <div class="card"><div id="reportOutput"></div></div>
+    </section>
+
+    <!-- ============ MODULE: TRANSACTIONS ============ -->
+    <section class="module" id="module-transactions">
+      <div class="toolbar"><h3>Transactions</h3></div>
+      <div class="card"><div id="transactionsTable"></div></div>
+    </section>
+
+    <!-- ============ MODULE: SETTINGS ============ -->
+    <section class="module" id="module-settings">
+      <div class="toolbar"><h3>Staff & Logs</h3></div>
+      <div class="card"><h4>Staff Members</h4><div id="staffTable"></div></div>
+      <div class="card"><h4>Activity Logs</h4><div id="logsTable"></div></div>
+    </section>
+
   </main>
-</div>
 
-<button class="floating-help" title="Shortcuts (F1)" onclick="document.dispatchEvent(new KeyboardEvent('keydown',{key:'F1'}))">?</button>
+  <!-- ============ MODAL ============ -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <header class="modal-header">
+        <h3 id="modalTitle">Modal</h3>
+        <button class="icon-btn" onclick="closeModal()">×</button>
+      </header>
+      <div class="modal-body" id="modalBody"></div>
+      <footer class="modal-footer">
+        <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+        <button class="btn btn-primary" id="modalConfirm">Save</button>
+      </footer>
+    </div>
+  </div>
 
-<!-- MODAL -->
-<div id="modalBackdrop" class="modal-backdrop"><div class="modal">
-  <div class="modal-header"><h3 id="modalTitle">Modal</h3><button class="icon-btn" onclick="document.getElementById('modalCancel').click()">✕</button></div>
-  <div id="modalBody" class="modal-body"></div>
-  <div class="modal-footer"><button id="modalCancel" class="btn btn-ghost">Cancel</button><button id="modalConfirm" class="btn btn-primary">Save</button></div>
-</div></div>
-<div id="toastHost" class="toast-host"></div>
+  <!-- Toast host -->
+  <div id="toastHost" class="toast-host"></div>
 
-<!-- Dark mode + per-section theme (HTML-level, independent backup) -->
-<script>
-(function(){
-  var saved = localStorage.getItem('bm_theme');
-  if(saved==='dark') document.documentElement.setAttribute('data-theme','dark');
-  function syncBtn(){ var b=document.getElementById('themeToggle'); if(b) b.textContent = document.documentElement.getAttribute('data-theme')==='dark' ? '☀️' : '🌙'; }
-  syncBtn();
-  document.getElementById('themeToggle')?.addEventListener('click', function(){
-    var dark = document.documentElement.getAttribute('data-theme')==='dark';
-    if(dark){ document.documentElement.removeAttribute('data-theme'); localStorage.setItem('bm_theme','light'); }
-    else { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('bm_theme','dark'); }
-    syncBtn();
-  });
-  document.querySelectorAll('.nav-item[data-module]').forEach(function(btn){ btn.addEventListener('click', function(){ document.body.dataset.module = btn.dataset.module; }); });
-  // posTaxEnabled: JS reads .checked — make the select behave like a checkbox
-  var taxSel = document.getElementById('posTaxEnabled');
-  if(taxSel){ Object.defineProperty(taxSel,'checked',{get:function(){return this.value==='true'},set:function(v){this.value=v?'true':'false'}}); }
-})();
-</script>
-<script type="module" src="./dashboard.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
