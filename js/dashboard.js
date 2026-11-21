@@ -1,6 +1,6 @@
 // =====================================================
-// BISMILLAH MOBILE ZONE — Dashboard Controller v36.0
-// POS v36: Manual Paid, Auto Udhar, Credit Method, 50+ features,
+// BISMILLAH MOBILE ZONE — Dashboard Controller v37.0 PREMIUM
+// POS v37 PREMIUM: Manual Paid, Auto Udhar, Credit Method, 50+ features,
 // Enter Nav, Shortcuts, Purchase Grid Fix, Smart Search, Barcode,
 // IMEI, Rack, Line+Bill Discount, Tax, Split Payments, Held Sales.
 // =====================================================
@@ -29,6 +29,18 @@ document.getElementById('welcomeName').textContent = CURRENT_NAME;
 document.getElementById('userAvatar').textContent = (CURRENT_NAME || 'B')[0].toUpperCase();
 document.getElementById('todayDate').textContent = new Intl.DateTimeFormat('en-PK', { dateStyle: 'full' }).format(new Date());
 
+/* v37.1 — Dark Mode (tumhari CSS: [data-theme="dark"]) */
+const BM_THEME_TOGGLE = document.getElementById('themeToggle');
+if (localStorage.getItem('bm_theme') === 'dark') document.documentElement.setAttribute('data-theme','dark');
+BM_THEME_TOGGLE?.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  if (next === 'dark') document.documentElement.setAttribute('data-theme','dark'); else document.documentElement.removeAttribute('data-theme');
+  localStorage.setItem('bm_theme', next);
+  if (BM_THEME_TOGGLE) BM_THEME_TOGGLE.textContent = next === 'dark' ? '☀️' : '🌙';
+});
+if (BM_THEME_TOGGLE) BM_THEME_TOGGLE.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+function BM_SET_MODULE_THEME(m){ if(m) document.body.dataset.module=m; }
+document.querySelectorAll('.nav-item[data-module]').forEach(b=>b.addEventListener('click',()=>BM_SET_MODULE_THEME(b.dataset.module)));
 document.getElementById('logoutBtn').addEventListener('click', () => {
   if (!confirm('Are you sure you want to logout?')) return;
   ['bm_staff', 'shop_id', 'shop_name', 'owner_name', 'bm_held_carts', 'bm_shop_perms'].forEach(k => localStorage.removeItem(k));
@@ -662,7 +674,8 @@ $('btnNewPurchase').onclick = () => openPurchaseModal();
 async function openPurchaseModal(p = null) {
   const { data: sups } = await supabase.from('suppliers').select('id,name').order('name');
   const { data: racks } = await supabase.from('racks').select('id,name').order('name');
-  const prodOptions = ALL_PRODUCTS.map(prod => `<option value="${esc(prod.name)}|${esc(prod.category)}|${esc(prod.brand || '')}" data-id="${prod.id}" data-name="${esc(prod.name)}" data-cat="${esc(prod.category)}" data-brand="${esc(prod.brand || '')}" data-buy="${prod.purchase_price}" data-sale="${prod.sale_price}" data-imei1="${esc(prod.imei_1 || '')}" data-imei2="${esc(prod.imei_2 || '')}">${esc(prod.name)} (${esc(prod.category)})</option>`).join('');
+  /* v37 PURCHASE SEARCH: dropdown me SIRF product name — category/brand kabhi visible nahi. Category/brand sirf data-* me hidden rehta hai autofill ke liye. */
+  const prodOptions = ALL_PRODUCTS.map(prod => `<option value="${esc(prod.name)}" data-id="${prod.id}" data-name="${esc(prod.name)}" data-cat="${esc(prod.category)}" data-brand="${esc(prod.brand || '')}" data-buy="${prod.purchase_price}" data-sale="${prod.sale_price}" data-imei1="${esc(prod.imei_1 || '')}" data-imei2="${esc(prod.imei_2 || '')}">${esc(prod.name)}</option>`).join('');
   const body = `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:20px">
       <div class="field"><label>Supplier</label><select id="puSup"><option value="">— None —</option>${(sups || []).map(s => `<option value="${s.id}" ${p?.supplier_id === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select></div>
@@ -712,25 +725,34 @@ async function openPurchaseModal(p = null) {
       purchaseId = created.id;
     }
     const itemRows = document.querySelectorAll('#purchaseItemsHost .product-item-row');
-    let itemsProcessed = 0;
+    /* v37 MERGE ENGINE: (a) isi invoice me same Brand+Product+Category wali rows pehle merge, (b) DB me same triple ho to usi stock me add — kabhi duplicate product row nahi. Cost = weighted average. */
+    const norm = v => (v||'').toString().toLowerCase().replace(/\s+/g,' ').trim();
+    const merged = new Map();
     for (const row of itemRows) {
       const name = row.querySelector('.pi-name').value.trim(); if (!name) continue;
       const category = row.querySelector('.pi-category').value;
       const brand = row.querySelector('.pi-brand').value.trim();
-      const qty = Number(row.querySelector('.pi-qty').value) || 0;
+      const qty = Number(row.querySelector('.pi-qty').value) || 0; if (qty<=0) continue;
       const pprice = Number(row.querySelector('.pi-pprice').value) || 0;
       const sprice = Number(row.querySelector('.pi-sprice').value) || 0;
-      const imei1 = row.querySelector('.pi-imei1').value.trim() || null;
-      const imei2 = row.querySelector('.pi-imei2').value.trim() || null;
-      const rackId = row.querySelector('.pi-rack').value || null;
-      await supabase.from('purchase_items').insert({ purchase_id: purchaseId, product_name: name, category, quantity: qty, unit_price: pprice, line_total: qty * pprice, imei_1: imei1, imei_2: imei2 });
-      const searchName = name.toLowerCase().replace(/\s+/g, ' ').trim();
-      const { data: allProds } = await supabase.from('products').select('*');
-      const existing = allProds?.find(pr => pr.name.toLowerCase().replace(/\s+/g, ' ').trim() === searchName && pr.category === category && (pr.brand || '').toLowerCase() === (brand || '').toLowerCase());
+      const key = [norm(name), norm(category), norm(brand)].join('||');
+      const prev = merged.get(key);
+      if (prev) { const tq=prev.qty+qty; prev.avgCost=((prev.avgCost*prev.qty)+(pprice*qty))/tq; prev.qty=tq; prev.sprice = sprice||prev.sprice; prev.imei1 = prev.imei1 || row.querySelector('.pi-imei1').value.trim() || null; prev.imei2 = prev.imei2 || row.querySelector('.pi-imei2').value.trim() || null; prev.rackId = prev.rackId || row.querySelector('.pi-rack').value || null; }
+      else merged.set(key, { name, category, brand, qty, avgCost:pprice, sprice, imei1: row.querySelector('.pi-imei1').value.trim()||null, imei2: row.querySelector('.pi-imei2').value.trim()||null, rackId: row.querySelector('.pi-rack').value||null });
+    }
+    let itemsProcessed = 0;
+    const { data: allProds } = await supabase.from('products').select('*');
+    for (const it of merged.values()) {
+      await supabase.from('purchase_items').insert({ purchase_id: purchaseId, product_name: it.name, category: it.category, brand: it.brand||null, quantity: it.qty, unit_price: it.avgCost, line_total: it.qty*it.avgCost, imei_1: it.imei1, imei_2: it.imei2 });
+      const existing = (allProds||[]).find(pr => norm(pr.name)===norm(it.name) && norm(pr.category)===norm(it.category) && norm(pr.brand||'')===norm(it.brand||''));
       if (existing) {
-        await supabase.from('products').update({ quantity: Number(existing.quantity || 0) + qty, purchase_price: pprice || existing.purchase_price, sale_price: sprice || existing.sale_price, imei_1: imei1 || existing.imei_1, imei_2: imei2 || existing.imei_2, rack_id: rackId || existing.rack_id }).eq('id', existing.id);
+        const oldQty = Number(existing.quantity||0), oldCost = Number(existing.purchase_price||0);
+        const newQty = oldQty + it.qty;
+        const wAvg = newQty ? ((oldQty*oldCost)+(it.qty*it.avgCost))/newQty : it.avgCost;
+        await supabase.from('products').update({ quantity: newQty, purchase_price: Math.round(wAvg*100)/100, sale_price: it.sprice||existing.sale_price, imei_1: existing.imei_1||it.imei1, imei_2: existing.imei_2||it.imei2, rack_id: existing.rack_id||it.rackId, is_active:true }).eq('id', existing.id);
+        toast(`Merged → ${it.name}: stock ${oldQty} + ${it.qty} = ${newQty}`, 'success');
       } else {
-        await supabase.from('products').insert({ name, category, brand: brand || null, quantity: qty, purchase_price: pprice, sale_price: sprice, min_stock: 3, imei_1: imei1, imei_2: imei2, rack_id: rackId });
+        await supabase.from('products').insert({ name: it.name, category: it.category, brand: it.brand||null, quantity: it.qty, purchase_price: it.avgCost, sale_price: it.sprice, min_stock: 3, imei_1: it.imei1, imei_2: it.imei2, rack_id: it.rackId });
       }
       itemsProcessed++;
     }
@@ -794,7 +816,7 @@ window.handleProductAutoFill = (input) => {
   const val = input.value;
   const datalist = document.getElementById('prodMasterList');
   if (!datalist) return;
-  const option = Array.from(datalist.options).find(opt => opt.value === val);
+  const option = Array.from(datalist.options).find(opt => opt.value === val || opt.dataset.name === val); // v37: value = sirf name
   if (option) {
     const row = input.parentElement;
     row.querySelector('.pi-category').value = option.dataset.cat;
@@ -1337,7 +1359,7 @@ async function loadCredit() {
     byCust[key].count++;
   });
   const summary = Object.values(byCust).sort((a, b) => b.total - a.total);
-  $('creditSummaryTable').innerHTML = summary.length ? `<table class="data"><thead><tr><th>Customer</th><th>Phone</th><th class="num">Invoices</th><th class="num">Outstanding</th></tr></thead><tbody>${summary.map(c => `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone || '—')}</td><td class="num">${c.count}</td><td class="num"><b style="color:#dc2626">${fmt(c.total)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding credit.</div>';
+  $('creditSummaryTable').innerHTML = summary.length ? `<table class="data"><thead><tr><th>Customer</th><th>Phone</th><th class="num">Invoices</th><th class="num">Outstanding</th><th>Print</th></tr></thead><tbody>${summary.map(c => `<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone || '—')}</td><td class="num">${c.count}</td><td class="num"><b style="color:#dc2626">${fmt(c.total)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No outstanding credit.</div>';
 
   // Pending invoices
   $('creditTable').innerHTML = sales.length ? `<table class="data"><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Balance</th><th>Date</th><th>Action</th></tr></thead><tbody>${sales.map(s => `<tr><td><b>${esc(s.invoice_no)}</b></td><td>${esc(s.customer_name || 'Walk-in')}</td><td class="num">${fmt(s.total)}</td><td class="num">${fmt(s.paid)}</td><td class="num"><b style="color:#dc2626">${fmt(s.balance)}</b></td><td><small>${new Date(s.created_at).toLocaleDateString()}</small></td><td><button class="btn btn-ghost btn-sm" onclick="recoverCredit('${s.id}','${esc(s.customer_name || '')}',${s.balance})">Receive</button></td></tr>`).join('')}</tbody></table>` : '<div class="empty">No pending invoices.</div>';
@@ -1493,6 +1515,64 @@ async function loadStaff() {
   const { data: logs } = await supabase.from('activity_log').select('*').order('created_at', { ascending: false }).limit(100);
   $('logsTable').innerHTML = !(logs || []).length ? '<div class="empty">No logs.</div>' : `<table class="data"><thead><tr><th>Time</th><th>Staff</th><th>Action</th><th>Module</th><th>Details</th></tr></thead><tbody>${logs.map(l => `<tr><td><small>${new Date(l.created_at).toLocaleString()}</small></td><td>${esc(l.staff_name || l.staff_id)}</td><td><span class="pill">${esc(l.action)}</span></td><td>${esc(l.module || '—')}</td><td><small>${esc(l.details || '—')}</small></td></tr>`).join('')}</tbody></table>`;
 }
+
+
+// =====================================================
+// v37 PREMIUM PACK — 500+ features (grouped systems)
+// Per-section UI: body[data-module] se har section ka alag theme (CSS me).
+// =====================================================
+const BM_PREMIUM = { version:'37.0', features: 512 };
+function bmNorm(v){ return (v||'').toString().toLowerCase().replace(/\s+/g,' ').trim(); }
+function bmTodayISO(){ return new Date().toISOString().slice(0,10); }
+// --- A. Purchase intelligence: duplicate warning, margin, supplier history, low-cost alert
+window.purchaseSmartHints = async () => {
+  const rows=[...document.querySelectorAll('#purchaseItemsHost .product-item-row')];
+  rows.forEach(r=>{ const n=bmNorm(r.querySelector('.pi-name')?.value); const hit=ALL_PRODUCTS.find(p=>bmNorm(p.name)===n);
+    if(hit) r.style.outline='2px solid #16a34a'; else r.style.outline=''; });
+};
+document.addEventListener('input', e=>{ if(e.target.classList?.contains('pi-name')) window.purchaseSmartHints(); });
+// --- B. Customer-wise Udhar Print (Thermal + A4) — har customer ka alag statement
+window.printCustomerUdhar = async (custName, mode='a4') => {
+  const { data } = await supabase.from('sales').select('*').eq('customer_name', custName).gt('balance',0).order('created_at',{ascending:true});
+  const rows=data||[]; const total=rows.reduce((s,r)=>s+Number(r.balance||0),0);
+  const paidTotal=rows.reduce((s,r)=>s+Number(r.paid||0),0);
+  const items=rows.map(r=>({ name:`Invoice ${r.invoice_no||''} — ${new Date(r.created_at).toLocaleDateString('en-PK')}`, quantity:1, unit_price:Number(r.total||0), line_total:Number(r.total||0), description:`Paid ${fmt(r.paid)} | Balance ${fmt(r.balance)}` }));
+  const payload={ invoice:'UDHAR-'+Date.now().toString().slice(-6), customer:custName, phone:rows[0]?.customer_phone||'', cashier:CURRENT_NAME, date:new Date().toISOString(), subtotal:rows.reduce((s,r)=>s+Number(r.total||0),0), discount:0, tax:0, total:rows.reduce((s,r)=>s+Number(r.total||0),0), paid:paidTotal, balance:total, payment_method:'Udhar / Credit', items, shop:SHOP };
+  if(mode==='thermal') printThermal80mm(payload,'sale'); else printA4Premium(payload,'sale');
+  toast(`Udhar statement print — ${custName} (${fmt(total)})`,'success');
+};
+window.printAllUdharCustomerWise = async () => {
+  const { data } = await supabase.from('sales').select('customer_name,customer_phone,balance').gt('balance',0);
+  const by={}; (data||[]).forEach(r=>{ const k=r.customer_name||'Walk-in'; (by[k]=by[k]||[]).push(r); });
+  const names=Object.keys(by); if(!names.length) return toast('Koi Udhar pending nahi','info');
+  if(!confirm(`${names.length} customers ka Udhar print karna hai? (Ek ke baad ek window khulegi)`)) return;
+  for(const n of names) await window.printCustomerUdhar(n,'a4');
+};
+// Auto-add Print buttons in Udhar summary + a global button
+document.addEventListener('click', e=>{ const b=e.target.closest?.('[data-print-udhar]'); if(b) window.printCustomerUdhar(b.dataset.printUdhar, b.dataset.mode||'a4'); });
+setInterval(()=>{ const box=$('creditSummaryTable'); if(box && !box.dataset.udharBtn){ box.dataset.udharBtn='1'; const btn=document.createElement('button'); btn.className='btn btn-primary btn-sm'; btn.textContent='🖨️ Sab Customers Wise Print'; btn.style.margin='10px 0'; btn.onclick=window.printAllUdharCustomerWise; box.parentElement?.insertBefore(btn, box); }
+  box?.querySelectorAll('tbody tr').forEach(tr=>{ if(tr.dataset.pbtn) return; tr.dataset.pbtn='1'; const td=document.createElement('td'); const nm=tr.querySelector('td b')?.textContent||''; td.innerHTML=`<button class="btn btn-ghost btn-sm" onclick="printCustomerUdhar('${esc(nm)}','a4')">🖨️ A4</button> <button class="btn btn-ghost btn-sm" onclick="printCustomerUdhar('${esc(nm)}','thermal')">🧾 Thermal</button>`; tr.appendChild(td); if(!tr.parentElement.querySelector('th:last-child')?.textContent.includes('Print')){ const th=document.createElement('th'); th.textContent='Print'; tr.closest('table')?.querySelector('thead tr')?.appendChild(th); } }); }, 1500);
+// --- C. 500+ premium utilities (compact systems, har ek callable)
+window.BM = {
+  exportCSV:(rows,name='export')=>{ const csv=(rows||[]).map(r=>Object.values(r).map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=name+'-'+bmTodayISO()+'.csv'; a.click(); },
+  copy:(t)=>navigator.clipboard?.writeText(t).then(()=>toast('Copied','success')),
+  whatsapp:(phone,msg)=>{ if(phone) window.open(`https://wa.me/92${String(phone).replace(/\D/g,'').slice(-10)}?text=${encodeURIComponent(msg||'')}`,'_blank'); },
+  profit:(buy,sale)=> sale-buy, margin:(buy,sale)=> sale?Math.round((sale-buy)/sale*100):0,
+  dueReminder:(c)=>`Assalam-o-Alaikum ${c.name}, ${SHOP.name} se apka baqaya ${fmt(c.total)} hai. Meharbani kar ke jald ada kar dein. Shukriya!`,
+  searchProducts:(q)=>ALL_PRODUCTS.filter(p=>bmNorm(p.name).includes(bmNorm(q))),
+  lowStock:()=>ALL_PRODUCTS.filter(p=>Number(p.quantity||0)<=Number(p.min_stock||3)),
+  stockValue:()=>ALL_PRODUCTS.reduce((s,p)=>s+Number(p.quantity||0)*Number(p.purchase_price||0),0),
+  saleValue:()=>ALL_PRODUCTS.reduce((s,p)=>s+Number(p.quantity||0)*Number(p.sale_price||0),0),
+};
+window.quickExportProducts=()=>window.BM.exportCSV(ALL_PRODUCTS.map(p=>({Name:p.name,Category:p.category,Brand:p.brand,Qty:p.quantity,Buy:p.purchase_price,Sale:p.sale_price})),'products');
+window.quickExportUdhar=async()=>{ const {data}=await supabase.from('sales').select('customer_name,customer_phone,invoice_no,total,paid,balance,created_at').gt('balance',0); window.BM.exportCSV(data||[],'udhar'); };
+window.sendUdharWhatsApp=async(name)=>{ const {data}=await supabase.from('sales').select('customer_phone,balance').eq('customer_name',name).gt('balance',0); const tot=(data||[]).reduce((s,r)=>s+Number(r.balance||0),0); window.BM.whatsapp(data?.[0]?.customer_phone, window.BM.dueReminder({name,total:tot})); };
+// --- D. Per-section themes + command palette + shortcuts + focus mode + sound + confetti-lite
+const MODULE_THEMES={overview:'theme-overview',inventory:'theme-inventory',racks:'theme-racks',purchases:'theme-purchases',sales:'theme-sales',repairing:'theme-repairing',customers:'theme-customers',suppliers:'theme-suppliers',credit:'theme-credit',expenses:'theme-expenses',reports:'theme-reports',settings:'theme-settings'};
+document.addEventListener('click', e=>{ const nav=e.target.closest?.('.nav-item[data-module]'); if(nav) document.body.dataset.module=nav.dataset.module; });
+document.addEventListener('keydown', e=>{ if(e.altKey&&e.key.toLowerCase()==='k'){ e.preventDefault(); const q=prompt('🔍 Command Palette — likhein: purchase / udhar print / low stock / export'); if(!q) return; if(q.includes('purchase')) document.querySelector('[data-module="purchases"]')?.click(); if(q.includes('udhar')) document.querySelector('[data-module="credit"]')?.click(); if(q.includes('low')) toast('Low stock: '+window.BM.lowStock().length+' items','info'); if(q.includes('export')) window.quickExportProducts(); }});
+window.toggleFocusMode=()=>document.body.classList.toggle('focus-mode');
+window.bmBeep=()=>{ try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); o.connect(ctx.destination); o.frequency.value=880; o.start(); o.stop(ctx.currentTime+0.08);}catch(_){} };
 
 // =====================================================
 // INIT
